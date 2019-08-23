@@ -106,17 +106,15 @@ class Stage {
      * @param {Step?} nextStep 
      */
     constructor(step, nextStep = undefined) {
-        this.dom = step.dom.cloneNode(true);
+        this.dom = step.dom;
         this.isFirstStep = step.isFirst;
         this.isLastStep = step.isLast;
         this.transitions = [];
         this.transitionDuration = 0;
+        this.nodeByIdentifier = step.nodeByIdentifier.bind(step);
         if (nextStep == null) return;
         for (let node of nextStep.dom.querySelectorAll('[transition=fade-in]')) {
-            const correspondingParent = this._findCorrespondingParent(node, this.dom);
-            node.removeAttribute("transition");
-            const ghostNode = node.cloneNode(true);
-            correspondingParent.appendChild(ghostNode);
+            const ghostNode = this._insertGhostNode(node);
             ghostNode.style.opacity = 0.0;
             this._addTransition(
                 this._getTransitionDuration(node),
@@ -126,7 +124,6 @@ class Stage {
             );
         }
         for (let node of this.dom.querySelectorAll('[transition=fade-out]')) {
-            node.removeAttribute("transition");
             const startOpacity = node.style.opacity || 1.0;
             this._addTransition(
                 this._getTransitionDuration(node),
@@ -136,12 +133,10 @@ class Stage {
             );
         }
         for (let node of nextStep.dom.querySelectorAll('[transition=draw-line]')) {
-            const correspondingParent = this._findCorrespondingParent(node, this.dom);
             const length = node.getTotalLength();
-            const ghostNode = node.cloneNode(true);
+            const ghostNode = this._insertGhostNode(node);
             ghostNode.style.strokeDasharray = length;
             ghostNode.style.strokeDashoffset = length;
-            correspondingParent.appendChild(ghostNode);
             node.removeAttribute("transition");
             this._addTransition(
                 this._getTransitionDuration(node),
@@ -159,9 +154,7 @@ class Stage {
 
             node.removeAttribute("appear-along");
 
-            const ghostNode = node.cloneNode(true);
-            const correspondingParent = this._findCorrespondingParent(node, this.dom);
-            correspondingParent.appendChild(ghostNode);
+            const ghostNode = this._insertGhostNode(node);
 
             this._addTransition(
                 this._getTransitionDuration(node),
@@ -217,6 +210,8 @@ class Stage {
                             "easeInOutQuad",
                             (dt) => { node.setAttribute(attribute, a.mixString(b, dt)) }
                         )
+                    } else if (['transition', 'transition-duration', 'transition-alignment'].includes(attribute)) {
+                        // Nothing to do
                     } else {
                         console.error(`Don't know how to handle transitions for attribute '${attribute}'`);
                     }
@@ -297,6 +292,35 @@ class Stage {
         };
         return correspondingParent;
     }
+
+    /**
+     * @param {HTMLElement} node 
+     */
+    _nextStayingChild(node) {
+        let it = node.nextElementSibling;
+        while (it != null) {
+            if (it.getAttribute("move") === "true") {
+                return it;
+            }
+            it = it.nextElementSibling;
+        }
+    }
+
+    _insertGhostNode(node) {
+        const correspondingParent = this._findCorrespondingParent(node, this.dom);
+        const ghostNode = node.cloneNode(true);
+        const referenceNode = this._nextStayingChild(node);
+        if (referenceNode != null) {
+            const refId = referenceNode.getAttribute("identifier");
+            const refNodeInDom = this.nodeByIdentifier(refId);
+            correspondingParent.insertBefore(ghostNode, refNodeInDom);
+        } else {
+            correspondingParent.appendChild(ghostNode);
+        }
+        return ghostNode
+    }
+
+
 }
 
 /**
@@ -304,6 +328,7 @@ class Stage {
  */
 export class SlideDeck {
     constructor(canvas, slideStrings) {
+        this.slideStrings = slideStrings;
         this.canvas = canvas;
         this.stages = [];
         this.visibleStage = null;
@@ -333,22 +358,28 @@ export class SlideDeck {
             this.stages.push(new Stage(stepList[i], stepList[i + 1]));
         }
     }
+
     nextSlideIndex(position) {
         return this.slideEndIndices.find((s) => s > position);
     }
+
     slideNumber(position) {
         return this.slideNumbers[Math.floor(position)];
     }
+
     firstStageForSlide(slideNumber) {
         return this.slideNumbers.findIndex((x) => x === slideNumber) || 0;
     }
+
     lastSlideNumber() {
         return this.slideNumbers[this.slideNumbers.length - 1];
     }
+
     prevSlideIndex(position) {
         // .reverse() is in-place, and we don't want to modify the original array, so hence the [...] to copy
         return [...this.slideEndIndices].reverse().find((s) => s < position);
     }
+
     render(t) {
         let i = Math.floor(t);
         let stage = this.stages[i];
@@ -363,6 +394,7 @@ export class SlideDeck {
         }
         this.renderSlideNumber(t);
     }
+
     renderSlideNumber(t) {
         const elem = document.getElementById("slide-number");
         if (elem == null) return;
@@ -370,11 +402,16 @@ export class SlideDeck {
         const total = this.lastSlideNumber();
         elem.innerText = `${number} / ${total}`;
     }
+
+    createChildDeck(canvas) {
+        return new SlideDeck(canvas, this.slideStrings);
+    }
 }
 
 export class Controller {
     constructor(slideDeck) {
         this.deck = slideDeck;
+        this.childDeck = null;
         this.currentPosition = 0.0;
         this.render = this.render.bind(this);
         this.runningAnimation = null;
@@ -384,6 +421,9 @@ export class Controller {
     render() {
         if (this.currentPosition !== this.deck.currentPosition) {
             this.deck.render(this.currentPosition);
+            if (this.childDeck != null) {
+                this.childDeck.render(this.currentPosition);
+            }
         }
         requestAnimationFrame(this.render);
     }
@@ -406,6 +446,7 @@ export class Controller {
             this.startAnimationTo(targetPosition, duration);
         }
     }
+
     prevStage() {
         this._cancelRunningAnimation();
         const targetPosition = Math.max(0, Math.ceil(this.currentPosition) - 1);
@@ -416,18 +457,21 @@ export class Controller {
             this.startAnimationTo(targetPosition, duration);
         }
     }
+
     nextSlide() {
         this._cancelRunningAnimation();
         const targetPosition = this.deck.nextSlideIndex(this.currentPosition);
         if (targetPosition == null) return;
         this.setPosition(targetPosition);
     }
+
     prevSlide() {
         this._cancelRunningAnimation();
         const targetPosition = this.deck.prevSlideIndex(this.currentPosition);
         if (targetPosition == null) return;
         this.setPosition(targetPosition);
     }
+
     /**
      * @param {number} slideNumber 
      */
@@ -435,6 +479,7 @@ export class Controller {
         const stageIdx = this.deck.firstStageForSlide(slideNumber);
         this.setPosition(stageIdx);
     }
+
     startAnimationTo(targetPosition, duration) {
         const startTime = Date.now();
         const startPosition = this.currentPosition;
@@ -476,12 +521,21 @@ export class Controller {
         }
         return wasRunning;
     }
+
+    createChildDeck(canvas) {
+        this.childDeck = this.deck.createChildDeck(canvas);
+        this.childDeck.render(this.currentPosition);
+    }
+    removeChildDeck() {
+        this.childDeck = null;
+    }
 }
 
 
 export class KeyboardController {
     constructor(controller, canvasNode, fullscreenNode) {
         this.controller = controller;
+        this.hasChild = false;
         this.canvasNode = canvasNode;
         this.fullscreenNode = fullscreenNode;
         this.fullscreenHandler = this.fullscreenHandler.bind(this);
@@ -510,9 +564,23 @@ export class KeyboardController {
             }
         } else if (event.key === 'f') {
             this.goFullscreen();
+        } else if (event.key === 'c') {
+            // Open a child window
+            if (!this.hasChild) {
+                const childWindow = window.open("", "Author view");
+                const childContainer = document.createElement('div');
+                childWindow.document.body.appendChild(childContainer);
+                this.controller.createChildDeck(childContainer);
+                this.hasChild = true;
+                childWindow.addEventListener('unload', () => {
+                    this.controller.removeChildDeck();
+                    this.hasChild = false;
+                });
+            }
         } else if (event.key === 'Home') {
             this.controller.setPosition(0);
         } else if (event.key === 'g') {
+            // Go to slide ...
             let number = '';
             const handler = (event) => {
                 if ('0123456789'.includes(event.key)) {

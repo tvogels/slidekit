@@ -54,3 +54,7 @@ body {
     font-size: 16pt;
     opacity: 0.25;
 }
+
+tspan {
+    white-space: pre;
+}
