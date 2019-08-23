@@ -20,4 +20,6 @@ Slide crafting utility for nerds.
 - `transition=fade-out`
 - `transition=draw-line`, for paths, draw them from start to finish
 - `move=true`, enable magic move for this object
+- `transition-duration=0.5` seconds
+- `transition-alignment=0.0` between 0 and 1. where to start this transition if the total slide transition is longer
 - `appear-along=PathId`,

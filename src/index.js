@@ -95,7 +95,7 @@ class Stage {
             ghostNode.style.opacity = 0.0;
             this._addTransition(
                 this._getTransitionDuration(node),
-                1.0,
+                this._getTransitionAlignment(node, 1.0),
                 "easeInCubic",
                 (dt) => { ghostNode.style.opacity = linearMix(0.0, node.style.opacity || 1.0, dt) }
             );
@@ -105,7 +105,7 @@ class Stage {
             const startOpacity = node.style.opacity || 1.0;
             this._addTransition(
                 this._getTransitionDuration(node),
-                0.0,
+                this._getTransitionAlignment(node, 0.0),
                 "easeOutCubic",
                 (dt) => { node.style.opacity = linearMix(startOpacity, 0.0, dt) }
             );
@@ -120,7 +120,7 @@ class Stage {
             node.removeAttribute("transition");
             this._addTransition(
                 this._getTransitionDuration(node),
-                1.0,
+                this._getTransitionAlignment(node, 1.0),
                 "easeInOutQuad",
                 (dt) => { ghostNode.style.strokeDashoffset = linearMix(length, 0.0, dt) }
             );
@@ -140,7 +140,7 @@ class Stage {
 
             this._addTransition(
                 this._getTransitionDuration(node),
-                1.0,
+                this._getTransitionAlignment(node, 1.0),
                 "easeInOutQuad",
                 (dt) => {
                     ghostNode.setAttribute('opacity', dt > 0 ? 1 : 0);
@@ -172,14 +172,14 @@ class Stage {
                         let eq = snap(node).equal(attribute, nextValue);
                         this._addTransition(
                             this._getTransitionDuration(node),
-                            0.5,
+                            this._getTransitionAlignment(node, 0.5),
                             "easeInOutQuad",
                             (dt) => { node.setAttribute(attribute, eq.f(linearMix(eq.from, eq.to, dt))) }
                         )
                     } else if (['x', 'y', 'opacity', 'rx', 'height', 'width'].includes(attribute)) {
                         this._addTransition(
                             this._getTransitionDuration(node),
-                            0.5,
+                            this._getTransitionAlignment(node, 0.5),
                             "easeInOutQuad",
                             (dt) => { node.setAttribute(attribute, linearMix(parseFloat(currentValue), parseFloat(nextValue), dt)) }
                         )
@@ -188,7 +188,7 @@ class Stage {
                         const b = new CSSTransform(nextValue);
                         this._addTransition(
                             this._getTransitionDuration(node),
-                            0.5,
+                            this._getTransitionAlignment(node, 0.5),
                             "easeInOutQuad",
                             (dt) => { node.setAttribute(attribute, a.mixString(b, dt)) }
                         )
@@ -237,7 +237,20 @@ class Stage {
      * @param {HTMLElement} node 
      */
     _getTransitionDuration(node) {
-        return parseFloat(node.getAttribute("duration")) || 0.5;
+        return parseFloat(node.getAttribute("transition-duration")) || 0.5;
+    }
+
+    /**
+     * Read transition alignment from an SVG element or resort to the default
+     * @param {HTMLElement} node
+     * @param {number} defaultValue
+     */
+    _getTransitionAlignment(node, defaultValue) {
+        let alignment = parseFloat(node.getAttribute("transition-alignment"));
+        if (!isFinite(alignment)) {
+            alignment = defaultValue;
+        }
+        return alignment;
     }
 
     /**
