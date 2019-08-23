@@ -294,18 +294,10 @@ class Stage {
     }
 
     /**
-     * @param {HTMLElement} node 
+     * Insert a ghost element in our dom tree that is supposed to appear on the next slide
+     * We are careful about positioning to get occlusions right.
+     * @param {HTMLELement} node from another dom tree
      */
-    _nextStayingChild(node) {
-        let it = node.nextElementSibling;
-        while (it != null) {
-            if (it.getAttribute("move") === "true") {
-                return it;
-            }
-            it = it.nextElementSibling;
-        }
-    }
-
     _insertGhostNode(node) {
         const correspondingParent = this._findCorrespondingParent(node, this.dom);
         const ghostNode = node.cloneNode(true);
@@ -320,7 +312,19 @@ class Stage {
         return ghostNode
     }
 
-
+    /**
+     * Utility used by insertGhostNode to find the next node that 'matters' in terms of occlusions for ghost nodes.
+     * @param {HTMLElement} node 
+     */
+    _nextStayingChild(node) {
+        let it = node.nextElementSibling;
+        while (it != null) {
+            if (it.getAttribute("move") === "true") {
+                return it;
+            }
+            it = it.nextElementSibling;
+        }
+    }
 }
 
 /**
