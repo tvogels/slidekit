@@ -221,7 +221,7 @@ class Stage {
         this.transitions.push(t => {
             const leftOverTime = this.duration() - duration;
             const startOffset = leftOverTime * alignment;
-            transition(easing[easeFn](Math.min(1, Math.max((t * this.duration() - startOffset) / duration))))
+            transition(easing[easeFn](Math.min(1, Math.max(0, (t * this.duration() - startOffset) / duration))))
         });
     }
 
