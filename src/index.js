@@ -126,13 +126,12 @@ class Stage {
             );
         }
         for (let node of nextStep.dom.querySelectorAll('[appear-along]')) {
-            const path = nextStep.dom.getElementById(node.getAttribute("appear-along"));
-            const sp = snap(path);
-            const length = sp.getTotalLength();
-            const endpoint = sp.getPointAtLength(length);
-            const endangle = getAngleAtPath(sp, 1.0, length);
-            const origTransform = node.getAttribute("transform") || "";
-            // path.style.display = 'none';
+            const path = snap(nextStep.dom.getElementById(node.getAttribute("appear-along")));
+            const totalPathLength = path.getTotalLength();
+            const endpoint = path.getPointAtLength(totalPathLength);
+            const angleAtEndpoint = getAngleAtPath(path, 1.0, totalPathLength);
+            const originalTransform = node.getAttribute("transform") || "";
+
             node.removeAttribute("appear-along");
 
             const ghostNode = node.cloneNode(true);
@@ -145,11 +144,11 @@ class Stage {
                 "easeInOutQuad",
                 (dt) => {
                     ghostNode.setAttribute('opacity', dt > 0 ? 1 : 0);
-                    const pos = sp.getPointAtLength(dt * length);
+                    const pos = path.getPointAtLength(dt * totalPathLength);
                     pos.x -= endpoint.x;
                     pos.y -= endpoint.y;
-                    const angle = getAngleAtPath(sp, dt, length) - endangle;
-                    const transform = `${origTransform} translate(${pos.x}, ${pos.y}) rotate(${angle}, ${endpoint.x}, ${endpoint.y})`;
+                    const angle = getAngleAtPath(path, dt, totalPathLength) - angleAtEndpoint;
+                    const transform = `${originalTransform} translate(${pos.x}, ${pos.y}) rotate(${angle}, ${endpoint.x}, ${endpoint.y})`;
                     ghostNode.setAttribute('transform', transform);
                 }
             );
@@ -159,13 +158,7 @@ class Stage {
             const id = node.getAttribute("identifier");
             const nodeInNextStage = nextStep.nodeByIdentifier(id);
             if (nodeInNextStage == null) continue; // no match ... too bad
-            const attributes = new Set();
-            for (let attribute of nodeInNextStage.attributes) {
-                attributes.add(attribute.name);
-            }
-            for (let attribute of node.attributes) {
-                attributes.add(attribute.name);
-            }
+            const attributes = new Set([...node.getAttributeNames(), ...nodeInNextStage.getAttributeNames()]);
             for (let attribute of attributes) {
                 let defaultValue = { "opacity": 1, "transform": "" }[attribute];
                 if (defaultValue == null) {
