@@ -23,3 +23,4 @@ Slide crafting utility for nerds.
 - `transition-duration=0.5` seconds
 - `transition-alignment=0.0` between 0 and 1. where to start this transition if the total slide transition is longer
 - `appear-along=PathId`,
+- `youtube=55bjCP9Fy5I` on a `rect` will embed a YT video

@@ -45,12 +45,6 @@ class Step {
                 node.removeAttribute("move");
             }
         }
-        for (let node of domNode.querySelectorAll('[scale]')) {
-            // This is not a good place for this. Should be done in pre-processing (Python) probably
-            const scale = node.getAttribute('scale');
-            node.setAttribute("transform", node.getAttribute("transform") + " " + `scale(${scale})`);
-            node.removeAttribute("scale");
-        }
     }
 
     _buildIndex() {
@@ -69,6 +63,37 @@ class Step {
         return this.index[identifier];
     }
 }
+
+
+function preprocessSlide(domNode) {
+    // Scale
+    for (let node of domNode.querySelectorAll('[scale]')) {
+        // This is not a good place for this. Should be done in pre-processing (Python) probably
+        const scale = node.getAttribute('scale');
+        node.setAttribute("transform", node.getAttribute("transform") + " " + `scale(${scale})`);
+        node.removeAttribute("scale");
+    }
+
+    // YouTube
+    for (let node of domNode.querySelectorAll('[youtube]')) {
+        domNode.setAttribute("xmlns:xhtml", "http://www.w3.org/1999/xhtml")
+        // This is not a good place for this. Should be done in pre-processing (Python) probably
+        const id = node.getAttribute("youtube");
+
+        const foreignObject = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+        foreignObject.setAttribute("x", node.getAttribute("x"));
+        foreignObject.setAttribute("y", node.getAttribute("y"));
+        foreignObject.setAttribute("height", node.getAttribute("height"));
+        foreignObject.setAttribute("width", node.getAttribute("width"));
+
+        const parent = node.parentElement;
+        parent.insertBefore(foreignObject, node);
+        parent.removeChild(node);
+
+        foreignObject.innerHTML = `<iframe width="${node.getAttribute("width")}" height="${node.getAttribute("height")}" src="https://www.youtube.com/embed/${id}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+    }
+}
+
 
 /**
  * A 'stage' represents the time between a step and the next step.
@@ -295,6 +320,7 @@ export class SlideDeck {
             const html = document.createElement('html');
             html.innerHTML = slideString;
             const svg = html.querySelector('svg');
+            preprocessSlide(svg);
             const lastStage = maxStage(svg);
             for (let stage = 0; stage <= lastStage; stage++) {
                 stepList.push(new Step(svg, stage));
