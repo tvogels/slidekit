@@ -88,27 +88,26 @@ class Stage {
         this.transitionDuration = 0;
         if (nextStep == null) return;
         for (let node of nextStep.dom.querySelectorAll('[transition=fade-in]')) {
-            this._setDurationToMin(this._getTransitionDuration(node));
             const correspondingParent = this._findCorrespondingParent(node, this.dom);
             node.removeAttribute("transition");
             const ghostNode = node.cloneNode(true);
             correspondingParent.appendChild(ghostNode);
             ghostNode.style.opacity = 0.0;
             this._addTransition(
-                (dt) => {
-                    let target = node.style.opacity || 1.0;
-                    ghostNode.style.opacity = linearMix(0.0, target, easing.easeInCubic(dt));
-                }
+                this._getTransitionDuration(node),
+                1.0,
+                "easeInCubic",
+                (dt) => { ghostNode.style.opacity = linearMix(0.0, node.style.opacity || 1.0, dt) }
             );
         }
         for (let node of this.dom.querySelectorAll('[transition=fade-out]')) {
-            this._setDurationToMin(this._getTransitionDuration(node));
             node.removeAttribute("transition");
             const startOpacity = node.style.opacity || 1.0;
             this._addTransition(
-                (dt) => {
-                    node.style.opacity = linearMix(startOpacity, 0.0, easing.easeOutCubic(dt));
-                }
+                this._getTransitionDuration(node),
+                0.0,
+                "easeOutCubic",
+                (dt) => { node.style.opacity = linearMix(startOpacity, 0.0, dt) }
             );
         }
         for (let node of nextStep.dom.querySelectorAll('[transition=draw-line]')) {
@@ -119,11 +118,11 @@ class Stage {
             ghostNode.style.strokeDashoffset = length;
             correspondingParent.appendChild(ghostNode);
             node.removeAttribute("transition");
-            this._setDurationToMin(this._getTransitionDuration(node));
             this._addTransition(
-                (dt) => {
-                    ghostNode.style.strokeDashoffset = linearMix(length, 0.0, easing.easeInOutQuad(dt));
-                }
+                this._getTransitionDuration(node),
+                1.0,
+                "easeInOutQuad",
+                (dt) => { ghostNode.style.strokeDashoffset = linearMix(length, 0.0, dt) }
             );
         }
         for (let node of nextStep.dom.querySelectorAll('[appear-along]')) {
@@ -136,23 +135,16 @@ class Stage {
             // path.style.display = 'none';
             node.removeAttribute("appear-along");
 
-            this._setDurationToMin(this._getTransitionDuration(node));
-
             const ghostNode = node.cloneNode(true);
             const correspondingParent = this._findCorrespondingParent(node, this.dom);
             correspondingParent.appendChild(ghostNode);
 
-            // const bbox = snap(node).getBBox();
-            // const center = { x: bbox.x + bbox.width / 2, y: bbox.y + bbox.height / 2 };
-
             this._addTransition(
+                this._getTransitionDuration(node),
+                1.0,
+                "easeInOutQuad",
                 (dt) => {
-                    dt = easing.easeInOutQuad(dt);
-                    if (dt > 0) {
-                        ghostNode.setAttribute('opacity', 1);
-                    } else {
-                        ghostNode.setAttribute('opacity', 0);
-                    }
+                    ghostNode.setAttribute('opacity', dt > 0 ? 1 : 0);
                     const pos = sp.getPointAtLength(dt * length);
                     pos.x -= endpoint.x;
                     pos.y -= endpoint.y;
@@ -167,7 +159,6 @@ class Stage {
             const id = node.getAttribute("identifier");
             const nodeInNextStage = nextStep.nodeByIdentifier(id);
             if (nodeInNextStage == null) continue; // no match ... too bad
-            this._setDurationToMin(this._getTransitionDuration(node));
             const attributes = new Set();
             for (let attribute of nodeInNextStage.attributes) {
                 attributes.add(attribute.name);
@@ -187,24 +178,26 @@ class Stage {
                         // We are using snap.svg for morphing between SVG paths
                         let eq = snap(node).equal(attribute, nextValue);
                         this._addTransition(
-                            (dt) => {
-                                const val = eq.f(linearMix(eq.from, eq.to, easing.easeInOutQuad(dt)));
-                                node.setAttribute(attribute, val);
-                            }
+                            this._getTransitionDuration(node),
+                            0.5,
+                            "easeInOutQuad",
+                            (dt) => { node.setAttribute(attribute, eq.f(linearMix(eq.from, eq.to, dt))) }
                         )
                     } else if (['x', 'y', 'opacity', 'rx', 'height', 'width'].includes(attribute)) {
                         this._addTransition(
-                            (dt) => {
-                                node.setAttribute(attribute, linearMix(parseFloat(currentValue), parseFloat(nextValue), easing.easeInOutQuad(dt)));
-                            }
+                            this._getTransitionDuration(node),
+                            0.5,
+                            "easeInOutQuad",
+                            (dt) => { node.setAttribute(attribute, linearMix(parseFloat(currentValue), parseFloat(nextValue), dt)) }
                         )
                     } else if (attribute === "transform") {
                         const a = new CSSTransform(currentValue);
                         const b = new CSSTransform(nextValue);
                         this._addTransition(
-                            (dt) => {
-                                node.setAttribute(attribute, a.mixString(b, easing.easeInOutQuad(dt)));
-                            }
+                            this._getTransitionDuration(node),
+                            0.5,
+                            "easeInOutQuad",
+                            (dt) => { node.setAttribute(attribute, a.mixString(b, dt)) }
                         )
                     } else {
                         console.error(`Don't know how to handle transitions for attribute '${attribute}'`);
@@ -224,12 +217,19 @@ class Stage {
     }
 
     /**
-     * Register a function to be called to update the DOM for fractional positions in the transition
-     * (by `this.render`)
-     * @param {(dt: number) => void} transition 
+     * Add a transition to be rendered at 'render'
+     * @param {number} duration 
+     * @param {number} alignment between 0 and 1, 0=start directly, 1=postpone till last moment, 0.5=in the middle of the transition
+     * @param {string} easeFn easing function
+     * @param {(t: number) => void} transition function called with a number between 0 and 1
      */
-    _addTransition(transition) {
-        this.transitions.push(transition);
+    _addTransition(duration, alignment, easeFn, transition) {
+        this.transitionDuration = Math.max(this.transitionDuration, duration);
+        this.transitions.push(t => {
+            const leftOverTime = this.duration() - duration;
+            const startOffset = leftOverTime * alignment;
+            transition(easing[easeFn](Math.min(1, Math.max((t * this.duration() - startOffset) / duration))))
+        });
     }
 
     /**
@@ -245,14 +245,6 @@ class Stage {
      */
     _getTransitionDuration(node) {
         return parseFloat(node.getAttribute("duration")) || 0.5;
-    }
-    /**
-     * If the argument `duration` is larger than the current registered duration
-     * for this stage, increase the stage duration.
-     * @param {number} duration 
-     */
-    _setDurationToMin(duration) {
-        this.transitionDuration = Math.max(this.transitionDuration, duration);
     }
 
     /**
