@@ -2,6 +2,7 @@ import snap from 'snapsvg'
 import CSSTransform from './utils/css-transform'
 import { getAngleAtPath, linearMix, maxStage } from './utils'
 import easing from './utils/easing'
+import moment from 'moment'
 
 /**
  * A 'Slide' can consist of multiple 'steps'.
@@ -205,7 +206,6 @@ class Stage {
                             (dt) => { node.setAttribute(attribute, eq.f(linearMix(eq.from, eq.to, dt))) }
                         )
                     } else if (["fill", "stroke"].includes(attribute)) {
-                        console.log(node.getAttribute("identifier"), attribute, currentValue, nextValue)
                         const c1 = snap.color(currentValue);
                         const c2 = snap.color(nextValue);
                         const from = [c1.r, c1.g, c1.b, c1.opacity];
@@ -232,7 +232,7 @@ class Stage {
                             "easeInOutQuad",
                             (dt) => { node.setAttribute(attribute, a.mixString(b, dt)) }
                         )
-                    } else if (['transition', 'transition-duration', 'transition-alignment'].includes(attribute)) {
+                    } else if (['transition', 'transition-duration', 'transition-alignment', 'class'].includes(attribute)) {
                         // Nothing to do
                     } else {
                         console.error(`Don't know how to handle transitions for attribute '${attribute}'`);
@@ -434,10 +434,69 @@ export class SlideDeck {
     }
 }
 
+
+
+class Timer {
+    constructor(targetDuration) {
+        this.reset();
+        this.targetTime = targetDuration;
+        this.listeners = new Set();
+        setInterval(this.tick.bind(this), 1000);
+    }
+    tick() {
+        const elapsed = moment.utc(this.elapsed()).format("mm:ss");
+        const progress = this.progress();
+        for (let handler of this.listeners) {
+            handler(elapsed, progress);
+        }
+    }
+    start() {
+        if (this.startTime == null) {
+            this.startTime = moment.now();
+        }
+    }
+    stop() {
+        this.accumulatedTime += moment.now() - this.startTime;
+        this.startTime = null;
+    }
+    toggle() {
+        if (this.startTime == null) {
+            this.start();
+        } else {
+            this.stop();
+        }
+    }
+    elapsed() {
+        let duration = this.accumulatedTime;
+        if (this.startTime != null) {
+            duration += moment.now() - this.startTime;
+        }
+        return duration;
+    }
+    progress() {
+        return this.elapsed() / this.targetTime;
+    }
+    reset() {
+        this.accumulatedTime = 0;
+        this.startTime = null;
+    }
+    addTickListener(handle) {
+        this.listeners.add(handle);
+    }
+    removeTickListener(handle) {
+        this.listeners.delete(handle);
+    }
+}
+
+// Global timer instance
+const timer = new Timer(moment.duration(30, "minutes"));
+window.timer = timer;
+
+
 export class Controller {
     constructor(slideDeck) {
         this.deck = slideDeck;
-        this.childDeck = null;
+        this.hooks = new Set(); // get notified for position updates
         this.currentPosition = 0.0;
         this.render = this.render.bind(this);
         this.runningAnimation = null;
@@ -447,8 +506,8 @@ export class Controller {
     render() {
         if (this.currentPosition !== this.deck.currentPosition) {
             this.deck.render(this.currentPosition);
-            if (this.childDeck != null) {
-                this.childDeck.render(this.currentPosition);
+            for (let hook of this.hooks) {
+                hook(this.currentPosition)
             }
         }
         requestAnimationFrame(this.render);
@@ -548,22 +607,140 @@ export class Controller {
         return wasRunning;
     }
 
-    createChildDeck(canvas) {
-        this.childDeck = this.deck.createChildDeck(canvas);
-        this.childDeck.render(this.currentPosition);
+    addRenderListener(hook) {
+        this.hooks.add(hook);
+        hook(this.currentPosition);
     }
-    removeChildDeck() {
-        this.childDeck = null;
+
+    removeRenderListener(hook) {
+        this.hooks.delete(hook);
+    }
+}
+
+
+export class PresenterNotes {
+    constructor(htmlString) {
+        // Split by H1
+        this.notes = [];
+        this.numbers = [];
+
+        this.emptyNode = document.createElement("div");
+        this.emptyNode.classList.add("presenter-note");
+
+        const fragment = document.createElement("div");
+        fragment.innerHTML = htmlString;
+        let currentSlide = 0;
+        let currentNote = null;
+        for (let child of fragment.childNodes) {
+            if (child.nodeName === "H1") {
+                currentSlide = parseInt(child.textContent);
+                currentNote = document.createElement("div");
+                currentNote.classList.add("presenter-note");
+                this.numbers.push(currentSlide);
+                this.notes.push(currentNote);
+            } else if (currentNote != null) {
+                currentNote.appendChild(child.cloneNode(true));
+            }
+        }
+    }
+    getNotesForSlide(slideIndex) {
+        const idx = [...this.numbers].reverse().findIndex(n => n <= slideIndex);
+        if (idx == null) {
+            return this.emptyNode;
+        }
+        return this.notes[idx];
+    }
+}
+
+
+class Cockpit {
+    /**
+     * 
+     * @param {Controller} controller 
+     * @param {KeyboardController} keyboardController 
+     * @param {PresenterNotes?} presenterNotes 
+     */
+    constructor(controller, keyboardController, presenterNotes) {
+        this.prepareWindow();
+
+        const canvas = document.createElement("div");
+        canvas.classList.add("cockpit-canvas");
+        this.window.document.body.appendChild(canvas);
+        this.deck = controller.deck.createChildDeck(canvas);
+        const hook = this.deck.render.bind(this.deck);
+        controller.addRenderListener(hook);
+        this.window.addEventListener('unload', controller.removeRenderListener.bind(controller, hook));
+
+        const nextCanvas = document.createElement("div");
+        nextCanvas.classList.add("cockpit-next");
+        this.window.document.body.appendChild(nextCanvas);
+        this.nextDeck = controller.deck.createChildDeck(nextCanvas);
+        const nextHook = (i) => this.nextDeck.render(i + 1);
+        controller.addRenderListener(nextHook);
+        this.window.addEventListener('unload', controller.removeRenderListener.bind(controller, nextHook));
+
+        const progressBar = document.createElement("div");
+        progressBar.classList.add("cockpit-progress-bar");
+        const progressBarBar = document.createElement("div");
+        progressBarBar.classList.add("cockpit-progress-bar-bar");
+        const progressHandler = (elapsed, percentage) => {
+            progressBarBar.style.width = `${percentage * 100}%`;
+            progressBarBar.innerText = elapsed;
+        }
+        progressBar.appendChild(progressBarBar);
+        this.window.document.body.appendChild(progressBar);
+        timer.addTickListener(progressHandler);
+        this.window.addEventListener('unload', timer.removeTickListener.bind(timer, progressHandler));
+
+        if (presenterNotes != null) {
+            const notesDiv = document.createElement("div");
+            notesDiv.classList.add("cockpit-notes");
+            let currentNotes = null;
+            const handler = (x) => {
+                const notes = presenterNotes.getNotesForSlide(x);
+                if (notes !== currentNotes) {
+                    notesDiv.innerHTML = '';
+                    if (notes != null) {
+                        notesDiv.appendChild(notes);
+                    }
+                    currentNotes = notes;
+                }
+            };
+            this.window.document.body.appendChild(notesDiv);
+            controller.addRenderListener(handler);
+            this.window.addEventListener('unload', controller.removeRenderListener.bind(controller, handler));
+        }
+
+        this.window.document.addEventListener('keydown', keyboardController.keydownHandler);
+    }
+
+    prepareWindow() {
+        this.window = window.open("", "cockpit");
+        this.window.document.head.innerHTML = "";
+        this.window.document.body.innerHTML = "";
+        const baseElem = this.window.document.createElement('base');
+        baseElem.href = location.href;
+        this.window.document.head.appendChild(baseElem);
+        for (let stylesheet of document.getElementsByTagName("link")) {
+            this.window.document.body.appendChild(stylesheet.cloneNode(true));
+        }
+        this.window.document.title = "Cockpit";
+    }
+
+    destroy() {
+        this.window.removeEventListener('keydown', keyboardController.keydownHandler);
+        this.window.close();
     }
 }
 
 
 export class KeyboardController {
-    constructor(controller, canvasNode, fullscreenNode) {
+    constructor(controller, canvasNode, fullscreenNode, presenterNotes = null) {
         this.controller = controller;
         this.hasChild = false;
         this.canvasNode = canvasNode;
         this.fullscreenNode = fullscreenNode;
+        this.presenterNotes = presenterNotes;
         this.fullscreenHandler = this.fullscreenHandler.bind(this);
         this.keydownHandler = this.keydownHandler.bind(this);
         document.addEventListener('keydown', this.keydownHandler);
@@ -590,18 +767,12 @@ export class KeyboardController {
             }
         } else if (event.key === 'f') {
             this.goFullscreen();
+        } else if (event.key === 't') {
+            timer.toggle();
         } else if (event.key === 'c') {
             // Open a child window
             if (!this.hasChild) {
-                const childWindow = window.open("", "Author view");
-                const childContainer = document.createElement('div');
-                childWindow.document.body.appendChild(childContainer);
-                this.controller.createChildDeck(childContainer);
-                this.hasChild = true;
-                childWindow.addEventListener('unload', () => {
-                    this.controller.removeChildDeck();
-                    this.hasChild = false;
-                });
+                new Cockpit(this.controller, this, this.presenterNotes);
             }
         } else if (event.key === 'Home') {
             this.controller.setPosition(0);

@@ -18,11 +18,64 @@ body {
     margin-left: -640px;
 }
 
-#canvas {
+#canvas, .cockpit-canvas, .cockpit-next {
     width: 1280px;
     height: 720px;
+    background-color: white;
     transform: scale(1);
     transform-origin: 0 0;
+}
+
+.cockpit-canvas {
+    transform: scale(0.7);
+    transform-origin: left top;
+    position: absolute;
+    left: 1em;
+    top: 1em;
+}
+
+.cockpit-next {
+    transform: scale(0.38);
+    transform-origin: right top;
+    position: absolute;
+    right: 1em;
+    top: 1em;
+}
+
+.cockpit-notes {
+    position: absolute;
+    background-color: white;
+    left: 1rem;
+    right: 1rem;
+    bottom: 4rem;
+    padding: 1rem;
+    overflow: auto;
+    height: 29.5%;
+    font-size: 2rem;
+}
+.cockpit-notes p:first-child {
+    margin-top: 0;
+}
+
+.cockpit-progress-bar {
+    position: absolute;
+    left: 1em;
+    right: 1em;
+    bottom: 1em;
+    height: 2em;
+    line-height: 2em;
+    background-color: white;
+}
+.cockpit-progress-bar-bar {
+    background-color: #bada55;
+    height: 1.6em;
+    line-height: 1.6em;
+    margin: .2em 0;
+}
+.cockpit-progress-bar-bar:before {
+    content: "x";
+    opacity: 0;
+    display: inline;
 }
 
 .blacked-out {
