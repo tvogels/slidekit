@@ -185,7 +185,7 @@ class Stage {
                 const currentValue = node.getAttribute(attribute) || defaultValue;
                 const nextValue = nodeInNextStage.getAttribute(attribute) || defaultValue;
                 if (currentValue !== nextValue) {
-                    if (["d", "fill", "stroke"].includes(attribute)) {
+                    if (["d"].includes(attribute)) {
                         // We are using snap.svg for morphing between SVG paths
                         let eq = snap(node).equal(attribute, nextValue);
                         this._addTransition(
@@ -194,7 +194,19 @@ class Stage {
                             "easeInOutQuad",
                             (dt) => { node.setAttribute(attribute, eq.f(linearMix(eq.from, eq.to, dt))) }
                         )
-                    } else if (['x', 'y', 'opacity', 'rx', 'height', 'width'].includes(attribute)) {
+                    } else if (["fill", "stroke"].includes(attribute)) {
+                        console.log(node.getAttribute("identifier"), attribute, currentValue, nextValue)
+                        const c1 = snap.color(currentValue);
+                        const c2 = snap.color(nextValue);
+                        const from = [c1.r, c1.g, c1.b, c1.opacity];
+                        const to = [c2.r, c2.g, c2.b, c2.opacity];
+                        this._addTransition(
+                            this._getTransitionDuration(node),
+                            this._getTransitionAlignment(node, 0.5),
+                            "easeInOutQuad",
+                            (dt) => { node.setAttribute(attribute, snap.rgb(...linearMix(from, to, dt))) }
+                        )
+                    } else if (['x', 'y', 'opacity', 'rx', 'height', 'width', 'cx', 'cy', 'r', 'fill-opacity'].includes(attribute)) {
                         this._addTransition(
                             this._getTransitionDuration(node),
                             this._getTransitionAlignment(node, 0.5),
