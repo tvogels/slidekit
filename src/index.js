@@ -34,6 +34,16 @@ class Step {
                 node.removeAttribute("transition");
             }
         }
+        // Fade-ins should only happen when they appear
+        for (let node of domNode.querySelectorAll('[transition=fade-in-out]')) {
+            const nodeStage = node.getAttribute('stage') || 0;
+            if (nodeStage !== stageNumber) {
+                node.setAttribute("transition", "fade-out");
+            }
+            if (stageNumber !== lastStage) {
+                node.setAttribute("transition", "fade-in");
+            }
+        }
         // Fade-outs should only happen when the node disappears
         for (let node of domNode.querySelectorAll('[transition=fade-out]')) {
             if (stageNumber !== lastStage) {
@@ -113,7 +123,7 @@ class Stage {
         this.transitionDuration = 0;
         this.nodeByIdentifier = step.nodeByIdentifier.bind(step);
         if (nextStep == null) return;
-        for (let node of nextStep.dom.querySelectorAll('[transition=fade-in]')) {
+        for (let node of nextStep.dom.querySelectorAll('[transition=fade-in],[transition=fade-in-out]')) {
             const ghostNode = this._insertGhostNode(node);
             ghostNode.style.opacity = 0.0;
             this._addTransition(
@@ -123,7 +133,7 @@ class Stage {
                 (dt) => { ghostNode.style.opacity = linearMix(0.0, node.style.opacity || 1.0, dt) }
             );
         }
-        for (let node of this.dom.querySelectorAll('[transition=fade-out]')) {
+        for (let node of this.dom.querySelectorAll('[transition=fade-out],[transition=fade-in-out]')) {
             const startOpacity = node.style.opacity || 1.0;
             this._addTransition(
                 this._getTransitionDuration(node),
