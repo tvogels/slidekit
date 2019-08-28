@@ -4,7 +4,6 @@ demo-data
 backup
 .cache
 node_modules
-package.json
 package-lock.json
 media/
 slides.json

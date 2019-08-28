@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "@retailmenot/morphdom-plugins": "^1.0.1",
+    "jquery": "^3.4.0",
+    "moment": "^2.24.0",
+    "morphdom": "^2.5.3",
+    "parcel-plugin-markdown": "^0.4.2",
+    "snapsvg": "^0.5.1",
+    "src": "^1.1.2"
+  },
+  "marked": {
+    "breaks": true
+  },
+  "devDependencies": {
+    "cssnano": "^4.1.10"
+  }
+}
