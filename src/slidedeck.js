@@ -9,8 +9,9 @@ import { maxStage } from "./utils";
 export default class SlideDeck {
     /**
      * @param {string[]} slideStrings
+     * @param {((HTMLElement) => void)[]?} plugins
      */
-    constructor(slideStrings) {
+    constructor(slideStrings, plugins = []) {
         this.slideStrings = slideStrings;
         this.steps = [];
         this.slideStartIndices = [];
@@ -24,7 +25,9 @@ export default class SlideDeck {
             const html = document.createElement("html");
             html.innerHTML = slideString;
             const svg = html.querySelector("svg");
-            preprocessSlide(svg);
+            for (let plugin of plugins) {
+                plugin(svg);
+            }
             const lastStage = maxStage(svg);
             for (let stage = 0; stage <= lastStage; stage++) {
                 this.steps.push(new Step(svg, stage));
@@ -134,42 +137,6 @@ class Step {
                 node.removeAttribute("fade-out");
             }
         }
-    }
-}
-
-/**
- * This is an experiment with preprocessing operations that are done on the SVGs
- * You can add your own extensions here.
- * @param {HTMLElement} domNode
- */
-function preprocessSlide(domNode) {
-    // Scale
-    for (let node of domNode.querySelectorAll("[scale]")) {
-        // This is not a good place for this. Should be done in pre-processing (Python) probably
-        const scale = node.getAttribute("scale");
-        node.setAttribute("transform", node.getAttribute("transform") + " " + `scale(${scale})`);
-        node.removeAttribute("scale");
-    }
-
-    // YouTube
-    for (let node of domNode.querySelectorAll("[youtube]")) {
-        domNode.setAttribute("xmlns:xhtml", "http://www.w3.org/1999/xhtml");
-        // This is not a good place for this. Should be done in pre-processing (Python) probably
-        const id = node.getAttribute("youtube");
-
-        const foreignObject = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
-        foreignObject.setAttribute("x", node.getAttribute("x"));
-        foreignObject.setAttribute("y", node.getAttribute("y"));
-        foreignObject.setAttribute("height", node.getAttribute("height"));
-        foreignObject.setAttribute("width", node.getAttribute("width"));
-
-        const parent = node.parentElement;
-        parent.insertBefore(foreignObject, node);
-        parent.removeChild(node);
-
-        foreignObject.innerHTML = `<iframe width="${node.getAttribute("width")}" height="${node.getAttribute(
-            "height"
-        )}" src="https://www.youtube.com/embed/${id}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
     }
 }
 
