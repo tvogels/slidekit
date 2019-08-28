@@ -1,9 +1,9 @@
 .DS_Store
 dist
-demo-data
 backup
 .cache
 node_modules
 package-lock.json
 media/
 slides.json
+yarn.lock

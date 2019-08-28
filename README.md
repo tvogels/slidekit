@@ -13,9 +13,9 @@ Slide crafting utility for nerds.
     <br>Looks like this in [Sketch](https://www.sketch.com/):<br>
     <img src="./docs/sketch-screenshot.png" width="300px" />
 
--   Run `./preprocess_svgs.py` to pre-process your SVGs (parse these annotated ids) and turn them into one big JSON file. This also does things like stripping out embedded images and puting them in `/media/`
+-   Run `./preprocess_svgs.py demo-data/*.svg -o demo-data/slides.json` to pre-process your SVGs (parse these annotated ids) and turn them into one big JSON file. This also does things like stripping out embedded images and puting them in `/media/`
 -   Run `parcel index.html` to serve your slides.
--   If images don't appear, you need to copy them to the `dist` directory ...
+-   If images don't appear, you need to copy `media/` them to the `dist/` directory ...
 
 ## Step-wise appearance of nodes
 

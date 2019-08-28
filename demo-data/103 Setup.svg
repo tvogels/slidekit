@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1280px" height="720px" viewBox="0 0 1280 720" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 57.1 (83088) - https://sketch.com -->
+    <title>103 Setup</title>
+    <desc>Created with Sketch.</desc>
+    <g id="103-Setup" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="basics" transform="translate(30.000000, 30.000000)" fill="#FF0000" fill-rule="nonzero">
+            <polygon id="Path" points="0 10 5.06005222 10 5.06005222 4.53703704 17 4.53703704 17 0 0 0"></polygon>
+            <polygon id="Path" points="0 24 17 24 17 19.462963 5.06005222 19.462963 5.06005222 14 0 14"></polygon>
+            <rect id="Rectangle" x="5" y="10" width="11" height="4"></rect>
+            <path d="M39.1452381,2.21886792 C38.4666667,1.53962264 37.6071429,1.04150943 36.5666667,0.633962264 C35.5261905,0.181132075 34.2142857,0 32.7214286,0 L22,0 L22,24 L27.1571429,24 L27.1571429,14.2188679 L32.6761905,14.2188679 C34.1690476,14.2188679 35.4357143,14.0377358 36.5214286,13.6301887 C37.5619048,13.2226415 38.4214286,12.6792453 39.1,12.045283 C39.7785714,11.3660377 40.2309524,10.6415094 40.547619,9.78113208 C40.8642857,8.92075472 41,8.06037736 41,7.15471698 C41,6.2490566 40.8642857,5.34339623 40.547619,4.52830189 C40.2761905,3.62264151 39.7785714,2.85283019 39.1452381,2.21886792 Z M35.5261905,8.46792453 C35.2547619,8.83018868 34.9380952,9.10188679 34.4857143,9.28301887 C34.0785714,9.46415094 33.5809524,9.6 32.9928571,9.69056604 C32.45,9.73584906 31.8619048,9.78113208 31.2285714,9.78113208 L27.1119048,9.78113208 L27.1119048,4.43773585 L31.2285714,4.43773585 C31.8166667,4.43773585 32.4047619,4.48301887 32.9928571,4.52830189 C33.5357143,4.57358491 34.0333333,4.70943396 34.4857143,4.93584906 C34.8928571,5.11698113 35.2547619,5.38867925 35.5261905,5.7509434 C35.797619,6.11320755 35.9333333,6.56603774 35.9333333,7.10943396 C35.9333333,7.65283019 35.797619,8.1509434 35.5261905,8.46792453 Z" id="Shape"></path>
+            <polygon id="Path" points="71.0911458 19.5622642 71.0911458 0 66 0 66 24 83 24 83 19.5622642"></polygon>
+            <polygon id="Path" points="44 10 49.0911458 10 49.0911458 4.53703704 61 4.53703704 61 0 44 0"></polygon>
+            <rect id="Rectangle" x="44" y="14" width="5" height="10"></rect>
+            <rect id="Rectangle" x="49" y="10" width="11" height="4"></rect>
+        </g>
+        <text id="title" font-family="HelveticaNeue-Medium, Helvetica Neue" font-size="36" font-weight="400" line-spacing="50">
+            <tspan x="441" y="195" fill="#000000">Data-parallel Training</tspan>
+            <tspan x="794.52" y="195" fill="#858585"> of Neural Networks</tspan>
+        </text>
+        <text id="title-copy" font-family="HelveticaNeue-Medium, Helvetica Neue" font-size="36" font-weight="400" line-spacing="50" fill="#000000">
+            <tspan x="441" y="345">Time required to exchange gradients</tspan>
+            <tspan x="441" y="395">limits the scalability of data-parallel training</tspan>
+        </text>
+        <g id="Group" transform="translate(441.000000, 271.000000)" fill="#FF0000" font-family="HelveticaNeue-Medium, Helvetica Neue" font-size="24" font-weight="400">
+            <text id="title">
+                <tspan x="0.072" y="23">Problem</tspan>
+            </text>
+        </g>
+        <g id="Group-2[stage=1]" transform="translate(441.000000, 471.000000)" font-family="HelveticaNeue-Medium, Helvetica Neue" font-weight="400">
+            <text id="title-copy" font-size="36" line-spacing="50" fill="#000000">
+                <tspan x="0" y="74">Compress gradients before aggregation</tspan>
+                <tspan x="0" y="124">to reduce bandwidth</tspan>
+            </text>
+            <g id="Group" fill="#FF0000" font-size="24">
+                <text id="title">
+                    <tspan x="0" y="23">Idea</tspan>
+                </text>
+            </g>
+        </g>
+    </g>
+</svg>
