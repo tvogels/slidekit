@@ -2,25 +2,37 @@
 
 Slide crafting utility for nerds.
 
-- Expect this to be more work than PowerPoint or KeyNote
-- Use this if you want absolute control over slide transitions.<br>
-  This basically supports magic move while you are in control over linking objects between slides.
+-   Expect this to be more work than PowerPoint or KeyNote
+-   Use this if you want absolute control over slide transitions.<br>
+    This basically supports magic move while you are in control over linking objects between slides.
 
 ## Process
 
-- You make slides in your favourite vector editor (I use Sketch on Mac)
-- Annotate ids with attributes, e.g. `myPath[transition=fade-in]` or `rectangle[move=true][otherattrib=value]` (to enable magic move to the next or previous slide)
-- Run `./process_svgs.py` to pre-process your SVGs (parse these annotated ids) and turn them into one big JSON file. This also does things like stripping out embedded images and puting them in `/media/`
-- Run `parcel index.html` to serve your slides.
+-   You make slides in your favourite vector editor (I use Sketch on Mac)
+-   Annotate ids with attributes, e.g. `myPath[fade-in]` or `rectangle[move][otherattrib=value]` (to enable magic move to the next or previous slide)
+-   Run `./preprocess_svgs.py` to pre-process your SVGs (parse these annotated ids) and turn them into one big JSON file. This also does things like stripping out embedded images and puting them in `/media/`
+-   Run `parcel index.html` to serve your slides.
 
-## Supported attributes
+## Step-wise appearance of nodes
 
-- `stage=3`, only appear in the 3rd stage of the slide
-- `transition=fade-in`
-- `transition=fade-out`
-- `transition=draw-line`, for paths, draw them from start to finish
-- `move=true`, enable magic move for this object
-- `transition-duration=0.5` seconds
-- `transition-alignment=0.0` between 0 and 1. where to start this transition if the total slide transition is longer
-- `appear-along=PathId`,
-- `youtube=55bjCP9Fy5I` on a `rect` will embed a YT video
+-   Use tags like `[stage=1]` or `[stage=3-5]` in your IDs.
+
+## Entry animation
+
+-   `mynode[fade-in]`
+-   `mynode[fade-in=2]` --- fade in, taking 2 seconds
+-   `mynode[fade-in=0.5, 1]` --- fade in, taking 500ms, aligning this at the end of the transition if other transitions take longer
+-   `mynode[draw-line]` --- for paths, draw them from start to finish
+-   `mynode[appear-along=PathId,5,0]` --- appear along a given path object, take 5 seconds, align at the begining of the transition
+
+## Transitioning objects from one stage to the next
+
+-   `mynode[move=1.5]` --- 1.5 morph .. could be color, position, rotation, ... will be morphed
+
+## Exit animation
+
+-   `mynode[fade-out=1]` --- 1 second fade out
+
+## External content
+
+-   `rect[youtube=55bjCP9Fy5I]` will embed a YT video

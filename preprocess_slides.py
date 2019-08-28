@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+"""
+Run this script on a directory of SVD files
+to preprocess them and create one JSON that contains all your slides.
+"""
+
 import base64
 import hashlib
 import json
@@ -8,8 +13,8 @@ import xml.dom
 from argparse import ArgumentParser
 from xml.dom.minidom import parse
 
-import numpy as np
 from parsley import makeGrammar
+from tqdm import tqdm
 
 
 def main():
@@ -20,21 +25,18 @@ def main():
 
     strings = []
 
-    for slide_no, slide_path in enumerate(sorted(args.slides)):
-        print(f"Processing {slide_path}")
-        # with open(slide_path, "rb") as fp:
-        #   doc = html5lib.parse(fp)
+    # We will go through all slides and
+    # do a couple of modifications that makes the SVGs easier to work with
+    #   for example, we inline 'use' statements
+    #   and remove embedded images by paths to 'media/'
+
+    progress_bar = tqdm(enumerate(sorted(args.slides)), desc="Processing slides", unit=" slides")
+    for slide_no, slide_path in progress_bar:
+        progress_bar.set_postfix_str(slide_path)
         doc = parse(slide_path)
 
         process_node(doc, slide_no, root=doc)
-
-        doc.childNodes[0].setAttribute("id", "svg-root")
-
-        # make_ids_unique(doc, stats)
         strings.append(doc.toxml())
-
-        # with open(f"bla/slide{slide_no:04d}.svg", "w") as fp:
-        #     fp.write(strings[-1])
 
     with open(args.output, "w") as fp:
         json.dump(strings, fp)
@@ -46,9 +48,10 @@ ID_GRAMMAR = makeGrammar(
     """
 id_char = anything:x ?(x not in '[]') -> x
 id = id_char+:string -> "".join(string)
-value = id
+value_string = id
 attribute_key = (<letterOrDigit> | '-')+:string -> "".join(string)
-attribute = '[' attribute_key:key '=' value:value ']' -> (key, value)
+attribute_value = '=' value_string:value -> value
+attribute = '[' attribute_key:key attribute_value?:value ']' -> (key, value)
 syntax = id?:id attribute*:attributes -> {'id': id, 'attributes': attributes}
 """,
     {},
@@ -57,7 +60,11 @@ syntax = id?:id attribute*:attributes -> {'id': id, 'attributes': attributes}
 
 def process_node(node, slide, root, id_stack=[]):
     # Parse the ID syntax     anythingblabla[attrkey=attrval][attrkey=attrval]
-    if not node.nodeType in [3, 8, 9]:  # comment, document, text
+    if not node.nodeType in [
+        xml.dom.Node.TEXT_NODE,
+        xml.dom.Node.COMMENT_NODE,
+        xml.dom.Node.DOCUMENT_NODE,
+    ]:
         id_attr = node.getAttribute("id")
         if id_attr is not None and id_attr != "":
             parsed = ID_GRAMMAR(id_attr).syntax()
@@ -72,14 +79,12 @@ def process_node(node, slide, root, id_stack=[]):
 
         if node.getAttribute("move") == "true":
             id_stack = id_stack + [node.getAttribute("id")]
-            node.setAttribute("identifier", "-".join(id_stack))
-        else:
-            # node_id = node.getAttribute("id")
-            # if node_id is None or node_id == "":
-            node_id = str(np.random.randint(1_000_000_000))
-            node.setAttribute("identifier", f"{slide}.{node_id}")
+            node.setAttribute("id", "-".join(id_stack))
 
-    # Only keep group hierarchy that is meaningful for animation
+    # Remove some <g> tags and more their children up in the hierarchy
+    # | To make transitioning of objects more reliable, we remove as many group tags that are
+    # | not meaningful for transitions.
+    # | Any group that is not moving from one slide to the next can be deleted from the DOM hierarchy.
     if node.nodeType == 1 and node.tagName == "g" and group_element_should_be_removed(node):
         parent = node.parentNode
         for child in list(node.childNodes):
@@ -94,6 +99,8 @@ def process_node(node, slide, root, id_stack=[]):
         return
 
     # Inline 'use' statements
+    # This makes it easier to transition elements form one page to the next
+    # without worrying about breaking references.
     if node.nodeType == 1 and node.tagName == "use":
         defs = root.getElementsByTagName("defs")[0]
         ref_id = node.getAttribute("xlink:href")[1:]
@@ -110,8 +117,9 @@ def process_node(node, slide, root, id_stack=[]):
                 node.unlink()
                 break
 
-    # Deal with <tspan>s
-    # tspans don't support css transitions, so if a text entry has multiple tspan children, we break them apart to their own 'text'
+    # Deal with <tspan>'s
+    # | Tspans don't support CSS transitions, so if a text entry has multiple tspan children,
+    # | we break them apart to their own <text> parent.
     if node.nodeType == 1 and node.tagName == "text" and "move" in node.attributes:
         textNode = node
         i = 0
@@ -174,10 +182,20 @@ def process_node(node, slide, root, id_stack=[]):
 
 
 def group_element_should_be_removed(node):
+    """
+    To make transitioning of objects more reliable, we remove as many group tags that are
+    not meaningful for transitions.
+    Any group that is not moving from one slide to the next can be deleted from the DOM hierarchy.
+    """
     return "move" not in node.attributes
 
 
 def apply_attr_to_groups_child(node, attribute, value):
+    """
+    This is used when a DOM node <g> is removed, and its children are moved
+    one step up in the hierarchy.
+    It's children need to inherit some of the parent's properties.
+    """
     if node.nodeType != 1:
         return
     if attribute == "id":

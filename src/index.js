@@ -1,513 +1,44 @@
-import snap from 'snapsvg'
-import CSSTransform from './utils/css-transform'
-import { getAngleAtPath, linearMix, maxStage } from './utils'
-import easing from './utils/easing'
-import moment from 'moment'
-
-/**
- * A 'Slide' can consist of multiple 'steps'.
- * This hold one such step.
- */
-class Step {
-    constructor(dom, stage) {
-        this.dom = dom.cloneNode(true);
-        const lastStage = maxStage(this.dom);
-        this.isFirst = stage === 0;
-        this.isLast = stage === lastStage;
-        this.adaptDomToStage(this.dom, stage, lastStage);
-        this._buildIndex();
-    }
-    adaptDomToStage(domNode, stageNumber, lastStage) {
-        for (let node of domNode.querySelectorAll('[stage]')) {
-            const nodeStage = node.getAttribute('stage') || 0;
-            if (nodeStage > stageNumber) {
-                window.temp = node;
-                node.parentElement.removeChild(node);
-            } else {
-                this.adaptDomToStage(node, stageNumber, lastStage);
-            }
-            node.removeAttribute('stage');
-        }
-        // Fade-ins should only happen when they appear
-        for (let node of domNode.querySelectorAll('[transition=fade-in]')) {
-            const nodeStage = node.getAttribute('stage') || 0;
-            if (nodeStage !== stageNumber) {
-                node.removeAttribute("transition");
-            }
-        }
-        // Fade-ins should only happen when they appear
-        for (let node of domNode.querySelectorAll('[transition=fade-in-out]')) {
-            const nodeStage = node.getAttribute('stage') || 0;
-            if (nodeStage !== stageNumber) {
-                node.setAttribute("transition", "fade-out");
-            }
-            if (stageNumber !== lastStage) {
-                node.setAttribute("transition", "fade-in");
-            }
-        }
-        // Fade-outs should only happen when the node disappears
-        for (let node of domNode.querySelectorAll('[transition=fade-out]')) {
-            if (stageNumber !== lastStage) {
-                node.removeAttribute("transition");
-            }
-        }
-        if (!this.isLast && !this.isFirst) {
-            for (let node of domNode.querySelectorAll('[move=true]')) {
-                node.removeAttribute("move");
-            }
-        }
-    }
-
-    _buildIndex() {
-        this.index = {};
-        this.dom.querySelectorAll("[move=true]").forEach(node => {
-            const id = node.getAttribute("identifier");
-            this.index[id] = node;
-        });
-    }
-
-    /**
-     * Quickly find a dom node by identifier
-     * @param {string} identifier 
-     */
-    nodeByIdentifier(identifier) {
-        return this.index[identifier];
-    }
-}
-
-
-function preprocessSlide(domNode) {
-    // Scale
-    for (let node of domNode.querySelectorAll('[scale]')) {
-        // This is not a good place for this. Should be done in pre-processing (Python) probably
-        const scale = node.getAttribute('scale');
-        node.setAttribute("transform", node.getAttribute("transform") + " " + `scale(${scale})`);
-        node.removeAttribute("scale");
-    }
-
-    // YouTube
-    for (let node of domNode.querySelectorAll('[youtube]')) {
-        domNode.setAttribute("xmlns:xhtml", "http://www.w3.org/1999/xhtml")
-        // This is not a good place for this. Should be done in pre-processing (Python) probably
-        const id = node.getAttribute("youtube");
-
-        const foreignObject = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
-        foreignObject.setAttribute("x", node.getAttribute("x"));
-        foreignObject.setAttribute("y", node.getAttribute("y"));
-        foreignObject.setAttribute("height", node.getAttribute("height"));
-        foreignObject.setAttribute("width", node.getAttribute("width"));
-
-        const parent = node.parentElement;
-        parent.insertBefore(foreignObject, node);
-        parent.removeChild(node);
-
-        foreignObject.innerHTML = `<iframe width="${node.getAttribute("width")}" height="${node.getAttribute("height")}" src="https://www.youtube.com/embed/${id}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-    }
-}
-
-
-/**
- * A 'stage' represents the time between a step and the next step.
- * So it can also render intermediate values.
- * It basically defines the transition
- */
-class Stage {
-    /**
-     * @param {Step} step 
-     * @param {Step?} nextStep 
-     */
-    constructor(step, nextStep = undefined) {
-        this.dom = step.dom;
-        this.isFirstStep = step.isFirst;
-        this.isLastStep = step.isLast;
-        this.transitions = [];
-        this.transitionDuration = 0;
-        this.nodeByIdentifier = step.nodeByIdentifier.bind(step);
-        if (nextStep == null) return;
-        for (let node of nextStep.dom.querySelectorAll('[transition=fade-in],[transition=fade-in-out]')) {
-            const ghostNode = this._insertGhostNode(node);
-            ghostNode.style.opacity = 0.0;
-            this._addTransition(
-                this._getTransitionDuration(node),
-                this._getTransitionAlignment(node, 1.0),
-                "easeInCubic",
-                (dt) => { ghostNode.style.opacity = linearMix(0.0, node.style.opacity || 1.0, dt) }
-            );
-        }
-        for (let node of this.dom.querySelectorAll('[transition=fade-out],[transition=fade-in-out]')) {
-            const startOpacity = node.style.opacity || 1.0;
-            this._addTransition(
-                this._getTransitionDuration(node),
-                this._getTransitionAlignment(node, 0.0),
-                "easeOutCubic",
-                (dt) => { node.style.opacity = linearMix(startOpacity, 0.0, dt) }
-            );
-        }
-        for (let node of nextStep.dom.querySelectorAll('[transition=draw-line]')) {
-            const length = node.getTotalLength();
-            const ghostNode = this._insertGhostNode(node);
-            ghostNode.style.strokeDasharray = length;
-            ghostNode.style.strokeDashoffset = length;
-            node.removeAttribute("transition");
-            this._addTransition(
-                this._getTransitionDuration(node),
-                this._getTransitionAlignment(node, 1.0),
-                "easeInOutQuad",
-                (dt) => { ghostNode.style.strokeDashoffset = linearMix(length, 0.0, dt) }
-            );
-        }
-        for (let node of nextStep.dom.querySelectorAll('[appear-along]')) {
-            const path = snap(nextStep.dom.getElementById(node.getAttribute("appear-along")));
-            const totalPathLength = path.getTotalLength();
-            const endpoint = path.getPointAtLength(totalPathLength);
-            const angleAtEndpoint = getAngleAtPath(path, 1.0, totalPathLength);
-            const originalTransform = node.getAttribute("transform") || "";
-
-            node.removeAttribute("appear-along");
-
-            const ghostNode = this._insertGhostNode(node);
-
-            this._addTransition(
-                this._getTransitionDuration(node),
-                this._getTransitionAlignment(node, 1.0),
-                "easeInOutQuad",
-                (dt) => {
-                    ghostNode.setAttribute('opacity', dt > 0 ? 1 : 0);
-                    const pos = path.getPointAtLength(dt * totalPathLength);
-                    pos.x -= endpoint.x;
-                    pos.y -= endpoint.y;
-                    const angle = getAngleAtPath(path, dt, totalPathLength) - angleAtEndpoint;
-                    const transform = `${originalTransform} translate(${pos.x}, ${pos.y}) rotate(${angle}, ${endpoint.x}, ${endpoint.y})`;
-                    ghostNode.setAttribute('transform', transform);
-                }
-            );
-        }
-        for (let node of this.dom.querySelectorAll('[move=true]')) {
-            if (!this.isLastStep) continue;
-            const id = node.getAttribute("identifier");
-            const nodeInNextStage = nextStep.nodeByIdentifier(id);
-            if (nodeInNextStage == null) continue; // no match ... too bad
-            const attributes = new Set([...node.getAttributeNames(), ...nodeInNextStage.getAttributeNames()]);
-            for (let attribute of attributes) {
-                let defaultValue = { "opacity": 1, "transform": "" }[attribute];
-                if (defaultValue == null) {
-                    defaultValue = 0.0;
-                }
-                const currentValue = node.getAttribute(attribute) || defaultValue;
-                const nextValue = nodeInNextStage.getAttribute(attribute) || defaultValue;
-                if (currentValue !== nextValue) {
-                    if (["d"].includes(attribute)) {
-                        // We are using snap.svg for morphing between SVG paths
-                        let eq = snap(node).equal(attribute, nextValue);
-                        this._addTransition(
-                            this._getTransitionDuration(node),
-                            this._getTransitionAlignment(node, 0.5),
-                            "easeInOutQuad",
-                            (dt) => { node.setAttribute(attribute, eq.f(linearMix(eq.from, eq.to, dt))) }
-                        )
-                    } else if (["fill", "stroke"].includes(attribute)) {
-                        const c1 = snap.color(currentValue);
-                        const c2 = snap.color(nextValue);
-                        const from = [c1.r, c1.g, c1.b, c1.opacity];
-                        const to = [c2.r, c2.g, c2.b, c2.opacity];
-                        this._addTransition(
-                            this._getTransitionDuration(node),
-                            this._getTransitionAlignment(node, 0.5),
-                            "easeInOutQuad",
-                            (dt) => { node.setAttribute(attribute, snap.rgb(...linearMix(from, to, dt))) }
-                        )
-                    } else if (['x', 'y', 'opacity', 'rx', 'height', 'width', 'cx', 'cy', 'r', 'fill-opacity'].includes(attribute)) {
-                        this._addTransition(
-                            this._getTransitionDuration(node),
-                            this._getTransitionAlignment(node, 0.5),
-                            "easeInOutQuad",
-                            (dt) => { node.setAttribute(attribute, linearMix(parseFloat(currentValue), parseFloat(nextValue), dt)) }
-                        )
-                    } else if (attribute === "transform") {
-                        const a = new CSSTransform(currentValue);
-                        const b = new CSSTransform(nextValue);
-                        this._addTransition(
-                            this._getTransitionDuration(node),
-                            this._getTransitionAlignment(node, 0.5),
-                            "easeInOutQuad",
-                            (dt) => { node.setAttribute(attribute, a.mixString(b, dt)) }
-                        )
-                    } else if (['transition', 'transition-duration', 'transition-alignment', 'class'].includes(attribute)) {
-                        // Nothing to do
-                    } else {
-                        console.error(`Don't know how to handle transitions for attribute '${attribute}'`);
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Update the state of the DOM nodes that this Stage manages
-     * for an intermediate position `dt`
-     * @param {number} dt between 0 and 1
-     */
-    render(dt) {
-        this.transitions.forEach(t => t(dt));
-    }
-
-    /**
-     * Add a transition to be rendered at 'render'
-     * @param {number} duration 
-     * @param {number} alignment between 0 and 1, 0=start directly, 1=postpone till last moment, 0.5=in the middle of the transition
-     * @param {string} easeFn easing function
-     * @param {(t: number) => void} transition function called with a number between 0 and 1
-     */
-    _addTransition(duration, alignment, easeFn, transition) {
-        this.transitionDuration = Math.max(this.transitionDuration, duration);
-        this.transitions.push(t => {
-            const leftOverTime = this.duration() - duration;
-            const startOffset = leftOverTime * alignment;
-            transition(easing[easeFn](Math.min(1, Math.max(0, (t * this.duration() - startOffset) / duration))))
-        });
-    }
-
-    /**
-     * Get the duration of the transition between this slide and the next.
-     */
-    duration() {
-        return this.transitionDuration;
-    }
-
-    /**
-     * Read transition duration from an SVG element or resort to the default
-     * @param {HTMLElement} node 
-     */
-    _getTransitionDuration(node) {
-        return parseFloat(node.getAttribute("transition-duration")) || 0.5;
-    }
-
-    /**
-     * Read transition alignment from an SVG element or resort to the default
-     * @param {HTMLElement} node
-     * @param {number} defaultValue
-     */
-    _getTransitionAlignment(node, defaultValue) {
-        let alignment = parseFloat(node.getAttribute("transition-alignment"));
-        if (!isFinite(alignment)) {
-            alignment = defaultValue;
-        }
-        return alignment;
-    }
-
-    /**
-     * Select a node in `domTree` that looks most like the parent of `node`
-     * @param {HTMLElement} node 
-     * @param {HTMLElement} domTree
-     */
-    _findCorrespondingParent(node, domTree) {
-        const parentId = node.parentElement.id;
-        let correspondingParent;
-        if (domTree.id === parentId) {
-            correspondingParent = domTree;
-        } else {
-            correspondingParent = domTree.getElementById(parentId);
-        }
-        if (correspondingParent == null) {
-            correspondingParent = domTree;
-            console.error(`Couldn't match parent with id #${parentId}, using ${correspondingParent.id} instead.`);
-        };
-        return correspondingParent;
-    }
-
-    /**
-     * Insert a ghost element in our dom tree that is supposed to appear on the next slide
-     * We are careful about positioning to get occlusions right.
-     * @param {HTMLELement} node from another dom tree
-     */
-    _insertGhostNode(node) {
-        const correspondingParent = this._findCorrespondingParent(node, this.dom);
-        const ghostNode = node.cloneNode(true);
-        const referenceNode = this._nextStayingChild(node);
-        if (referenceNode != null) {
-            const refId = referenceNode.getAttribute("identifier");
-            const refNodeInDom = this.nodeByIdentifier(refId);
-            correspondingParent.insertBefore(ghostNode, refNodeInDom);
-        } else {
-            correspondingParent.appendChild(ghostNode);
-        }
-        return ghostNode
-    }
-
-    /**
-     * Utility used by insertGhostNode to find the next node that 'matters' in terms of occlusions for ghost nodes.
-     * @param {HTMLElement} node 
-     */
-    _nextStayingChild(node) {
-        let it = node.nextElementSibling;
-        while (it != null) {
-            if (it.getAttribute("move") === "true") {
-                return it;
-            }
-            it = it.nextElementSibling;
-        }
-    }
-}
-
-/**
- * Responsible for delegating rendering to the 'stages' it holds
- */
-export class SlideDeck {
-    constructor(canvas, slideStrings) {
-        this.slideStrings = slideStrings;
-        this.canvas = canvas;
-        this.stages = [];
-        this.visibleStage = null;
-        this.currentPosition = null;
-        this.slideStartIndices = [];
-        this.slideEndIndices = [];
-        this.slideNumbers = [];
-        const stepList = [];
-        let i = 0;
-        let slideNumber = 0;
-        for (let slideString of slideStrings) {
-            slideNumber += 1;
-            this.slideStartIndices.push(i);
-            const html = document.createElement('html');
-            html.innerHTML = slideString;
-            const svg = html.querySelector('svg');
-            preprocessSlide(svg);
-            const lastStage = maxStage(svg);
-            for (let stage = 0; stage <= lastStage; stage++) {
-                stepList.push(new Step(svg, stage));
-                i += 1;
-                this.slideNumbers.push(slideNumber);
-            }
-            this.slideEndIndices.push(i - 1);
-        }
-        for (let i = 0; i < stepList.length; i++) {
-            this.stages.push(new Stage(stepList[i], stepList[i + 1]));
-        }
-    }
-
-    nextSlideIndex(position) {
-        return this.slideEndIndices.find((s) => s > position);
-    }
-
-    slideNumber(position) {
-        return this.slideNumbers[Math.floor(position)];
-    }
-
-    firstStageForSlide(slideNumber) {
-        return this.slideNumbers.findIndex((x) => x === slideNumber) || 0;
-    }
-
-    lastSlideNumber() {
-        return this.slideNumbers[this.slideNumbers.length - 1];
-    }
-
-    prevSlideIndex(position) {
-        // .reverse() is in-place, and we don't want to modify the original array, so hence the [...] to copy
-        return [...this.slideEndIndices].reverse().find((s) => s < position);
-    }
-
-    render(t) {
-        let i = Math.floor(t);
-        let stage = this.stages[i];
-        stage.render(t - Math.floor(t));
-        this.currentPosition = t;
-
-        // Swap the visible slide of necessary
-        if (i != this.visibleStage) {
-            this.visibleStage = i;
-            this.canvas.innerHTML = "";
-            this.canvas.appendChild(stage.dom);
-        }
-        this.renderSlideNumber(t);
-    }
-
-    renderSlideNumber(t) {
-        const elem = document.getElementById("slide-number");
-        if (elem == null) return;
-        const number = this.slideNumber(t);
-        const total = this.lastSlideNumber();
-        elem.innerText = `${number} / ${total}`;
-    }
-
-    createChildDeck(canvas) {
-        return new SlideDeck(canvas, this.slideStrings);
-    }
-}
-
-
-
-class Timer {
-    constructor(targetDuration) {
-        this.reset();
-        this.targetTime = targetDuration;
-        this.listeners = new Set();
-        setInterval(this.tick.bind(this), 1000);
-    }
-    tick() {
-        const elapsed = moment.utc(this.elapsed()).format("mm:ss");
-        const progress = this.progress();
-        for (let handler of this.listeners) {
-            handler(elapsed, progress);
-        }
-    }
-    start() {
-        if (this.startTime == null) {
-            this.startTime = moment.now();
-        }
-    }
-    stop() {
-        this.accumulatedTime += moment.now() - this.startTime;
-        this.startTime = null;
-    }
-    toggle() {
-        if (this.startTime == null) {
-            this.start();
-        } else {
-            this.stop();
-        }
-    }
-    elapsed() {
-        let duration = this.accumulatedTime;
-        if (this.startTime != null) {
-            duration += moment.now() - this.startTime;
-        }
-        return duration;
-    }
-    progress() {
-        return this.elapsed() / this.targetTime;
-    }
-    reset() {
-        this.accumulatedTime = 0;
-        this.startTime = null;
-    }
-    addTickListener(handle) {
-        this.listeners.add(handle);
-    }
-    removeTickListener(handle) {
-        this.listeners.delete(handle);
-    }
-}
-
-// Global timer instance
-const timer = new Timer(moment.duration(30, "minutes"));
-window.timer = timer;
-
+import SlideDeck from "./slidedeck";
+import PresenterNotes from "./presenternotes";
+import Timer from "./timer";
+import SlidePlayer from "./slideplayer";
+import Cockpit from "./cockpit";
 
 export class Controller {
-    constructor(slideDeck) {
-        this.deck = slideDeck;
+    /**
+     *
+     * @param {SlideDeck} deck
+     * @param {HTMLDivElement} canvas
+     * @param {PresenterNotes?} nodes
+     */
+    constructor(deck, canvas, talkDuration, presenterNotes) {
+        this.deck = deck;
+        this.canvas = canvas;
+        this.presenterNotes = presenterNotes;
+        this.fullscreenNode = canvas.parentElement;
+        this.timer = new Timer(talkDuration);
+        this.player = new SlidePlayer(this.canvas, this.deck);
+
         this.hooks = new Set(); // get notified for position updates
+
         this.currentPosition = 0.0;
-        this.render = this.render.bind(this);
         this.runningAnimation = null;
         this.runningAnimationTarget = null;
-        requestAnimationFrame(this.render)
+
+        this.render = this.render.bind(this);
+
+        this.fullscreenNode.addEventListener("fullscreenchange", this._fullscreenHandler.bind(this));
+        document.addEventListener("keydown", this._keyboardHandler.bind(this));
+
+        this.addRenderListener(this.player.render.bind(this.player));
+
+        requestAnimationFrame(this.render);
     }
+
     render() {
         if (this.currentPosition !== this.deck.currentPosition) {
-            this.deck.render(this.currentPosition);
             for (let hook of this.hooks) {
-                hook(this.currentPosition)
+                hook(this.currentPosition);
             }
         }
         requestAnimationFrame(this.render);
@@ -518,12 +49,12 @@ export class Controller {
      */
     setPosition(position) {
         this._cancelRunningAnimation();
-        this.currentPosition = Math.min(this.deck.stages.length - 1, Math.max(0, position));
+        this.currentPosition = Math.min(this.deck.numSteps() - 1, Math.max(0, position));
     }
 
     nextStage() {
         this._cancelRunningAnimation();
-        const targetPosition = Math.min(this.deck.stages.length - 1, Math.floor(this.currentPosition) + 1);
+        const targetPosition = Math.min(this.deck.numSteps() - 1, Math.floor(this.currentPosition) + 1);
         const duration = this._durationBetweenPoints(this.currentPosition, targetPosition);
         if (duration === 0) {
             this.setPosition(targetPosition);
@@ -558,7 +89,7 @@ export class Controller {
     }
 
     /**
-     * @param {number} slideNumber 
+     * @param {number} slideNumber
      */
     goToSlide(slideNumber) {
         const stageIdx = this.deck.firstStageForSlide(slideNumber);
@@ -571,7 +102,6 @@ export class Controller {
         this.runningAnimationTarget = targetPosition;
         const update = () => {
             const alpha = Math.min(1.0, (Date.now() - startTime) / duration / 1000);
-            // console.log('update', alpha);
             this.currentPosition = startPosition + (targetPosition - startPosition) * alpha;
             if (alpha === 1) {
                 clearInterval(this.runningAnimation);
@@ -582,31 +112,6 @@ export class Controller {
         this.runningAnimation = setInterval(update, 3);
     }
 
-    _durationBetweenPoints(a, b) {
-        const t1 = Math.min(a, b);
-        const t2 = Math.max(a, b);
-        let duration = 0.0;
-        let x = t1;
-        while (x < t2) {
-            let nextX = Math.min(t2, Math.floor(x + 1));
-            const slide = Math.floor(x);
-            duration += (nextX - x) * this.deck.stages[slide].duration();
-            x = nextX;
-        }
-        return duration;
-    }
-
-    _cancelRunningAnimation() {
-        const wasRunning = (this.runningAnimation != null);
-        if (wasRunning) {
-            clearInterval(this.runningAnimation);
-            this.currentPosition = this.runningAnimationTarget;
-            this.runningAnimation = null;
-            this.runningAnimationTarget = null;
-        }
-        return wasRunning;
-    }
-
     addRenderListener(hook) {
         this.hooks.add(hook);
         hook(this.currentPosition);
@@ -615,197 +120,95 @@ export class Controller {
     removeRenderListener(hook) {
         this.hooks.delete(hook);
     }
-}
 
-
-export class PresenterNotes {
-    constructor(htmlString) {
-        // Split by H1
-        this.notes = [];
-        this.numbers = [];
-
-        this.emptyNode = document.createElement("div");
-        this.emptyNode.classList.add("presenter-note");
-
-        const fragment = document.createElement("div");
-        fragment.innerHTML = htmlString;
-        let currentSlide = 0;
-        let currentNote = null;
-        for (let child of fragment.childNodes) {
-            if (child.nodeName === "H1") {
-                currentSlide = parseInt(child.textContent);
-                currentNote = document.createElement("div");
-                currentNote.classList.add("presenter-note");
-                this.numbers.push(currentSlide);
-                this.notes.push(currentNote);
-            } else if (currentNote != null) {
-                currentNote.appendChild(child.cloneNode(true));
-            }
-        }
-    }
-    getNotesForSlide(slideIndex) {
-        const idx = [...this.numbers].reverse().findIndex(n => n <= slideIndex);
-        if (idx == null) {
-            return this.emptyNode;
-        }
-        return this.notes[idx];
-    }
-}
-
-
-class Cockpit {
-    /**
-     * 
-     * @param {Controller} controller 
-     * @param {KeyboardController} keyboardController 
-     * @param {PresenterNotes?} presenterNotes 
-     */
-    constructor(controller, keyboardController, presenterNotes) {
-        this.prepareWindow();
-
-        const canvas = document.createElement("div");
-        canvas.classList.add("cockpit-canvas");
-        this.window.document.body.appendChild(canvas);
-        this.deck = controller.deck.createChildDeck(canvas);
-        const hook = this.deck.render.bind(this.deck);
-        controller.addRenderListener(hook);
-        this.window.addEventListener('unload', controller.removeRenderListener.bind(controller, hook));
-
-        const nextCanvas = document.createElement("div");
-        nextCanvas.classList.add("cockpit-next");
-        this.window.document.body.appendChild(nextCanvas);
-        this.nextDeck = controller.deck.createChildDeck(nextCanvas);
-        const nextHook = (i) => this.nextDeck.render(i + 1);
-        controller.addRenderListener(nextHook);
-        this.window.addEventListener('unload', controller.removeRenderListener.bind(controller, nextHook));
-
-        const progressBar = document.createElement("div");
-        progressBar.classList.add("cockpit-progress-bar");
-        const progressBarBar = document.createElement("div");
-        progressBarBar.classList.add("cockpit-progress-bar-bar");
-        const progressHandler = (elapsed, percentage) => {
-            progressBarBar.style.width = `${percentage * 100}%`;
-            progressBarBar.innerText = elapsed;
-        }
-        progressBar.appendChild(progressBarBar);
-        this.window.document.body.appendChild(progressBar);
-        timer.addTickListener(progressHandler);
-        this.window.addEventListener('unload', timer.removeTickListener.bind(timer, progressHandler));
-
-        if (presenterNotes != null) {
-            const notesDiv = document.createElement("div");
-            notesDiv.classList.add("cockpit-notes");
-            let currentNotes = null;
-            const handler = (x) => {
-                const notes = presenterNotes.getNotesForSlide(x);
-                if (notes !== currentNotes) {
-                    notesDiv.innerHTML = '';
-                    if (notes != null) {
-                        notesDiv.appendChild(notes);
-                    }
-                    currentNotes = notes;
-                }
-            };
-            this.window.document.body.appendChild(notesDiv);
-            controller.addRenderListener(handler);
-            this.window.addEventListener('unload', controller.removeRenderListener.bind(controller, handler));
-        }
-
-        this.window.document.addEventListener('keydown', keyboardController.keydownHandler);
+    goFullscreen() {
+        this.fullscreenNode.requestFullscreen();
     }
 
-    prepareWindow() {
-        this.window = window.open("", "cockpit");
-        this.window.document.head.innerHTML = "";
-        this.window.document.body.innerHTML = "";
-        const baseElem = this.window.document.createElement('base');
-        baseElem.href = location.href;
-        this.window.document.head.appendChild(baseElem);
-        for (let stylesheet of document.getElementsByTagName("link")) {
-            this.window.document.body.appendChild(stylesheet.cloneNode(true));
-        }
-        this.window.document.title = "Cockpit";
-    }
-
-    destroy() {
-        this.window.removeEventListener('keydown', keyboardController.keydownHandler);
-        this.window.close();
-    }
-}
-
-
-export class KeyboardController {
-    constructor(controller, canvasNode, fullscreenNode, presenterNotes = null) {
-        this.controller = controller;
-        this.hasChild = false;
-        this.canvasNode = canvasNode;
-        this.fullscreenNode = fullscreenNode;
-        this.presenterNotes = presenterNotes;
-        this.fullscreenHandler = this.fullscreenHandler.bind(this);
-        this.keydownHandler = this.keydownHandler.bind(this);
-        document.addEventListener('keydown', this.keydownHandler);
-        this.fullscreenNode.addEventListener('fullscreenchange', this.fullscreenHandler);
-    }
-
-    destruct() {
-        document.removeEventListener('keydown', this.keydownHandler);
-        this.fullscreenNode.removeEventListener('fullscreenchange', this.fullscreenHandler);
-    }
-
-    keydownHandler(event) {
-        if (['ArrowRight', 'ArrowDown', ']'].includes(event.key)) {
-            if (event.shiftKey) {
-                this.controller.nextSlide();
-            } else {
-                this.controller.nextStage();
-            }
-        } else if (['ArrowLeft', 'ArrowUp', '['].includes(event.key)) {
-            if (event.shiftKey) {
-                this.controller.prevSlide();
-            } else {
-                this.controller.prevStage();
-            }
-        } else if (event.key === 'f') {
-            this.goFullscreen();
-        } else if (event.key === 't') {
-            timer.toggle();
-        } else if (event.key === 'c') {
-            // Open a child window
-            if (!this.hasChild) {
-                new Cockpit(this.controller, this, this.presenterNotes);
-            }
-        } else if (event.key === 'Home') {
-            this.controller.setPosition(0);
-        } else if (event.key === 'g') {
-            // Go to slide ...
-            let number = '';
-            const handler = (event) => {
-                if ('0123456789'.includes(event.key)) {
-                    number += event.key;
-                } else {
-                    if (number.length > 0) {
-                        this.controller.goToSlide(parseFloat(number));
-                    }
-                    document.removeEventListener('keydown', handler, true);
-                }
-                event.stopPropagation();
-            };
-            document.addEventListener('keydown', handler, true);
-        } else if (event.key === 'End') {
-            this.controller.setPosition(this.controller.deck.stages.length - 1);
-        } else if (event.key === 'b') {
-            document.body.classList.toggle('blacked-out');
-        } else if (event.key === 'w') {
-            document.body.classList.toggle('blacked-out-white');
-        }
-    }
-
-    fullscreenHandler() {
-        const scale = Math.min(this.fullscreenNode.clientHeight / this.canvasNode.clientHeight, this.fullscreenNode.clientWidth / this.canvasNode.clientWidth)
-        this.canvasNode.style.transform = `scale(${scale})`;
+    _fullscreenHandler() {
+        const scale = Math.min(
+            this.fullscreenNode.clientHeight / this.canvas.clientHeight,
+            this.fullscreenNode.clientWidth / this.canvas.clientWidth
+        );
+        this.canvas.style.transform = `scale(${scale})`;
     }
 
     goFullscreen() {
         this.fullscreenNode.requestFullscreen();
+    }
+
+    _keyboardHandler(event) {
+        if (["ArrowRight", "ArrowDown", "]"].includes(event.key)) {
+            if (event.shiftKey) {
+                this.nextSlide();
+            } else {
+                this.nextStage();
+            }
+        } else if (["ArrowLeft", "ArrowUp", "["].includes(event.key)) {
+            if (event.shiftKey) {
+                this.prevSlide();
+            } else {
+                this.prevStage();
+            }
+        } else if (event.key === "f") {
+            this.goFullscreen();
+        } else if (event.key === "t") {
+            this.timer.toggle();
+        } else if (event.key === "r") {
+            this.timer.reset();
+        } else if (event.key === "c") {
+            // Open a child window
+            if (this.cockpit == null) {
+                this.cockpit = new Cockpit(this);
+            }
+        } else if (event.key === "Home") {
+            this.setPosition(0);
+        } else if (event.key === "g") {
+            // Go to slide ...
+            let number = "";
+            const handler = event => {
+                if ("0123456789".includes(event.key)) {
+                    number += event.key;
+                } else {
+                    if (number.length > 0) {
+                        this.goToSlide(parseFloat(number));
+                    }
+                    document.removeEventListener("keydown", handler, true);
+                }
+                event.stopPropagation();
+            };
+            document.addEventListener("keydown", handler, true);
+        } else if (event.key === "End") {
+            this.setPosition(this.deck.numSteps() - 1);
+        } else if (event.key === "b") {
+            document.body.classList.toggle("blacked-out");
+        } else if (event.key === "w") {
+            document.body.classList.toggle("blacked-out-white");
+        }
+    }
+
+    _durationBetweenPoints(a, b) {
+        const t1 = Math.min(a, b);
+        const t2 = Math.max(a, b);
+        let duration = 0.0;
+        let x = t1;
+        while (x < t2) {
+            let nextX = Math.min(t2, Math.floor(x + 1));
+            const stage = Math.floor(x);
+            duration += (nextX - x) * this.player.stageDuration(stage);
+            x = nextX;
+        }
+        return duration;
+    }
+
+    _cancelRunningAnimation() {
+        const wasRunning = this.runningAnimation != null;
+        if (wasRunning) {
+            clearInterval(this.runningAnimation);
+            this.currentPosition = this.runningAnimationTarget;
+            this.runningAnimation = null;
+            this.runningAnimationTarget = null;
+        }
+        return wasRunning;
     }
 }

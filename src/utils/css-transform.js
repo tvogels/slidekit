@@ -1,4 +1,4 @@
-import { linearMix } from '.'
+import { linearMix } from ".";
 
 /**
  * Representation of a CSS Transform that can generate
@@ -6,7 +6,7 @@ import { linearMix } from '.'
  */
 export default class CSSTransform {
     /**
-     * @param {string} transformString 
+     * @param {string} transformString
      */
     constructor(transformString) {
         const parts = transformString.match(/\w+\(.*?\)/g);
@@ -18,8 +18,8 @@ export default class CSSTransform {
     }
 
     /**
-     * 
-     * @param {CSSTransform} other 
+     *
+     * @param {CSSTransform} other
      * @param {number} alpha between 0 and 1
      */
     mixString(other, alpha) {
@@ -76,7 +76,7 @@ class CSSTransformPart {
         } else if (this.name === "rotate") {
             return new CSSTransformPart("rotate(0)");
         } else {
-            console.error(`Don't know what the identity transform for '${this.name}' is.`)
+            console.error(`Don't know what the identity transform for '${this.name}' is.`);
         }
     }
 }

@@ -13,7 +13,6 @@ export function linearMix(a, b, alpha) {
     }
 }
 
-
 /**
  * Find the local angle of an SVG path using a Finite Difference approximation.
  * @param {snap.Element} snapPath snap.Element
@@ -29,9 +28,8 @@ export function getAngleAtPath(path, position, totalLength) {
     const c2 = path.getPointAtLength(totalLength * p2);
     const dx = c2.x - c1.x;
     const dy = c2.y - c1.y;
-    return Math.atan2(dy, dx) / Math.PI * 180;
+    return (Math.atan2(dy, dx) / Math.PI) * 180;
 }
-
 
 /**
  * Find the largest stage number encountered in a node's descendant's attributes
@@ -40,9 +38,9 @@ export function getAngleAtPath(path, position, totalLength) {
  * @returns {number}
  */
 export function maxStage(domNode) {
-    let max = parseInt(domNode.getAttribute('stage')) || 0;
-    for (let node of domNode.querySelectorAll('[stage]')) {
-        max = Math.max(max, (node.getAttribute('stage') || 0));
+    let max = parseInt(domNode.getAttribute("stage")) || 0;
+    for (let node of domNode.querySelectorAll("[stage]")) {
+        max = Math.max(max, node.getAttribute("stage") || 0);
     }
     return max;
 }

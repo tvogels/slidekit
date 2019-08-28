@@ -1,12 +1,15 @@
-import { SlideDeck, Controller, KeyboardController, PresenterNotes } from './src/index'
+import { Controller } from "./src/index";
+import SlideDeck from "./src/slidedeck";
+import PresenterNotes from "./src/presenternotes";
+import slides from "./slides.json";
+import notes from "./demo-data/notes.md";
+import moment from "moment";
 
-import slides from './slides.json'
-import notes from './demo-data/notes.md'
+import "./src/slides.css";
 
-const wrapper = document.getElementById('canvas-wrapper');
-const canvas = document.getElementById('canvas');
-const deck = new SlideDeck(canvas, slides);
-const controller = new Controller(deck);
-
-window.controller = controller;
-window.keyboardController = new KeyboardController(controller, canvas, wrapper, new PresenterNotes(notes));
+window.slides = new Controller(
+    new SlideDeck(slides),
+    document.getElementById("canvas"),
+    moment.duration(30, "minutes"),
+    new PresenterNotes(notes)
+);
