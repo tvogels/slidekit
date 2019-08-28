@@ -81,10 +81,10 @@ export default class SlideDeck {
 class Step {
     constructor(dom, stage) {
         this.dom = dom.cloneNode(true);
-        const lastStage = maxStage(this.dom);
+        this.lastStage = maxStage(this.dom);
         this.isFirst = stage === 0;
-        this.isLast = stage === lastStage;
-        this._adaptDomToStage(this.dom, stage, lastStage);
+        this.isLast = stage === this.lastStage;
+        this._adaptDomToStage(this.dom, stage);
     }
 
     /**
@@ -94,14 +94,13 @@ class Step {
      * @param {number} stageNumber number of the stage that is currently created
      * @param {number} lastStage of the slide (number of stages - 1)
      */
-    _adaptDomToStage(domNode, stageNumber, lastStage) {
+    _adaptDomToStage(domNode, stageNumber) {
         for (let node of domNode.querySelectorAll("[stage]")) {
-            const nodeStage = node.getAttribute("stage") || 0;
-            if (nodeStage > stageNumber) {
-                window.temp = node;
+            const [minStage, maxStage] = getVisibleStages(node, this.lastStage);
+            if (stageNumber < minStage || stageNumber > maxStage) {
                 node.parentElement.removeChild(node);
             } else {
-                this._adaptDomToStage(node, stageNumber, lastStage);
+                this._adaptDomToStage(node, stageNumber);
             }
             node.removeAttribute("stage");
         }
@@ -109,20 +108,20 @@ class Step {
         // Entry transitions
         // should only happen when they appear
         for (let node of domNode.querySelectorAll("[fade-in]")) {
-            const nodeStage = node.getAttribute("stage") || 0;
-            if (nodeStage !== stageNumber) {
+            const [minStage, _] = getVisibleStages(node, this.lastStage);
+            if (stageNumber !== minStage) {
                 node.removeAttribute("fade-in");
             }
         }
         for (let node of domNode.querySelectorAll("[draw-line]")) {
-            const nodeStage = node.getAttribute("stage") || 0;
-            if (nodeStage !== stageNumber) {
+            const [minStage, _] = getVisibleStages(node, this.lastStage);
+            if (stageNumber !== minStage) {
                 node.removeAttribute("draw-line");
             }
         }
         for (let node of domNode.querySelectorAll("[appear-along]")) {
-            const nodeStage = node.getAttribute("stage") || 0;
-            if (nodeStage !== stageNumber) {
+            const [minStage, _] = getVisibleStages(node, this.lastStage);
+            if (stageNumber !== minStage) {
                 node.removeAttribute("appear-along");
             }
         }
@@ -130,7 +129,8 @@ class Step {
         // Exit transitions
         // should only happen when the node disappears
         for (let node of domNode.querySelectorAll("[fade-out]")) {
-            if (stageNumber !== lastStage) {
+            const [_, maxStage] = getVisibleStages(node, this.lastStage);
+            if (stageNumber !== maxStage) {
                 node.removeAttribute("fade-out");
             }
         }
@@ -171,4 +171,18 @@ function preprocessSlide(domNode) {
             "height"
         )}" src="https://www.youtube.com/embed/${id}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
     }
+}
+
+/**
+ * Read visible stage information from a node
+ * `[stage=4]`: from stage 4
+ * `[stage=2-5]`: from stage 2 up to and including stage 5
+ * @param {HTMLElement} node
+ * @param {number} lastStage
+ */
+function getVisibleStages(node, lastStage) {
+    const stageList = (node.getAttribute("stage") || "").split("-");
+    const min = stageList[0] || 0;
+    const max = stageList[1] || lastStage;
+    return [min, max];
 }
