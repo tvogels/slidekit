@@ -62,7 +62,11 @@ export default class Cockpit {
             this.window.addEventListener("unload", controller.removeRenderListener.bind(controller, handler));
         }
 
-        this.window.document.addEventListener("keydown", controller._keyboardHandler.bind(controller));
+        this.window.addEventListener("unload", () => {
+            controller.cockpit = null;
+        });
+
+        this.document.addEventListener("keydown", controller._keyboardHandler.bind(controller));
     }
 
     prepareWindow() {
@@ -86,17 +90,17 @@ export default class Cockpit {
 
         // To resolve relative links to references correctly, we need to
         // add a <base> element
-        const baseElem = this.window.document.createElement("base");
+        const baseElem = this.document.createElement("base");
         baseElem.href = location.href;
-        this.window.document.head.appendChild(baseElem);
+        this.document.head.appendChild(baseElem);
 
         // Add any stylesheets to the child window so things look the same
         for (let stylesheet of document.getElementsByTagName("link")) {
-            this.window.document.body.appendChild(stylesheet.cloneNode(true));
+            this.document.body.appendChild(stylesheet.cloneNode(true));
         }
 
         // Give it a nice name in the title bar
-        this.window.document.title = "Cockpit";
+        this.document.title = "Cockpit";
     }
 
     destroy() {
