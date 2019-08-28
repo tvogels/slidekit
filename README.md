@@ -43,10 +43,13 @@ Slide crafting utility for nerds.
 
 ## Shortcuts
 
--   `Left`, `Right`, `Up`, `Down` --- stage navigation
--   `Shift + Left` etc. --- skip incremental builds
--   `F` --- go full screen
--   `C` --- open the cockpit (presenter view). _move this to a separate window_
+-   `Left`, `Right`, `Up`, `Down`, `[`, `]` --- stage navigation
+-   `Shift + Left` etc. --- navigation, skipping incremental builds
 -   `Home`, `End` --- go to start or beginning
 -   `G 10 G` -- go to slide number 10
+
+-   `F` --- go full screen
+-   `C` --- open the cockpit (presenter view). _move this to a separate window_
+-   `T` --- start/stop the timer (visible in presenter view)
+-   `R` --- reset the timer to zero
 -   `B` --- toggle blacking out the slide
