@@ -47,7 +47,6 @@ Slide crafting utility for nerds.
 -   `Shift + Left` etc. --- navigation, skipping incremental builds
 -   `Home`, `End` --- go to start or beginning
 -   `G 10 G` -- go to slide number 10
-
 -   `F` --- go full screen
 -   `C` --- open the cockpit (presenter view). _move this to a separate window_
 -   `T` --- start/stop the timer (visible in presenter view)
