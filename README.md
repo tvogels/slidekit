@@ -40,3 +40,13 @@ Slide crafting utility for nerds.
 ## External content
 
 -   `rect[youtube=55bjCP9Fy5I]` will embed a YT video
+
+## Shortcuts
+
+-   `Left`, `Right`, `Up`, `Down` --- stage navigation
+-   `Shift + Left` etc. --- skip incremental builds
+-   `F` --- go full screen
+-   `C` --- open the cockpit (presenter view). _move this to a separate window_
+-   `Home`, `End` --- go to start or beginning
+-   `G 10 G` -- go to slide number 10
+-   `B` --- toggle blacking out the slide
