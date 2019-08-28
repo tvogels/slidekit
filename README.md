@@ -10,8 +10,12 @@ Slide crafting utility for nerds.
 
 -   You make slides in your favourite vector editor (I use Sketch on Mac)
 -   Annotate ids with attributes, e.g. `myPath[fade-in]` or `rectangle[move][otherattrib=value]` (to enable magic move to the next or previous slide)
+    <br>Looks like this in Sketch:<br>
+    <img src="./docs/sketch-screenshot.png" width="300px" />
+
 -   Run `./preprocess_svgs.py` to pre-process your SVGs (parse these annotated ids) and turn them into one big JSON file. This also does things like stripping out embedded images and puting them in `/media/`
 -   Run `parcel index.html` to serve your slides.
+-   If images don't appear, you need to copy them to the `dist` directory ...
 
 ## Step-wise appearance of nodes
 
