@@ -63,11 +63,37 @@ export default class Cockpit {
             this.window.addEventListener("unload", controller.removeRenderListener.bind(controller, handler));
         }
 
+        setTimeout(this.scaleSVGsToFit.bind(this), 100);
+        const resizeHandler = () => {
+            requestAnimationFrame(this.scaleSVGsToFit.bind(this));
+        };
+        this.window.addEventListener("resize", resizeHandler);
+
         this.window.addEventListener("unload", () => {
             controller.cockpit = null;
         });
 
         this.document.addEventListener("keydown", controller._keyboardHandler.bind(controller));
+    }
+
+    scaleSVGsToFit() {
+        const cur = this.document.getElementById("current-slide");
+        const curWrapper = cur.parentElement;
+        const curScale = Math.min(curWrapper.clientHeight / cur.clientHeight, curWrapper.clientWidth / cur.clientWidth);
+
+        const next = this.document.getElementById("next-slide");
+        const nextWrapper = next.parentElement;
+        const nextScale = Math.min(
+            nextWrapper.clientHeight / next.clientHeight,
+            nextWrapper.clientWidth / next.clientWidth
+        );
+
+        cur.style.marginLeft = `${(curWrapper.clientWidth - curScale * cur.clientWidth) / 2}px`;
+        cur.style.marginTop = `${(curWrapper.clientHeight - curScale * cur.clientHeight) / 2}px`;
+        cur.style.transform = `scale(${curScale})`;
+        next.style.marginLeft = `${(nextWrapper.clientWidth - nextScale * next.clientWidth) / 2}px`;
+        next.style.marginTop = `${(nextWrapper.clientHeight - nextScale * next.clientHeight) / 2}px`;
+        next.style.transform = `scale(${nextScale})`;
     }
 
     prepareWindow() {
@@ -80,13 +106,19 @@ export default class Cockpit {
         // Clear any text that is already in the window
         this.head.innerHTML = "";
         this.body.innerHTML = `
-            <div class="cockpit-canvas" id="current-slide"></div>
-            <div class="cockpit-next" id="next-slide"></div>
-            <div class="cockpit-progress-bar">
-                <div class="cockpit-progress-bar-bar" id="progress-bar"></div>
+            <div class="cockpit">
+                <div class="cockpit-current-wrapper">
+                    <div id="current-slide"></div>
+                </div>
+                <div class="cockpit-next-wrapper">
+                    <div id="next-slide"></div>
+                </div>
+                <div class="cockpit-progress-bar">
+                    <div class="cockpit-progress-bar-bar" id="progress-bar"></div>
+                </div>
+                <div class="cockpit-notes" id="notes"></div>
+                <div class="cockpit-stage" id="stage"></div>
             </div>
-            <div class="cockpit-notes" id="notes"></div>
-            <div class="cockpit-stage" id="stage"></div>
         `;
 
         // To resolve relative links to references correctly, we need to

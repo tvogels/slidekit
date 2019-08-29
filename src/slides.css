@@ -18,9 +18,7 @@ body {
     margin-left: -640px;
 }
 
-#canvas,
-.cockpit-canvas,
-.cockpit-next {
+#canvas {
     width: 1280px;
     height: 720px;
     background-color: white;
@@ -50,75 +48,6 @@ body {
 
 tspan {
     white-space: pre;
-}
-
-.cockpit-canvas {
-    transform: scale(0.7);
-    transform-origin: left top;
-    position: absolute;
-    left: 1em;
-    top: 36.5%;
-}
-
-.cockpit-next {
-    transform: scale(0.38);
-    transform-origin: right top;
-    position: absolute;
-    right: 1em;
-    top: 36.5%;
-}
-
-.cockpit-notes {
-    position: absolute;
-    background-color: white;
-    left: 1rem;
-    right: 1rem;
-    top: 1rem;
-    padding: 1rem;
-    overflow: auto;
-    height: 29.5%;
-    font-size: 2rem;
-    font-weight: 400;
-    color: #333;
-    font-family: "Helvetica Neue";
-}
-
-.cockpit-notes strong {
-    color: #000;
-}
-
-.cockpit-notes p:first-child {
-    margin-top: 0;
-}
-
-.cockpit-progress-bar {
-    position: absolute;
-    left: 1em;
-    right: 1em;
-    bottom: 1em;
-    height: 2em;
-    line-height: 2em;
-    background-color: white;
-}
-
-.cockpit-progress-bar-bar {
-    background-color: #bada55;
-    height: 1.6em;
-    line-height: 1.6em;
-    margin: 0.2em 0;
-}
-
-.cockpit-progress-bar-bar:before {
-    content: "x";
-    opacity: 0;
-    display: inline;
-}
-
-.cockpit-stage {
-    position: absolute;
-    right: 1rem;
-    bottom: 3rem;
-    text-align: right;
 }
 
 [animation="stroke-dashoffset"] {
