@@ -30,7 +30,7 @@ export default class PresenterNotes {
     }
 
     getNotesForStage(stageNumber) {
-        let idx = [...this.numbers].reverse().findIndex(n => n <= stageNumber);
+        let idx = [...this.numbers].reverse().findIndex(n => n <= Math.ceil(stageNumber));
         if (idx == null) {
             return this.emptyNode;
         }
