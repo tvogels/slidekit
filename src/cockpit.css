@@ -42,7 +42,7 @@
     font-size: 2rem;
     font-weight: 400;
     color: #333;
-    font-family: "Helvetica Neue";
+    font-family: "Helvetica Neue", sans-serif;
 }
 
 .cockpit-notes strong {
