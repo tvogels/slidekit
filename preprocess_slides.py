@@ -21,6 +21,7 @@ def main():
     parser = ArgumentParser()
     parser.add_argument("slides", nargs="+")
     parser.add_argument("--output", "-o", default="slides.json")
+    parser.add_argument("--media-out-dir", "-m", default="dist/media")
     args = parser.parse_args()
 
     strings = []
@@ -35,7 +36,7 @@ def main():
         progress_bar.set_postfix_str(slide_path)
         doc = parse(slide_path)
 
-        process_node(doc, slide_no, root=doc)
+        process_node(doc, slide_no, root=doc, media_out_dir=args.media_out_dir)
         strings.append(doc.toxml())
 
     with open(args.output, "w") as fp:
@@ -58,7 +59,7 @@ syntax = id?:id attribute*:attributes -> {'id': id, 'attributes': attributes}
 )
 
 
-def process_node(node, slide, root, id_stack=[]):
+def process_node(node, slide, root, media_out_dir, id_stack=[]):
     # Parse the ID syntax     anythingblabla[attrkey=attrval][attrkey=attrval]
     if not node.nodeType in [
         xml.dom.Node.TEXT_NODE,
@@ -93,7 +94,7 @@ def process_node(node, slide, root, id_stack=[]):
             child = parent.insertBefore(child, node)
             for attr in node.attributes.keys():
                 apply_attr_to_groups_child(child, attr, node.getAttribute(attr))
-            process_node(child, slide, root, id_stack=id_stack)
+            process_node(child, slide, root, media_out_dir, id_stack=id_stack)
         node = parent.removeChild(node)
         node.unlink()
         return
@@ -170,7 +171,8 @@ def process_node(node, slide, root, id_stack=[]):
         semicolon_idx = content.index(";")
         extension = content[slash_idx + 1 : semicolon_idx]
         filename = f"{hexhash}.{extension}"
-        filepath = os.path.join("media", filename)
+        filepath = os.path.join(media_out_dir, filename)
+        os.makedirs(media_out_dir, exist_ok=True)
         if not os.path.isfile(filepath):
             with open(filepath, "wb") as fp:
                 fp.write(base64.b64decode(content[data_start:]))
@@ -178,7 +180,7 @@ def process_node(node, slide, root, id_stack=[]):
         node.setAttribute("href", filepath)
 
     for child in node.childNodes:
-        process_node(child, slide, root, id_stack=id_stack)
+        process_node(child, slide, root, media_out_dir, id_stack=id_stack)
 
 
 def group_element_should_be_removed(node):
