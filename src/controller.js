@@ -162,7 +162,7 @@ export default class Controller {
             this.timer.toggle();
         } else if (event.key === "r") {
             this.timer.reset();
-        } else if (event.key === "c") {
+        } else if (event.key === "c" || event.key === "p") {
             // Open a child window
             if (this.cockpit == null) {
                 this.cockpit = new Cockpit(this);
