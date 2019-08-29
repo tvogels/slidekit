@@ -26,9 +26,11 @@ export default class Controller {
         this.runningAnimationTarget = null;
 
         this.render = this.render.bind(this);
+        this._fullscreenHandler = this._fullscreenHandler.bind(this);
+        this._keyboardHandler = this._keyboardHandler.bind(this);
 
-        this.fullscreenNode.addEventListener("fullscreenchange", this._fullscreenHandler.bind(this));
-        document.addEventListener("keydown", this._keyboardHandler.bind(this));
+        this.fullscreenNode.addEventListener("fullscreenchange", this._fullscreenHandler);
+        document.addEventListener("keydown", this._keyboardHandler);
 
         this.addRenderListener(this.player.render.bind(this.player));
 
