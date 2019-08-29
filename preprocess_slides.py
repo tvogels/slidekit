@@ -21,7 +21,7 @@ def main():
     parser = ArgumentParser()
     parser.add_argument("slides", nargs="+")
     parser.add_argument("--output", "-o", default="slides.json")
-    parser.add_argument("--media-out-dir", "-m", default="dist/media")
+    parser.add_argument("--media-out-dir", "-m", default="dist")
     args = parser.parse_args()
 
     strings = []
@@ -76,6 +76,8 @@ def process_node(node, slide, root, media_out_dir, id_stack=[]):
                 node.setAttribute("id", "")
 
             for (key, value) in parsed["attributes"]:
+                if value is None:
+                    value = ""
                 node.setAttribute(key, value)
 
         if node.getAttribute("move") == "true":
@@ -171,13 +173,13 @@ def process_node(node, slide, root, media_out_dir, id_stack=[]):
         semicolon_idx = content.index(";")
         extension = content[slash_idx + 1 : semicolon_idx]
         filename = f"{hexhash}.{extension}"
-        filepath = os.path.join(media_out_dir, filename)
+        filepath = os.path.join(media_out_dir, "media", filename)
         os.makedirs(media_out_dir, exist_ok=True)
         if not os.path.isfile(filepath):
             with open(filepath, "wb") as fp:
                 fp.write(base64.b64decode(content[data_start:]))
         node.removeAttribute("xlink:href")
-        node.setAttribute("href", filepath)
+        node.setAttribute("href", os.path.join("media", filename))
 
     for child in node.childNodes:
         process_node(child, slide, root, media_out_dir, id_stack=id_stack)
