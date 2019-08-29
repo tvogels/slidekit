@@ -8,7 +8,7 @@ Slide crafting utility for nerds.
 
 ## Process
 
--   You make slides in your favourite vector editor (I use Sketch on Mac)
+-   You make slides (of size 1280x720) in your favourite vector editor (I use [Sketch](https://www.sketch.com/) on Mac)
 -   Annotate ids with attributes, e.g. `myPath[fade-in]` or `rectangle[move][otherattrib=value]` (to enable magic move to the next or previous slide)
     <br>Looks like this in [Sketch](https://www.sketch.com/):<br>
     <img src="./docs/sketch-screenshot.png" width="300px" />
