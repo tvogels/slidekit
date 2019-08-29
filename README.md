@@ -2,16 +2,21 @@
 
 Slide crafting utility for nerds.
 
--   Expect this to be more work than PowerPoint or KeyNote
--   Use this if you want absolute control over slide transitions.<br>
-    This basically supports magic move while you are in control over linking objects between slides.
+Draw your slides in a vector editor and export SVG.
+By annotating the SVG, you can build slide transitions with
+
+-   Incremental builds
+-   Magic-move / morph with precise slide-to-slide matching by object ID.
+-   Fade-in and out.
+-   Custom external web content like videos or interactive widgets.
+
+**Note**: Expect this to be more work than Powerpoint or Keynote, but more rewarding :)
 
 ## Process
 
 -   Fork this repo (optional, allows customization)
 
--   Draw make slides (of size `1280x720`) in your favourite vector editor (I use [Sketch](https://www.sketch.com/) on Mac).
-    This repository has only been tested for this editor so far.
+-   Draw your slides (of size `1280x720`) in your favourite vector editor (I use [Sketch](https://www.sketch.com/) on Mac). (Only tested in Sketch)
 
 -   Annotate your SVG IDs with attributes to set animation behavior, e.g. `myPath[stage=2][fade-in]` or `rectangle[move][otherattrib=value]`
     <br>Looks like this in [Sketch](https://www.sketch.com/):<br>
@@ -41,7 +46,7 @@ Slide crafting utility for nerds.
 
 ## Transitioning objects from one stage to the next
 
--   `mynode[move=1.5]` --- 1.5 morph .. could be color, position, rotation, ... will be morphed
+-   `mynode[move=1.5]` --- 1.5 second morph .. could be color, position, rotation, ... will be morphed
 
 ## Exit animation
 
