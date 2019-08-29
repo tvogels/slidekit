@@ -1,4 +1,5 @@
 import SlidePlayer from "./slideplayer";
+import "./cockpit.css";
 
 export default class Cockpit {
     /**
