@@ -49,9 +49,9 @@ export default class Cockpit {
         this.window.addEventListener("unload", () => controller.removeRenderListener(this.render));
 
         // Make sure SVGs in the two cockpit canvases are shown at the right scale at all times
-        setTimeout(() => requestAnimationFrame(this.scaleSVGsToFit), 1000);
-        this.window.addEventListener("load", () => requestAnimationFrame(this.scaleSVGsToFit));
-        this.window.addEventListener("resize", () => requestAnimationFrame(this.scaleSVGsToFit));
+        setTimeout(this.scaleSVGsToFit, 1000);
+        this.window.addEventListener("load", this.scaleSVGsToFit);
+        this.window.addEventListener("resize", this.scaleSVGsToFit);
 
         // Unregister the cockpit when this window closes
         this.window.addEventListener("unload", () => (controller.cockpit = null));

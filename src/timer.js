@@ -42,7 +42,7 @@ export default class Timer {
     reset() {
         this.accumulatedTime = 0;
         this.startTime = null;
-        requestAnimationFrame(this._tick.bind(this));
+        setTimeout(this._tick.bind(this));
     }
 
     addTickListener(handle) {
