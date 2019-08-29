@@ -20,6 +20,9 @@ Slide crafting utility for nerds.
 -   Run `./preprocess_slides.py demo-data/*.svg -o demo-data/slides.json` to pre-process your SVGs (parse these annotated ids) and turn them into one big JSON file.
     This also strips out embedded images and puts them in `dist/media/`.
 
+-   You can customize the presenter notes in `demo-data/notes.md`.
+    You can find the right numbers to link notes with slides in the cockpit (press `C` to open)
+
 -   Run `parcel index.html` to serve your slides in dev-mode.
 
 -   The entry-point for the code is `index.js`.
