@@ -1,5 +1,3 @@
-import { maxStage } from "./utils";
-
 /**
  * This parses and pre-processes a slide deck
  * It holds one SVG Element for each 'build stage'
@@ -105,13 +103,12 @@ class Step {
             } else {
                 this._adaptDomToStage(node, stageNumber);
             }
-            node.removeAttribute("stage");
         }
 
         // Entry transitions
         // should only happen when they appear
         for (let node of domNode.querySelectorAll("[fade-in]")) {
-            const [minStage, _] = getVisibleStages(node, this.lastStage);
+            const [minStage, maxStage] = getVisibleStages(node, this.lastStage);
             if (stageNumber !== minStage) {
                 node.removeAttribute("fade-in");
             }
@@ -149,7 +146,23 @@ class Step {
  */
 function getVisibleStages(node, lastStage) {
     const stageList = (node.getAttribute("stage") || "").split("-");
-    const min = stageList[0] || 0;
-    const max = stageList[1] || lastStage;
+    const min = parseFloat(stageList[0] || 0);
+    const max = parseFloat(stageList[1] || lastStage);
     return [min, max];
+}
+
+/**
+ * Find the largest stage number encountered in a node's descendant's attributes
+ *
+ * @param {HTMLElement} domNode
+ * @returns {number}
+ */
+export function maxStage(domNode) {
+    let max = 0;
+    for (let node of domNode.querySelectorAll("[stage]")) {
+        let [minStage, maxStage] = getVisibleStages(node, -1);
+        if (maxStage == -1) maxStage = minStage;
+        max = Math.max(max, maxStage);
+    }
+    return max;
 }

@@ -30,17 +30,3 @@ export function getAngleAtPath(path, position, totalLength) {
     const dy = c2.y - c1.y;
     return (Math.atan2(dy, dx) / Math.PI) * 180;
 }
-
-/**
- * Find the largest stage number encountered in a node's descendant's attributes
- *
- * @param {HTMLElement} domNode
- * @returns {number}
- */
-export function maxStage(domNode) {
-    let max = parseInt(domNode.getAttribute("stage")) || 0;
-    for (let node of domNode.querySelectorAll("[stage]")) {
-        max = Math.max(max, node.getAttribute("stage") || 0);
-    }
-    return max;
-}

@@ -172,7 +172,6 @@ class Stage {
         }
 
         for (let node of this.dom.querySelectorAll("[move]")) {
-            if (!this.isLastStep) continue;
             const id = node.getAttribute("id");
             const nodeInNextStage = this.nextIndex.nodeByIdentifier(id);
             if (nodeInNextStage == null) continue; // no match ... too bad
@@ -237,7 +236,9 @@ class Stage {
                             }
                         );
                     } else if (
-                        ["move", "fade-in", "fade-out", "appear-along", "draw-line", "class"].includes(attribute)
+                        ["move", "fade-in", "fade-out", "appear-along", "draw-line", "class", "stage"].includes(
+                            attribute
+                        )
                     ) {
                         // Nothing to do
                     } else {
