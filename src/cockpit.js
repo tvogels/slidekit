@@ -13,6 +13,7 @@ export default class Cockpit {
 
         this.render = this.render.bind(this);
         this.renderProgressbar = this.renderProgressbar.bind(this);
+        this.scaleSVGsToFit = this.scaleSVGsToFit.bind(this);
 
         this.prepareWindow();
 
@@ -48,8 +49,8 @@ export default class Cockpit {
         this.window.addEventListener("unload", () => controller.removeRenderListener(this.render));
 
         // Make sure SVGs in the two cockpit canvases are shown at the right scale at all times
-        this.window.addEventListener("load", () => this.scaleSVGsToFit.bind());
-        this.window.addEventListener("resize", () => requestAnimationFrame(this.scaleSVGsToFit.bind(this)));
+        this.window.addEventListener("load", () => requestAnimationFrame(this.scaleSVGsToFit));
+        this.window.addEventListener("resize", () => requestAnimationFrame(this.scaleSVGsToFit));
 
         // Unregister the cockpit when this window closes
         this.window.addEventListener("unload", () => (controller.cockpit = null));
