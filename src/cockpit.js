@@ -9,6 +9,11 @@ export default class Cockpit {
      * @param {PresenterNotes?} presenterNotes
      */
     constructor(controller) {
+        this.controller = controller;
+
+        this.render = this.render.bind(this);
+        this.renderProgressbar = this.renderProgressbar.bind(this);
+
         this.prepareWindow();
 
         // Current step view
@@ -17,88 +22,74 @@ export default class Cockpit {
             controller.deck,
             false
         );
-        const currentSlideHook = this.currentSlidePlayer.render.bind(this.currentSlidePlayer);
-        controller.addRenderListener(currentSlideHook);
-        this.window.addEventListener("unload", controller.removeRenderListener.bind(controller, currentSlideHook));
 
         // Next step view
         this.nextSlidePlayer = new SlidePlayer(this.document.getElementById("next-slide"), controller.deck, false);
-        const nextSlideHook = i => this.nextSlidePlayer.render(Math.min(i + 1, this.nextSlidePlayer.stages.length - 1));
-        controller.addRenderListener(nextSlideHook);
-        this.window.addEventListener("unload", controller.removeRenderListener.bind(controller, nextSlideHook));
 
         // Progress bar
-        const progressBarBar = this.document.getElementById("progress-bar");
-        const progressHandler = (elapsed, percentage) => {
-            progressBarBar.style.width = `${percentage * 100}%`;
-            progressBarBar.innerText = elapsed;
-        };
-        controller.timer.addTickListener(progressHandler);
+        this.progressBarBar = this.document.getElementById("progress-bar");
+        controller.timer.addTickListener(this.renderProgressbar);
         this.window.addEventListener(
             "unload",
-            controller.timer.removeTickListener.bind(controller.timer, progressHandler)
+            controller.timer.removeTickListener.bind(controller.timer, this.renderProgressbar)
         );
 
         // current stage
-        const stageCanvas = this.document.getElementById("stage");
-        const stageHook = i => (stageCanvas.innerText = `${Math.floor(i)}`);
-        controller.addRenderListener(stageHook);
-        this.window.addEventListener("unload", controller.removeRenderListener.bind(controller, stageHook));
+        this.stageCanvas = this.document.getElementById("stage");
 
         // Presenter notes
         if (controller.presenterNotes != null) {
-            const notesDiv = this.document.getElementById("notes");
-            let currentNotes = null;
-            const handler = x => {
-                const notes = controller.presenterNotes.getNotesForStage(x);
-                if (notes !== currentNotes) {
-                    notesDiv.innerHTML = "";
-                    if (notes != null) {
-                        notesDiv.appendChild(notes);
-                    }
-                    currentNotes = notes;
-                }
-            };
-            controller.addRenderListener(handler);
-            this.window.addEventListener("unload", controller.removeRenderListener.bind(controller, handler));
+            this.notesDiv = this.document.getElementById("notes");
+            this.currentNotes = null;
         }
 
-        setTimeout(this.scaleSVGsToFit.bind(this), 100);
-        const resizeHandler = () => {
-            requestAnimationFrame(this.scaleSVGsToFit.bind(this));
-        };
-        this.window.addEventListener("resize", resizeHandler);
+        // Register a render hook for the cockpit on the controller
+        controller.addRenderListener(this.render);
+        this.window.addEventListener("unload", () => controller.removeRenderListener(this.render));
 
-        this.window.addEventListener("unload", () => {
-            controller.cockpit = null;
-        });
+        // Make sure SVGs in the two cockpit canvases are shown at the right scale at all times
+        this.window.addEventListener("load", () => this.scaleSVGsToFit.bind());
+        this.window.addEventListener("resize", () => requestAnimationFrame(this.scaleSVGsToFit.bind(this)));
 
+        // Unregister the cockpit when this window closes
+        this.window.addEventListener("unload", () => (controller.cockpit = null));
+
+        // Keyboard handler
         this.document.addEventListener("keydown", controller._keyboardHandler.bind(controller));
     }
 
-    scaleSVGsToFit() {
-        const cur = this.document.getElementById("current-slide");
-        const curWrapper = cur.parentElement;
-        const curScale = Math.min(curWrapper.clientHeight / cur.clientHeight, curWrapper.clientWidth / cur.clientWidth);
+    render(t) {
+        this.currentSlidePlayer.render(t);
+        this.nextSlidePlayer.render(Math.min(t + 1, this.nextSlidePlayer.stages.length - 1));
+        this.stageCanvas.innerText = `${Math.floor(t)}`;
+        if (this.notesDiv != null) {
+            this.renderPresenterNotes(t);
+        }
+    }
 
-        const next = this.document.getElementById("next-slide");
-        const nextWrapper = next.parentElement;
-        const nextScale = Math.min(
-            nextWrapper.clientHeight / next.clientHeight,
-            nextWrapper.clientWidth / next.clientWidth
-        );
+    renderProgressbar(elapsed, percentage) {
+        this.progressBarBar.style.width = `${percentage * 100}%`;
+        this.progressBarBar.innerText = elapsed;
+    }
 
-        cur.style.marginLeft = `${(curWrapper.clientWidth - curScale * cur.clientWidth) / 2}px`;
-        cur.style.marginTop = `${(curWrapper.clientHeight - curScale * cur.clientHeight) / 2}px`;
-        cur.style.transform = `scale(${curScale})`;
-        next.style.marginLeft = `${(nextWrapper.clientWidth - nextScale * next.clientWidth) / 2}px`;
-        next.style.marginTop = `${(nextWrapper.clientHeight - nextScale * next.clientHeight) / 2}px`;
-        next.style.transform = `scale(${nextScale})`;
+    renderPresenterNotes(t) {
+        const notes = this.controller.presenterNotes.getNotesForStage(t);
+        if (notes !== this.currentNotes) {
+            this.notesDiv.innerHTML = "";
+            if (notes != null) {
+                this.notesDiv.appendChild(notes);
+            }
+            this.currentNotes = notes;
+        }
     }
 
     prepareWindow() {
         // The identifier 'cockpit' will give us the same window every time. It will override it.
-        this.window = window.open("", "cockpit");
+        this.window = window.open(
+            "",
+            "cockpit",
+            "height=720,width=1100,menubar=off,toolbar=off,titlebar=off,status=off,location=off,personalbar=off,directories=off,"
+        );
         this.document = this.window.document;
         this.body = this.window.document.body;
         this.head = this.window.document.head;
@@ -134,6 +125,26 @@ export default class Cockpit {
 
         // Give it a nice name in the title bar
         this.document.title = "Cockpit";
+    }
+
+    scaleSVGsToFit() {
+        const cur = this.document.getElementById("current-slide");
+        const curWrapper = cur.parentElement;
+        const curScale = Math.min(curWrapper.clientHeight / cur.clientHeight, curWrapper.clientWidth / cur.clientWidth);
+
+        const next = this.document.getElementById("next-slide");
+        const nextWrapper = next.parentElement;
+        const nextScale = Math.min(
+            nextWrapper.clientHeight / next.clientHeight,
+            nextWrapper.clientWidth / next.clientWidth
+        );
+
+        cur.style.marginLeft = `${(curWrapper.clientWidth - curScale * cur.clientWidth) / 2}px`;
+        cur.style.marginTop = `${(curWrapper.clientHeight - curScale * cur.clientHeight) / 2}px`;
+        cur.style.transform = `scale(${curScale})`;
+        next.style.marginLeft = `${(nextWrapper.clientWidth - nextScale * next.clientWidth) / 2}px`;
+        next.style.marginTop = `${(nextWrapper.clientHeight - nextScale * next.clientHeight) / 2}px`;
+        next.style.transform = `scale(${nextScale})`;
     }
 
     destroy() {

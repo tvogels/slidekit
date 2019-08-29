@@ -1,0 +1,83 @@
+.cockpit {
+    display: grid;
+    grid-gap: 1rem 1rem;
+    margin: 1rem;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr 2rem;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.cockpit-current-wrapper {
+    background-color: white;
+    grid-column: 1 / 3;
+    grid-row: 2 / 4;
+    overflow: hidden;
+}
+
+.cockpit-next-wrapper {
+    background-color: white;
+    grid-column: 3;
+    grid-row: 2 / 3;
+    overflow: hidden;
+}
+
+.cockpit-current-wrapper > div,
+.cockpit-next-wrapper > div {
+    transform: scale(1);
+    transform-origin: 0 0;
+    width: 1280px;
+    height: 720px;
+}
+
+.cockpit-notes {
+    background-color: white;
+    grid-column: 1 / 4;
+    padding: 1rem;
+    grid-row: 1;
+    overflow: auto;
+    font-size: 2rem;
+    font-weight: 400;
+    color: #333;
+    font-family: "Helvetica Neue";
+}
+
+.cockpit-notes strong {
+    color: #000;
+}
+
+.cockpit-notes p:first-child {
+    margin-top: 0;
+}
+
+.cockpit-progress-bar {
+    grid-row: 4;
+    grid-column: 1 / 4;
+    line-height: 2em;
+    background-color: white;
+}
+
+.cockpit-progress-bar-bar {
+    background-color: #bada55;
+    height: 1.6em;
+    line-height: 1.6em;
+    margin: 0.2em 0;
+}
+
+.cockpit-progress-bar-bar:before {
+    content: "x";
+    opacity: 0;
+    display: inline;
+}
+
+.cockpit-stage {
+    grid-row: 3;
+    grid-column: 3;
+    align-self: end;
+    justify-self: end;
+    background-color: white;
+    padding: 0.6em;
+}
