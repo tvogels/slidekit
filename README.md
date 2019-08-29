@@ -8,14 +8,21 @@ Slide crafting utility for nerds.
 
 ## Process
 
--   You make slides (of size 1280x720) in your favourite vector editor (I use [Sketch](https://www.sketch.com/) on Mac)
--   Annotate ids with attributes, e.g. `myPath[fade-in]` or `rectangle[move][otherattrib=value]` (to enable magic move to the next or previous slide)
+-   Fork this repo (optional, allows customization)
+
+-   Draw make slides (of size `1280x720`) in your favourite vector editor (I use [Sketch](https://www.sketch.com/) on Mac).
+    This repository has only been tested for this editor so far.
+
+-   Annotate your SVG IDs with attributes to set animation behavior, e.g. `myPath[stage=2][fade-in]` or `rectangle[move][otherattrib=value]`
     <br>Looks like this in [Sketch](https://www.sketch.com/):<br>
     <img src="./docs/sketch-screenshot.png" width="300px" />
 
--   Run `./preprocess_slides.py demo-data/*.svg -o demo-data/slides.json` to pre-process your SVGs (parse these annotated ids) and turn them into one big JSON file. This also does things like stripping out embedded images and puting them in `/media/`
+-   Run `./preprocess_slides.py demo-data/*.svg -o demo-data/slides.json` to pre-process your SVGs (parse these annotated ids) and turn them into one big JSON file.
+    This also strips out embedded images and puts them in `dist/media/`.
+
 -   Run `parcel index.html` to serve your slides in dev-mode.
--   If images don't appear, you need to copy `media/` them to the `dist/` directory ...
+
+-   The entry-point for the code is `index.js`.
 
 ## Step-wise appearance of nodes
 
