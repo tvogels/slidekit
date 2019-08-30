@@ -80,4 +80,10 @@
     justify-self: end;
     background-color: white;
     padding: 0.6em;
+    cursor: pointer;
+    user-select: none;
+}
+
+.cockpit-stage:active {
+    background-color: #eee;
 }

@@ -1,4 +1,5 @@
 import SlidePlayer from "./slideplayer";
+import { copyToClipboard } from "./utils";
 import "./cockpit.css";
 
 export default class Cockpit {
@@ -37,6 +38,9 @@ export default class Cockpit {
 
         // current stage
         this.stageCanvas = this.document.getElementById("stage");
+        this.stageCanvas.addEventListener("click", () => {
+            copyToClipboard(this.document, this.stageCanvas.innerHTML);
+        });
 
         // Presenter notes
         if (controller.presenterNotes != null) {
@@ -63,9 +67,16 @@ export default class Cockpit {
     render(t) {
         this.currentSlidePlayer.render(t);
         this.nextSlidePlayer.render(Math.min(t + 1, this.nextSlidePlayer.stages.length - 1));
-        this.stageCanvas.innerText = `${Math.floor(t)}`;
         if (this.notesDiv != null) {
             this.renderPresenterNotes(t);
+        }
+        this.renderStageId(t);
+    }
+
+    renderStageId(t) {
+        const id = `# ${this.controller.deck.stageId(t)}`;
+        if (this.stageCanvas.innerHTML !== id) {
+            this.stageCanvas.innerHTML = id;
         }
     }
 
@@ -75,7 +86,9 @@ export default class Cockpit {
     }
 
     renderPresenterNotes(t) {
-        const notes = this.controller.presenterNotes.getNotesForStage(t);
+        const stageId = this.controller.deck.stageId(t);
+        const slideId = this.controller.deck.slideId(t);
+        const notes = this.controller.presenterNotes.getNote(slideId, stageId);
         if (notes !== this.currentNotes) {
             this.notesDiv.innerHTML = "";
             if (notes != null) {

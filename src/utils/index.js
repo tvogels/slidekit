@@ -30,3 +30,21 @@ export function getAngleAtPath(path, position, totalLength) {
     const dy = c2.y - c1.y;
     return (Math.atan2(dy, dx) / Math.PI) * 180;
 }
+
+export function copyToClipboard(document, str) {
+    console.log("copying", str);
+    const el = document.createElement("textarea");
+    el.value = str;
+    el.setAttribute("readonly", "");
+    el.style.position = "absolute";
+    el.style.left = "-9999px";
+    document.body.appendChild(el);
+    const selected = document.getSelection().rangeCount > 0 ? document.getSelection().getRangeAt(0) : false;
+    el.select();
+    document.execCommand("copy");
+    document.body.removeChild(el);
+    if (selected) {
+        document.getSelection().removeAllRanges();
+        document.getSelection().addRange(selected);
+    }
+}

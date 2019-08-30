@@ -6,35 +6,33 @@ export default class PresenterNotes {
      */
     constructor(htmlString) {
         // Split by H1
-        this.notes = [];
-        this.numbers = [];
+        this._notes = new Map();
 
-        this.emptyNode = document.createElement("div");
-        this.emptyNode.classList.add("presenter-note");
+        this._emptyNode = document.createElement("div");
+        this._emptyNode.classList.add("presenter-note");
 
         const fragment = document.createElement("div");
         fragment.innerHTML = htmlString;
-        let currentSlide = 0;
         let currentNote = null;
         for (let child of fragment.childNodes) {
             if (child.nodeName === "H1") {
-                currentSlide = parseInt(child.textContent);
+                const noteId = child.textContent;
                 currentNote = document.createElement("div");
                 currentNote.classList.add("presenter-note");
-                this.numbers.push(currentSlide);
-                this.notes.push(currentNote);
+                this._notes.set(noteId, currentNote);
             } else if (currentNote != null) {
                 currentNote.appendChild(child.cloneNode(true));
             }
         }
     }
 
-    getNotesForStage(stageNumber) {
-        let idx = [...this.numbers].reverse().findIndex(n => n <= Math.ceil(stageNumber));
-        if (idx == null) {
-            return this.emptyNode;
+    getNote(slideId, stageId) {
+        if (this._notes.has(stageId)) {
+            return this._notes.get(stageId);
+        } else if (this._notes.has(slideId)) {
+            return this._notes.get(slideId);
+        } else {
+            return this._emptyNode;
         }
-        idx = this.numbers.length - 1 - idx;
-        return this.notes[idx];
     }
 }

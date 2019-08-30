@@ -79,16 +79,26 @@ export default class SlideDeck {
         return slide.steps[0].globalIndex;
     }
 
-    lastSlideNumber() {
-        return this._slides[this._slides.length - 1].index + 1;
-    }
-
     numSteps() {
         return this._steps.length;
     }
 
     numSlides() {
         return this._slides.length;
+    }
+
+    lastSlideNumber() {
+        return this.numSlides();
+    }
+
+    stageId(position) {
+        const step = this._steps[Math.ceil(position)];
+        return `${this.slideId(position)} ${step.localIndex}`;
+    }
+
+    slideId(position) {
+        const step = this._steps[Math.ceil(position)];
+        return step.slide.id;
     }
 
     /**
