@@ -12,6 +12,13 @@ By annotating the SVG, you can build slide transitions with
 
 **Note**: Expect this to be more work than Powerpoint or Keynote, but more rewarding :)
 
+## Prerequisites
+
+- Install Python 3
+- `pip install -r requirements.txt`
+- Install [Node.js](https://nodejs.org/en/) with NPM.
+- We use [Parcel](https://parceljs.org/) for building the project. (`npm install -g parcel-bundler`)
+
 ## Process
 
 -   Fork this repo (optional, allows customization)
