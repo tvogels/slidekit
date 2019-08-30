@@ -29,7 +29,7 @@ By annotating the SVG, you can build slide transitions with
     <br>Looks like this in [Sketch](https://www.sketch.com/):<br>
     <img src="./docs/sketch-screenshot.png" width="300px" />
 
--   Run `./preprocess_slides.py demo-data -o demo-data/slides.json` to pre-process your SVGs (parse these annotated ids) and turn them into one big JSON file.
+-   Run `./preprocess_slides.py demo-data/ -o demo-data/slides.json` to pre-process your SVGs (parse these annotated ids) and turn them into one big JSON file.
     This also strips out embedded images and puts them in `dist/media/`.
 
 -   You can customize the presenter notes in `demo-data/notes.md`.
