@@ -107,7 +107,7 @@ class Stage {
 
             const attributes = new Set([...node.getAttributeNames(), ...nodeInNextStage.getAttributeNames()]);
             for (let attribute of attributes) {
-                let defaultValue = { opacity: 1, transform: "", style: "" }[attribute];
+                let defaultValue = { opacity: 1, "fill-opacity": 1, transform: "", style: "" }[attribute];
                 if (defaultValue == null) {
                     defaultValue = 0.0;
                 }
