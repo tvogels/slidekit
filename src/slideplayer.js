@@ -204,11 +204,18 @@ class Stage {
             this._addTransition(
                 this._getTransitionDuration(node, "fade-down"),
                 this._getTransitionAlignment(node, "fade-down"),
-                "easeInSin",
+                "easeInOutQuad",
                 dt => {
-                    ghostNode.style.opacity = linearMix(0.0, node.style.opacity || 1.0, dt);
                     const offset = linearMix(-20, 0, dt);
                     ghostNode.setAttribute("transform", `${originalTransform} translate(0,${offset})`);
+                }
+            );
+            this._addTransition(
+                this._getTransitionDuration(node, "fade-down"),
+                this._getTransitionAlignment(node, "fade-down"),
+                "easeInCubic",
+                dt => {
+                    ghostNode.style.opacity = linearMix(0.0, node.style.opacity || 1.0, dt);
                 }
             );
         }
