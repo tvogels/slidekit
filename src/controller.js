@@ -169,6 +169,11 @@ export default class Controller {
             if (this.cockpit == null) {
                 this.cockpit = new Cockpit(this);
             }
+        } else if (event.key === "q") {
+            // Open a child window
+            if (this.cockpit != null) {
+                this.cockpit.window.close();
+            }
         } else if (event.key === "Home") {
             this.setPosition(0);
         } else if (event.key === "g") {
