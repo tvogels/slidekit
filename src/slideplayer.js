@@ -43,8 +43,8 @@ export default class SlidePlayer {
         this.deck = deck;
         this.stages = [];
 
-        for (let i = 0; i < deck.steps.length; i++) {
-            this.stages.push(new Stage(deck.steps[i], deck.steps[i + 1]));
+        for (let i = 0; i < deck.numSteps(); i++) {
+            this.stages.push(new Stage(deck.step(i), deck.step(i + 1)));
         }
     }
 

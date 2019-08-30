@@ -10,67 +10,95 @@ export default class SlideDeck {
      * @param {((HTMLElement) => void)[]?} plugins
      */
     constructor(slideList, plugins = []) {
-        this.steps = [];
-        this.slideStartIndices = [];
-        this.slideEndIndices = [];
-        this.slideNumbers = [];
-        let i = 0;
-        let slideNumber = 0;
+        this._slides = [];
+        this._steps = [];
+
+        let slideIndex = 0;
+        let stepIndex = 0;
+
         for (let { content, id } of slideList) {
-            slideNumber += 1;
-            this.slideStartIndices.push(i);
+            const slide = {
+                index: slideIndex, // starting at 0 ...
+                id,
+                steps: []
+            };
+
             const html = document.createElement("html");
             html.innerHTML = content;
             const svg = html.querySelector("svg");
+
             for (let plugin of plugins) {
                 plugin(svg);
             }
+
             const lastStage = maxStage(svg);
             for (let stage = 0; stage <= lastStage; stage++) {
-                this.steps.push(new Step(svg, stage));
-                i += 1;
-                this.slideNumbers.push(slideNumber);
+                const step = {
+                    slide,
+                    localIndex: stage,
+                    globalIndex: stepIndex,
+                    step: new Step(svg, stage)
+                };
+                slide.steps.push(step);
+                this._steps.push(step);
+                stepIndex += 1;
             }
-            this.slideEndIndices.push(i - 1);
+            this._slides.push(slide);
+            slideIndex += 1;
         }
+    }
+
+    step(i) {
+        if (i >= this.numSteps()) return null;
+        return this._steps[i].step;
     }
 
     /**
      * @param {number} position possibly in between two stages
      */
     nextSlideIndex(position) {
-        return this.slideEndIndices.find(s => s > position);
+        const step = this._steps[Math.floor(position)];
+        const nextIndex = Math.min(this.numSlides() - 1, step.slide.index + 1);
+        const nextSlide = this._slides[nextIndex];
+        return last(nextSlide.steps).globalIndex;
     }
 
     /**
      * @param {number} position possibly in between two stages
      */
     slideNumber(position) {
-        return this.slideNumbers[Math.floor(position)];
+        const step = this._steps[Math.floor(position)];
+        return step.slide.index + 1;
     }
 
     /**
      * @param {number} slideNumber integer
      */
     firstStageForSlide(slideNumber) {
-        return this.slideNumbers.findIndex(x => x === slideNumber) || 0;
+        const slide = this._slides[slideNumber - 1];
+        return slide.steps[0].globalIndex;
     }
 
     lastSlideNumber() {
-        return this.slideNumbers[this.slideNumbers.length - 1];
+        return this._slides[this._slides.length - 1].index + 1;
     }
 
     numSteps() {
-        return this.steps.length;
+        return this._steps.length;
+    }
+
+    numSlides() {
+        return this._slides.length;
     }
 
     /**
      * @param {integer} position possibly in between two stages
      */
     prevSlideIndex(position) {
-        // .reverse() is in-place, and we don't want to modify the original array,
-        // so hence the [...] to copy
-        return [...this.slideEndIndices].reverse().find(s => s < position);
+        const step = this._steps[Math.floor(position)];
+        const prevIndex = Math.max(0, step.slide.index - 1);
+        const prevSlide = this._slides[prevIndex];
+        return last(prevSlide.steps).globalIndex;
     }
 }
 
@@ -164,4 +192,13 @@ export function maxStage(domNode) {
         max = Math.max(max, maxStage);
     }
     return max;
+}
+
+/**
+ * Get the last element of the array.
+ * Like `array[-1]` in Python
+ * @param {any[]} array
+ */
+function last(array) {
+    return array[array.length - 1];
 }
