@@ -9,40 +9,78 @@ import base64
 import hashlib
 import json
 import os
+import time
 import xml.dom
 from argparse import ArgumentParser
+from glob import glob
 from xml.dom.minidom import parse
 
 from parsley import makeGrammar
 from tqdm import tqdm
+from watchdog.events import FileSystemEventHandler, FileSystemMovedEvent
+from watchdog.observers import Observer
 
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument("slides", nargs="+")
+    parser.add_argument("slide_directory", help="Directory which contains SVGs for the slides.")
     parser.add_argument("--output", "-o", default="slides.json")
-    parser.add_argument("--media-out-dir", "-m", default="dist")
+    parser.add_argument(
+        "--media-out-dir",
+        "-m",
+        default="dist",
+        help="We will take out embedded images and move them to a folder you can specify here. `dist` is the default for parcel.",
+    )
+    parser.add_argument(
+        "--watch",
+        "-w",
+        action="store_true",
+        default=False,
+        help="Watch files in the slide directory for changes and auto-rebuild.",
+    )
     args = parser.parse_args()
 
-    strings = []
+    build_slides(args.slide_directory, args.output, args.media_out_dir)
+
+    if args.watch:
+        observer = Observer()
+        observer.schedule(
+            WatchHandler(args.slide_directory, args.output, args.media_out_dir),
+            args.slide_directory,
+            recursive=True,
+        )
+        observer.start()
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            observer.stop()
+        observer.join()
+
+
+def build_slides(slide_directory, output, media_out_dir):
+    files = sorted(glob(os.path.join(slide_directory, "*.svg")))
+    slide_list = []
 
     # We will go through all slides and
     # do a couple of modifications that makes the SVGs easier to work with
     #   for example, we inline 'use' statements
     #   and remove embedded images by paths to 'media/'
 
-    progress_bar = tqdm(enumerate(sorted(args.slides)), desc="Processing slides", unit=" slides")
+    progress_bar = tqdm(enumerate(files), desc="Processing slides", unit=" slides")
     for slide_no, slide_path in progress_bar:
         progress_bar.set_postfix_str(slide_path)
         doc = parse(slide_path)
 
-        process_node(doc, slide_no, root=doc, media_out_dir=args.media_out_dir)
-        strings.append(doc.toxml())
+        process_node(doc, slide_no, root=doc, media_out_dir=media_out_dir)
+        slide_list.append(
+            {"id": os.path.splitext(os.path.basename(slide_path))[0], "content": doc.toxml()}
+        )
 
-    with open(args.output, "w") as fp:
-        json.dump(strings, fp)
+    with open(output, "w") as fp:
+        json.dump(slide_list, fp, indent=1)
 
-    print(f"Output written to {args.output}")
+    print(f"Output written to {output}")
 
 
 ID_GRAMMAR = makeGrammar(
@@ -220,6 +258,21 @@ def apply_attr_to_groups_child(node, attribute, value):
     else:
         if not attribute in node.attributes:
             node.setAttribute(attribute, value)
+
+
+class WatchHandler(FileSystemEventHandler):
+    def __init__(self, *args, **kwargs):
+        self.args = args
+        self.kwargs = kwargs
+        super().__init__()
+
+    def dispatch(self, event):
+        if event.src_path.endswith(".svg") or (
+            isinstance(event, FileSystemMovedEvent) and event.dest_path.endswith(".svg")
+        ):
+            print(f"\n\nDetected change in {event.src_path}. Re-building Slide JSON.\n")
+            build_slides(*self.args, **self.kwargs)
+        return super().dispatch(event)
 
 
 if __name__ == "__main__":

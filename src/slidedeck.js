@@ -6,22 +6,21 @@
  */
 export default class SlideDeck {
     /**
-     * @param {string[]} slideStrings
+     * @param {{ id: string, content: string}[]} slideList
      * @param {((HTMLElement) => void)[]?} plugins
      */
-    constructor(slideStrings, plugins = []) {
-        this.slideStrings = slideStrings;
+    constructor(slideList, plugins = []) {
         this.steps = [];
         this.slideStartIndices = [];
         this.slideEndIndices = [];
         this.slideNumbers = [];
         let i = 0;
         let slideNumber = 0;
-        for (let slideString of slideStrings) {
+        for (let { content, id } of slideList) {
             slideNumber += 1;
             this.slideStartIndices.push(i);
             const html = document.createElement("html");
-            html.innerHTML = slideString;
+            html.innerHTML = content;
             const svg = html.querySelector("svg");
             for (let plugin of plugins) {
                 plugin(svg);
