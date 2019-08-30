@@ -66,6 +66,7 @@ By annotating the SVG, you can build slide transitions with
 
 ## Shortcuts
 
+-   `?` --- open shortcut overview
 -   `Left`, `Right`, `Up`, `Down`, `[`, `]` --- stage navigation
 -   `Shift + Left` etc. --- navigation, skipping incremental builds
 -   `Home`, `End` --- go to start or beginning

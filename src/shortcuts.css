@@ -1,0 +1,35 @@
+.keyboard-shortcuts {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 2rem;
+    z-index: 100;
+    font-size: 1.2rem;
+    line-height: 1.5em;
+    font-family: "Helvetica Neue", sans-serif;
+}
+
+.keyboard-shortcuts-close {
+    position: absolute;
+    top: 1em;
+    right: 1em;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.keyboard-shortcuts-shortcut {
+    width: 35em;
+    margin: 0.5em auto;
+    display: flex;
+}
+.keyboard-shortcuts-shortcut-keys {
+    width: 9em;
+    font-weight: bold;
+    padding-right: 1em;
+}
+.keyboard-shortcuts-shortcut-action {
+}

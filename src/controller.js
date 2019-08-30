@@ -3,6 +3,7 @@ import PresenterNotes from "./presenternotes";
 import Timer from "./timer";
 import SlidePlayer from "./slideplayer";
 import Cockpit from "./cockpit";
+import Shortcuts from "./shortcuts";
 
 export default class Controller {
     /**
@@ -166,14 +167,20 @@ export default class Controller {
             this.timer.toggle();
         } else if (event.key === "r") {
             this.timer.reset();
+        } else if (event.key === "?") {
+            if (this.shortcuts == null) {
+                this.shortcuts = new Shortcuts(this);
+            }
         } else if (event.key === "c" || event.key === "p") {
             // Open a child window
             if (this.cockpit == null) {
                 this.cockpit = new Cockpit(this);
             }
-        } else if (event.key === "q") {
+        } else if (event.key === "q" || event.key === "Escape") {
             // Open a child window
-            if (this.cockpit != null) {
+            if (this.shortcuts != null) {
+                this.shortcuts.close();
+            } else if (this.cockpit != null) {
                 this.cockpit.window.close();
             }
         } else if (event.key === "Home") {
