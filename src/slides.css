@@ -31,7 +31,13 @@ body {
     transition: background-color 0.4s;
 }
 
-.blacked-out > * {
+.blacked-out-white {
+    background-color: white;
+    transition: background-color 0.4s;
+}
+
+.blacked-out > *,
+.blacked-out-white > * {
     transition: opacity 0.4s;
     opacity: 0;
 }
