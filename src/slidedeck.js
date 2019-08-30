@@ -150,6 +150,12 @@ class Step {
                 node.removeAttribute("fade-in");
             }
         }
+        for (let node of domNode.querySelectorAll("[fade-down]")) {
+            const [minStage, maxStage] = getVisibleStages(node, this.lastStage);
+            if (stageNumber !== minStage) {
+                node.removeAttribute("fade-down");
+            }
+        }
         for (let node of domNode.querySelectorAll("[draw-line]")) {
             const [minStage, _] = getVisibleStages(node, this.lastStage);
             if (stageNumber !== minStage) {

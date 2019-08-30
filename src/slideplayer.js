@@ -7,6 +7,7 @@ const DEFAULT_TRANSITION_TIMES = {
     "fade-out": 0.5,
     move: 0.5,
     "fade-in": 0.5,
+    "fade-down": 0.5,
     "appear-along": 0.5,
     "draw-line": 0.5
 };
@@ -15,6 +16,7 @@ const DEFAULT_TRANSITION_ALIGNMENT = {
     "fade-out": 0.0, // beginning of the slide transition
     move: 0.5, // center of the slide transition
     "fade-in": 1.0, // end of the slide transition
+    "fade-down": 1.0, // end of the slide transition
     "appear-along": 1.0, // end of the slide transition
     "draw-line": 1.0 // end of the slide transition
 };
@@ -190,6 +192,23 @@ class Stage {
                 "easeInCubic",
                 dt => {
                     ghostNode.style.opacity = linearMix(0.0, node.style.opacity || 1.0, dt);
+                }
+            );
+        }
+
+        // Entry effect: fade-down
+        for (let node of nextStep.dom.querySelectorAll("[fade-down]")) {
+            const ghostNode = this._insertGhostNode(node);
+            ghostNode.style.opacity = 0.0;
+            const originalTransform = ghostNode.getAttribute("transform") || "";
+            this._addTransition(
+                this._getTransitionDuration(node, "fade-down"),
+                this._getTransitionAlignment(node, "fade-down"),
+                "easeInSin",
+                dt => {
+                    ghostNode.style.opacity = linearMix(0.0, node.style.opacity || 1.0, dt);
+                    const offset = linearMix(-20, 0, dt);
+                    ghostNode.setAttribute("transform", `${originalTransform} translate(0,${offset})`);
                 }
             );
         }

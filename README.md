@@ -49,6 +49,7 @@ By annotating the SVG, you can build slide transitions with
 -   `mynode[fade-in=2]` --- fade in, taking 2 seconds
 -   `mynode[fade-in=0.5,1]` --- fade in, taking 500ms, aligning this at the end of the transition if other transitions take longer
 -   `mynode[draw-line]` --- for paths, draw them from start to finish
+-   `mynode[fade-down]` --- fade in and come 20pix down
 -   `mynode[appear-along=PathId,5,0]` --- appear along a given path object, take 5 seconds, align at the begining of the transition
 
 ## Transitioning objects from one stage to the next
