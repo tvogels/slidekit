@@ -28,6 +28,7 @@ export default class Controller {
         this.render = this.render.bind(this);
         this._fullscreenHandler = this._fullscreenHandler.bind(this);
         this._keyboardHandler = this._keyboardHandler.bind(this);
+        this._resizeCanvasToFit = this._resizeCanvasToFit.bind(this);
 
         this.fullscreenNode.addEventListener("fullscreenchange", this._fullscreenHandler);
         document.addEventListener("keydown", this._keyboardHandler);
@@ -39,6 +40,9 @@ export default class Controller {
                 this.cockpit.window.close();
             }
         });
+
+        window.addEventListener("resize", this._resizeCanvasToFit);
+        setTimeout(this._resizeCanvasToFit);
 
         requestAnimationFrame(this.render);
     }
@@ -141,10 +145,6 @@ export default class Controller {
         this.canvas.style.transform = `scale(${scale})`;
     }
 
-    goFullscreen() {
-        this.fullscreenNode.requestFullscreen();
-    }
-
     _keyboardHandler(event) {
         if (["ArrowRight", "ArrowDown", "]"].includes(event.key)) {
             if (event.shiftKey) {
@@ -197,6 +197,18 @@ export default class Controller {
             document.body.classList.toggle("blacked-out");
         } else if (event.key === "w") {
             document.body.classList.toggle("blacked-out-white");
+        }
+    }
+
+    _resizeCanvasToFit() {
+        const bodyH = window.innerHeight - 20;
+        const bodyW = window.innerWidth - 20;
+        const slideH = this.fullscreenNode.clientHeight;
+        const slideW = this.fullscreenNode.clientWidth;
+        const scale = Math.min(bodyH / slideH, bodyW / slideW, 1);
+        const scaleString = `scale(${scale})`;
+        if (this.fullscreenNode.style.scaleString != scaleString) {
+            this.fullscreenNode.style.transform = scaleString;
         }
     }
 
