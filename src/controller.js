@@ -24,6 +24,7 @@ export default class Controller {
         this.currentPosition = 0.0;
         this.runningAnimation = null;
         this.runningAnimationTarget = null;
+        this.previousRenderedPosition = -1;
 
         this.render = this.render.bind(this);
         this._fullscreenHandler = this._fullscreenHandler.bind(this);
@@ -48,7 +49,8 @@ export default class Controller {
     }
 
     render() {
-        if (this.currentPosition !== this.deck.currentPosition) {
+        if (this.currentPosition !== this.previousRenderedPosition) {
+            this.previousRenderedPosition = this.currentPosition;
             for (let hook of this.hooks) {
                 hook(this.currentPosition);
             }
