@@ -59,9 +59,9 @@ export default class SlidePlayer {
             this.visibleStage = i;
             this.canvas.innerHTML = "";
             this.canvas.appendChild(stage.dom);
-        }
-        if (this.updateCounter) {
-            this.renderSlideNumber(t);
+            if (this.updateCounter) {
+                this.renderSlideNumber(t);
+            }
         }
     }
 
