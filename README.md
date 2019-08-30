@@ -14,16 +14,16 @@ By annotating the SVG, you can build slide transitions with
 
 ## Prerequisites
 
-- Install Python 3
-- `pip install -r requirements.txt`
-- Install [Node.js](https://nodejs.org/en/) with NPM.
-- We use [Parcel](https://parceljs.org/) for building the project. (`npm install -g parcel-bundler`)
+-   Install Python 3
+-   `pip install -r requirements.txt`
+-   Install [Node.js](https://nodejs.org/en/) with NPM.
+-   We use [Parcel](https://parceljs.org/) for building the project. (`npm install -g parcel-bundler`)
 
 ## Process
 
 -   Fork this repo (optional, allows customization)
 
--   Draw your slides (of size `1280x720`) in your favourite vector editor (I use [Sketch](https://www.sketch.com/) on Mac). (Only tested in Sketch)
+-   Draw your slides (of size `1280x720`) in your favourite vector editor I use [Sketch](https://www.sketch.com/) on Mac. Cross-platform, [Figma](https://www.figma.com/file/Xmk7YqeZUriwRdOrTxBCj3/svg-slides-demo?node-id=0%3A1) seems to work well. For Figma, make sure to enable 'include "id" attribute' in SVG export settings.
 
 -   Annotate your SVG IDs with attributes to set animation behavior, e.g. `myPath[stage=2][fade-in]` or `rectangle[move][otherattrib=value]`
     <br>Looks like this in [Sketch](https://www.sketch.com/):<br>
