@@ -22,7 +22,7 @@ export default class Controller {
 
         this.hooks = new Set(); // get notified for position updates
 
-        this.currentPosition = 0.0;
+        this.currentPosition = this._getPositionFromHash();
         this.runningAnimation = null;
         this.runningAnimationTarget = null;
         this.previousRenderedPosition = -1;
@@ -47,6 +47,12 @@ export default class Controller {
         setTimeout(this._resizeCanvasToFit);
 
         requestAnimationFrame(this.render);
+
+        window.addEventListener("popstate", event => {
+            const location = this._getPositionFromHash();
+            this.historyPosition = location;
+            this.setPosition(location);
+        });
     }
 
     render() {
@@ -54,6 +60,12 @@ export default class Controller {
             this.previousRenderedPosition = this.currentPosition;
             for (let hook of this.hooks) {
                 hook(this.currentPosition);
+            }
+            if (
+                this.currentPosition === Math.floor(this.currentPosition) &&
+                this.currentPosition !== this.historyPosition
+            ) {
+                history.pushState({ position: this.currentPosition }, "", `#${this.currentPosition}`);
             }
         }
         requestAnimationFrame(this.render);
@@ -138,6 +150,10 @@ export default class Controller {
 
     goFullscreen() {
         this.fullscreenNode.requestFullscreen();
+    }
+
+    _getPositionFromHash() {
+        return parseFloat(window.location.hash.substr(1)) || 0;
     }
 
     _fullscreenHandler() {
