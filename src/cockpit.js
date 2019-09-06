@@ -1,5 +1,6 @@
 import SlidePlayer from "./slideplayer";
 import { copyToClipboard } from "./utils";
+import { Canvas } from "./controller";
 import "./cockpit.css";
 
 export default class Cockpit {
@@ -20,13 +21,25 @@ export default class Cockpit {
 
         // Current step view
         this.currentSlidePlayer = new SlidePlayer(
-            this.document.getElementById("current-slide"),
+            new Canvas(
+                this.document.getElementById("current-slide"),
+                this.controller.deck.width,
+                this.controller.deck.height
+            ),
             controller.deck,
             false
         );
 
         // Next step view
-        this.nextSlidePlayer = new SlidePlayer(this.document.getElementById("next-slide"), controller.deck, false);
+        this.nextSlidePlayer = new SlidePlayer(
+            new Canvas(
+                this.document.getElementById("next-slide"),
+                this.controller.deck.width,
+                this.controller.deck.height
+            ),
+            controller.deck,
+            false
+        );
 
         // Progress bar
         this.progressBarBar = this.document.getElementById("progress-bar");
@@ -53,8 +66,10 @@ export default class Cockpit {
         this.window.addEventListener("unload", () => controller.removeRenderListener(this.render));
 
         // Make sure SVGs in the two cockpit canvases are shown at the right scale at all times
+        setTimeout(this.scaleSVGsToFit, 10);
+        setTimeout(this.scaleSVGsToFit, 100);
+        setTimeout(this.scaleSVGsToFit, 500);
         setTimeout(this.scaleSVGsToFit, 1000);
-        this.window.addEventListener("load", this.scaleSVGsToFit);
         this.window.addEventListener("resize", this.scaleSVGsToFit);
 
         // Unregister the cockpit when this window closes
@@ -113,11 +128,9 @@ export default class Cockpit {
         this.head.innerHTML = "";
         this.body.innerHTML = `
             <div class="cockpit">
-                <div class="cockpit-current-wrapper">
-                    <div id="current-slide"></div>
+                <div class="cockpit-current-wrapper" id="current-slide">
                 </div>
-                <div class="cockpit-next-wrapper">
-                    <div id="next-slide"></div>
+                <div class="cockpit-next-wrapper" id="next-slide">
                 </div>
                 <div class="cockpit-progress-bar">
                     <div class="cockpit-progress-bar-bar" id="progress-bar"></div>
@@ -143,23 +156,8 @@ export default class Cockpit {
     }
 
     scaleSVGsToFit() {
-        const cur = this.document.getElementById("current-slide");
-        const curWrapper = cur.parentElement;
-        const curScale = Math.min(curWrapper.clientHeight / cur.clientHeight, curWrapper.clientWidth / cur.clientWidth);
-
-        const next = this.document.getElementById("next-slide");
-        const nextWrapper = next.parentElement;
-        const nextScale = Math.min(
-            nextWrapper.clientHeight / next.clientHeight,
-            nextWrapper.clientWidth / next.clientWidth
-        );
-
-        cur.style.marginLeft = `${(curWrapper.clientWidth - curScale * cur.clientWidth) / 2}px`;
-        cur.style.marginTop = `${(curWrapper.clientHeight - curScale * cur.clientHeight) / 2}px`;
-        cur.style.transform = `scale(${curScale})`;
-        next.style.marginLeft = `${(nextWrapper.clientWidth - nextScale * next.clientWidth) / 2}px`;
-        next.style.marginTop = `${(nextWrapper.clientHeight - nextScale * next.clientHeight) / 2}px`;
-        next.style.transform = `scale(${nextScale})`;
+        this.currentSlidePlayer.canvas.resizeHandler();
+        this.nextSlidePlayer.canvas.resizeHandler();
     }
 
     destroy() {

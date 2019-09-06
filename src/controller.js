@@ -14,7 +14,7 @@ export default class Controller {
      */
     constructor(deck, canvas, talkDuration, presenterNotes) {
         this.deck = deck;
-        this.canvas = canvas;
+        this.canvas = new Canvas(canvas, deck.width, deck.height, true);
         this.presenterNotes = presenterNotes;
         this.fullscreenNode = canvas.parentElement;
         this.timer = new Timer(talkDuration);
@@ -149,7 +149,7 @@ export default class Controller {
     }
 
     goFullscreen() {
-        this.fullscreenNode.requestFullscreen();
+        this.canvas.dom.requestFullscreen();
     }
 
     _getPositionFromHash() {
@@ -157,11 +157,7 @@ export default class Controller {
     }
 
     _fullscreenHandler() {
-        const scale = Math.min(
-            this.fullscreenNode.clientHeight / this.canvas.clientHeight,
-            this.fullscreenNode.clientWidth / this.canvas.clientWidth
-        );
-        this.canvas.style.transform = `scale(${scale})`;
+        this.canvas.resizeHandler();
     }
 
     _keyboardHandler(event) {
@@ -228,12 +224,12 @@ export default class Controller {
     _resizeCanvasToFit() {
         const bodyH = window.innerHeight - 20;
         const bodyW = window.innerWidth - 20;
-        const slideH = this.fullscreenNode.clientHeight;
-        const slideW = this.fullscreenNode.clientWidth;
+        const slideH = this.canvas.dom.clientHeight;
+        const slideW = this.canvas.dom.clientWidth;
         const scale = Math.min(bodyH / slideH, bodyW / slideW, 1);
         const scaleString = `scale(${scale})`;
-        if (this.fullscreenNode.style.scaleString != scaleString) {
-            this.fullscreenNode.style.transform = scaleString;
+        if (this.canvas.dom.style.scaleString != scaleString) {
+            this.canvas.dom.style.transform = scaleString;
         }
     }
 
@@ -260,5 +256,61 @@ export default class Controller {
             this.runningAnimationTarget = null;
         }
         return wasRunning;
+    }
+}
+
+export class Canvas {
+    /**
+     * @param {HTMLDivElement} domElement
+     * @param {number} deckWidth
+     * @param {number} deckHeight
+     */
+    constructor(domElement, deckWidth, deckHeight, withSlideNumbers = false) {
+        this.dom = domElement;
+
+        this.canvas = document.createElement("div");
+        this.canvas.className = "slides-canvas";
+        this.dom.appendChild(this.canvas);
+
+        if (withSlideNumbers) {
+            this.slideNumber = document.createElement("div");
+            this.slideNumber.className = "slide-number";
+            this.dom.appendChild(this.slideNumber);
+        } else {
+            this.slideNumber = null;
+        }
+
+        this.canvas.style.transformOrigin = "0 0";
+        this.canvas.style.transform = "scale(1)";
+
+        this.width = deckWidth;
+        this.height = deckHeight;
+
+        this.dom.addEventListener("resize", this.resizeHandler);
+        this.resizeHandler = this.resizeHandler.bind(this);
+        setTimeout(this.resizeHandler);
+        setTimeout(this.resizeHandler, 100); // Hack for Firefox
+    }
+
+    /**
+     * Replace the contents of the screen with this SVG image
+     * @param {HTMLElement} svg
+     */
+    setSvg(svg) {
+        this.canvas.innerHTML = "";
+        this.canvas.appendChild(svg);
+    }
+
+    setSlideNumber(number) {
+        if (this.slideNumber != null) {
+            this.slideNumber.innerText = number;
+        }
+    }
+
+    resizeHandler() {
+        const scale = Math.min(this.dom.clientHeight / this.height, this.dom.clientWidth / this.width);
+        const offsetY = (this.dom.clientHeight - scale * this.height) / 2;
+        const offsetX = (this.dom.clientWidth - scale * this.width) / 2;
+        this.canvas.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
     }
 }

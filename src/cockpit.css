@@ -16,6 +16,7 @@
     grid-column: 1 / 3;
     grid-row: 2 / 4;
     overflow: hidden;
+    position: relative;
 }
 
 .cockpit-next-wrapper {
@@ -23,14 +24,7 @@
     grid-column: 3;
     grid-row: 2 / 3;
     overflow: hidden;
-}
-
-.cockpit-current-wrapper > div,
-.cockpit-next-wrapper > div {
-    transform: scale(1);
-    transform-origin: 0 0;
-    width: 1280px;
-    height: 720px;
+    position: relative;
 }
 
 .cockpit-notes {

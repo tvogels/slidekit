@@ -1,3 +1,8 @@
+html,
+body {
+    height: 100%;
+}
+
 body {
     margin: 0;
     padding: 0;
@@ -6,7 +11,7 @@ body {
     font-family: sans-serif;
 }
 
-#canvas-wrapper {
+#main-screen {
     display: block;
     position: absolute;
     width: 1280px;
@@ -16,14 +21,7 @@ body {
     left: 50%;
     margin-top: -360px;
     margin-left: -640px;
-}
-
-#canvas {
-    width: 1280px;
-    height: 720px;
-    background-color: white;
-    transform: scale(1);
-    transform-origin: 0 0;
+    overflow: hidden;
 }
 
 .blacked-out {
@@ -42,7 +40,7 @@ body {
     opacity: 0;
 }
 
-#slide-number {
+.slide-number {
     position: absolute;
     right: 0;
     bottom: 0;

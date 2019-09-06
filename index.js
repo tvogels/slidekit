@@ -8,7 +8,7 @@ import "./demo-data/custom-style.css";
 
 window.slides = new Controller(
     new SlideDeck(slides, [youtubePlugin]),
-    document.getElementById("canvas"),
+    document.getElementById("main-screen"),
     moment.duration(30, "minutes"),
     new PresenterNotes(notes)
 );

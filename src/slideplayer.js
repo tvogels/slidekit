@@ -29,18 +29,16 @@ const DEFAULT_TRANSITION_ALIGNMENT = {
 export default class SlidePlayer {
     /**
      *
-     * @param {HTMLDivElement} canvas
+     * @param {Canvas} canvas
      * @param {SlideDeck} deck
-     * @param {boolean?} updateCounter
      */
-    constructor(canvas, deck, updateCounter = true) {
+    constructor(canvas, deck) {
         this.canvas = canvas;
         this.visibleStage = null;
         this.currentPosition = null;
         this.slideStartIndices = [];
         this.slideEndIndices = [];
         this.slideNumbers = [];
-        this.updateCounter = updateCounter;
 
         this.deck = deck;
         this.stages = [];
@@ -59,20 +57,15 @@ export default class SlidePlayer {
         // Swap the visible slide of necessary
         if (i != this.visibleStage) {
             this.visibleStage = i;
-            this.canvas.innerHTML = "";
-            this.canvas.appendChild(stage.dom);
-            if (this.updateCounter) {
-                this.renderSlideNumber(t);
-            }
+            this.canvas.setSvg(stage.dom);
+            this.renderSlideNumber(i);
         }
     }
 
     renderSlideNumber(t) {
-        const elem = document.getElementById("slide-number");
-        if (elem == null) return;
         const number = this.deck.slideNumber(t);
         const total = this.deck.lastSlideNumber();
-        elem.innerText = `${number} / ${total}`;
+        this.canvas.setSlideNumber(`${number} / ${total}`);
     }
 
     stageDuration(stageNo) {

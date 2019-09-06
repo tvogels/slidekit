@@ -46,6 +46,9 @@ export default class SlideDeck {
             this._slides.push(slide);
             slideIndex += 1;
         }
+
+        this.width = this.step(0).width;
+        this.height = this.step(0).height;
     }
 
     step(i) {
@@ -122,6 +125,8 @@ class Step {
         this.lastStage = maxStage(this.dom);
         this.isFirst = stage === 0;
         this.isLast = stage === this.lastStage;
+        this.height = parseFloat(this.dom.getAttribute("height"));
+        this.width = parseFloat(this.dom.getAttribute("width"));
         this._adaptDomToStage(this.dom, stage);
     }
 
