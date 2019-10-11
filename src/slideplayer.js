@@ -176,7 +176,7 @@ class Stage {
         }
 
         // Entry effect: fade-in
-        for (let node of nextStep.dom.querySelectorAll("[fade-in]")) {
+        for (let node of [...nextStep.dom.querySelectorAll("[fade-in]")].reverse()) {
             const ghostNode = this._insertGhostNode(node);
             ghostNode.style.opacity = 0.001;
             const targetOpacity = parseFloat(node.getAttribute("opacity")) || 1.0;
@@ -191,7 +191,7 @@ class Stage {
         }
 
         // Entry effect: fade-down
-        for (let node of nextStep.dom.querySelectorAll("[fade-down]")) {
+        for (let node of [...nextStep.dom.querySelectorAll("[fade-down]")].reverse()) {
             const ghostNode = this._insertGhostNode(node);
             ghostNode.style.opacity = 0.0;
             const originalTransform = ghostNode.getAttribute("transform") || "";
@@ -215,7 +215,7 @@ class Stage {
         }
 
         // Entry effect of paths: appear by drawing the line from the beginning
-        for (let node of nextStep.dom.querySelectorAll("[draw-line]")) {
+        for (let node of [...nextStep.dom.querySelectorAll("[draw-line]")].reverse()) {
             const length = node.getTotalLength();
             const ghostNode = this._insertGhostNode(node);
             ghostNode.style.strokeDasharray = length;
@@ -232,7 +232,7 @@ class Stage {
 
         // Entry-effect for objects: appear along a trajectory given by a referenced path
         // [appear-along=MyPath,1] (for 1 second)
-        for (let node of nextStep.dom.querySelectorAll("[appear-along]")) {
+        for (let node of [...nextStep.dom.querySelectorAll("[appear-along]")].reverse()) {
             const pathId = node.getAttribute("appear-along").split(",", 1)[0];
             const path = snap(nextStep.dom.getElementById(pathId));
             const totalPathLength = path.getTotalLength();
@@ -377,12 +377,16 @@ class Stage {
         const correspondingParent = this._findCorrespondingParent(node, this.dom);
         const ghostNode = node.cloneNode(true);
         const referenceNode = this._nextStayingChild(node);
+        let insertedNode;
         if (referenceNode != null) {
             const refId = referenceNode.getAttribute("id");
             const refNodeInDom = this.index.nodeByIdentifier(refId);
-            correspondingParent.insertBefore(ghostNode, refNodeInDom);
+            insertedNode = correspondingParent.insertBefore(ghostNode, refNodeInDom);
         } else {
-            correspondingParent.appendChild(ghostNode);
+            insertedNode = correspondingParent.appendChild(ghostNode);
+        }
+        if (insertedNode.hasAttribute("move")) {
+            this.index.addEntry(insertedNode.getAttribute("id"), insertedNode);
         }
         return ghostNode;
     }
@@ -422,6 +426,10 @@ class MoveElementIndex {
      */
     nodeByIdentifier(identifier) {
         return this.index[identifier];
+    }
+
+    addEntry(identifier, node) {
+        this.index[identifier] = node;
     }
 
     _buildIndex() {
