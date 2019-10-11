@@ -178,13 +178,14 @@ class Stage {
         // Entry effect: fade-in
         for (let node of nextStep.dom.querySelectorAll("[fade-in]")) {
             const ghostNode = this._insertGhostNode(node);
-            ghostNode.style.opacity = 0.0;
+            ghostNode.style.opacity = 0.001;
+            const targetOpacity = parseFloat(node.getAttribute("opacity")) || 1.0;
             this._addTransition(
                 this._getTransitionDuration(node, "fade-in"),
                 this._getTransitionAlignment(node, "fade-in"),
                 "easeInCubic",
                 dt => {
-                    ghostNode.style.opacity = linearMix(0.0, node.style.opacity || 1.0, dt);
+                    ghostNode.style.opacity = linearMix(0.0, targetOpacity, dt);
                 }
             );
         }
