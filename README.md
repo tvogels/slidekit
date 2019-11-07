@@ -29,15 +29,24 @@ By annotating the SVG, you can build slide transitions with
     <br>Looks like this in [Sketch](https://www.sketch.com/):<br>
     <img src="./docs/sketch-screenshot.png" width="300px" />
 
--   Run `./preprocess_slides.py demo-data/ -o demo-data/slides.json` to pre-process your SVGs (parse these annotated ids) and turn them into one big JSON file.
+-   Run `./preprocess_slides.py demo-data/ -m demo-data/dist -o demo-data/slides.json` to pre-process your SVGs (parse these annotated ids) and turn them into one big JSON file.
     This also strips out embedded images and puts them in `dist/media/`.
 
 -   You can customize the presenter notes in `demo-data/notes.md`.
     You can find the right numbers to link notes with slides in the cockpit (press `C` to open)
 
--   Run `parcel index.html` to serve your slides in dev-mode.
+-   Run `parcel index.html` in `demo-data/` to serve your slides in dev-mode.
 
--   The entry-point for the code is `index.js`.
+-   The entry-point for the code is `demo-data/index.js`.
+
+## Sketch live view
+
+If you are using Sketch, we provide a watcher script to automatically extract the SVG and build the `slides.json` file everytime you save the Sketch file.
+You need to name your Sketch file `slides.sketch` and give the containing directory as argument:
+
+```
+./sketch-generate.sh demo-data/
+```
 
 ## Step-wise appearance of nodes
 
