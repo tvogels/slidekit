@@ -8,6 +8,7 @@ if [ "$#" -ne 1 ]; then
 fi
 
 function generate {
+    rm -rf "$1/*.svg"
     sketchtool export artboards --formats=svg --output="$1" "$1/slides.sketch"
     ./preprocess_slides.py --output "$1/slides.json" --media-out-dir "$1/dist" "$1"
 }
