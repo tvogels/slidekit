@@ -40,6 +40,9 @@ def main():
     )
     args = parser.parse_args()
 
+    # create media directory
+    os.makedirs(os.path.join(args.media_out_dir, "media"), exist_ok=True)
+
     build_slides(args.slide_directory, args.output, args.media_out_dir)
 
     if args.watch:
