@@ -134,9 +134,22 @@ class Stage {
                             }
                         );
                     } else if (
-                        ["x", "y", "opacity", "rx", "height", "width", "cx", "cy", "r", "fill-opacity"].includes(
-                            attribute
-                        )
+                        [
+                            "x",
+                            "y",
+                            "opacity",
+                            "rx",
+                            "height",
+                            "width",
+                            "cx",
+                            "cy",
+                            "r",
+                            "fill-opacity",
+                            "x1",
+                            "x2",
+                            "y1",
+                            "y2"
+                        ].includes(attribute)
                     ) {
                         this._addTransition(
                             this._getTransitionDuration(node, "move"),
