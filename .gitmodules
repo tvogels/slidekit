@@ -1,0 +1,3 @@
+[submodule "decks/starter-pack"]
+	path = decks/starter-pack
+	url = git@github.com:jbcdnr/slides--starter-pack.git
