@@ -3,19 +3,25 @@ import copy
 import pathlib
 import shutil
 import subprocess
+import time
 import xml.dom
 import xml.etree.ElementTree as ElementTree
 from xml.dom.minidom import parse
 
 import tqdm
 from parsley import makeGrammar
+from watchdog.events import FileModifiedEvent, FileSystemEventHandler
+from watchdog.observers import Observer
 
 
 def get_parser():
     parser = argparse.ArgumentParser()
+    # fmt: off
     parser.add_argument("sketch_file", help="Sketch containing the slides")
     parser.add_argument("--no_build_stage", default=False, action="store_true", help="Disable slides transitions")
     parser.add_argument("--no_cleanup", default=False, action="store_true", help="Disable tmp files cleanup for debugging")
+    parser.add_argument("--watch", "-w", action="store_true", default=False, help="Watch changes of sketch_file and auto-rebuild.")
+    # fmt: on
     return parser
 
 
@@ -24,6 +30,28 @@ def main():
     parser = get_parser()
     args = parser.parse_args()
 
+    build_slides(args)
+
+    if args.watch:
+        sketch_file = pathlib.Path(args.sketch_file)
+        observer = Observer()
+        handler = WatchHandler(lambda: build_slides(args), sketch_file.name)
+        observer.schedule(
+            handler,
+            path=sketch_file.parent,
+            recursive=False,
+        )
+        observer.start()
+        try:
+            print(f"Watching changes in {args.sketch_file}...")
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            observer.stop()
+        observer.join()
+
+
+def build_slides(args):
     sketch_file = pathlib.Path(args.sketch_file)
     slides_directory = sketch_file.parent / "tmp"
     slides_directory.mkdir(exist_ok=True)
@@ -141,6 +169,7 @@ def filter_stage(node, current_stage: int):
     for e in node_to_remove:
         node.remove(e)
 
+
 def check_dependencies():
     try:
         subprocess.run(["sketchtool", "--help"], check=True, capture_output=True)
@@ -148,6 +177,20 @@ def check_dependencies():
     except (subprocess.CalledProcessError, FileNotFoundError):
         print("Please install sketchtool and rsvg-convert (brew install librsvg).")
         exit(1)
+
+
+class WatchHandler(FileSystemEventHandler):
+    def __init__(self, function, filename):
+        self.function = function
+        self.filename = filename
+        super().__init__()
+
+    def dispatch(self, event):
+        if isinstance(event, FileModifiedEvent) and event.src_path.endswith(self.filename):
+            print(f"\n\nDetected change in {event.src_path}. Re-building slides.\n")
+            self.function()
+            print()
+        return super().dispatch(event)
 
 
 if __name__ == "__main__":
