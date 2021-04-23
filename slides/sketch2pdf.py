@@ -15,6 +15,7 @@ def get_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument("sketch_file", help="Sketch containing the slides")
     parser.add_argument("--no_build_stage", default=False, action="store_true", help="Disable slides transitions")
+    parser.add_argument("--no_cleanup", default=False, action="store_true", help="Disable tmp files cleanup for debugging")
     return parser
 
 
@@ -71,8 +72,9 @@ def main():
     all_files = sorted(list(map(str, processed_directory.glob("*.svg"))))
     subprocess.run(["rsvg-convert", "-f", "pdf", "-o", str(pdf_file)] + all_files)
 
-    print("Clean up")
-    shutil.rmtree(slides_directory)
+    if not args.no_cleanup:
+        print("Clean up")
+        shutil.rmtree(slides_directory)
 
 
 ID_GRAMMAR = makeGrammar(
@@ -114,25 +116,30 @@ def process_node(node, slide, root, id_stack=[]):
         process_node(child, slide, root, id_stack=id_stack)
 
 
-def filter_stage(node, stage: int):
-    """Keep nodes should be displayed during `stage`."""
+def filter_stage(node, current_stage: int):
+    """Keep nodes should be displayed during `current_stage`."""
+    node_to_remove = []
     for child in node:
         child_stage = child.attrib.get("stage")
         keep_child = True
         if child_stage is not None:
             if "-" in child_stage:
                 from_, to_ = map(int, child_stage.split("-"))
-                if stage < from_ or stage >= to_:
+                if current_stage < from_ or current_stage >= to_:
                     keep_child = False
             else:
-                if child_stage < int(child_stage):
+                if current_stage < int(child_stage):
                     keep_child = False
 
-        if keep_child:
-            filter_stage(child, stage)
+        if not keep_child:
+            node_to_remove.append(child)
         else:
-            node.remove(child)
+            # Recurse on children
+            filter_stage(child, current_stage)
 
+    # Remove the nodes that are not at the current stage (cannot be done inside the for loop).
+    for e in node_to_remove:
+        node.remove(e)
 
 def check_dependencies():
     try:
