@@ -153,7 +153,7 @@ def filter_stage(node, current_stage: int):
         if child_stage is not None:
             if "-" in child_stage:
                 from_, to_ = map(int, child_stage.split("-"))
-                if current_stage < from_ or current_stage >= to_:
+                if current_stage < from_ or current_stage > to_:
                     keep_child = False
             else:
                 if current_stage < int(child_stage):
