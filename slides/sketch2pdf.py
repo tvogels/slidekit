@@ -1,3 +1,4 @@
+import os
 import argparse
 import copy
 import pathlib
@@ -14,6 +15,13 @@ from watchdog.events import FileModifiedEvent, FileSystemEventHandler
 from watchdog.observers import Observer
 
 
+SKETCHTOOL_DEFAULT_LOCATION = "/Applications/Sketch.app/Contents/Resources/sketchtool/bin/sketchtool"
+if os.path.isfile(SKETCHTOOL_DEFAULT_LOCATION):
+    SKETCHTOOL_BIN = "/Applications/Sketch.app/Contents/Resources/sketchtool/bin/sketchtool"
+else:
+    SKETCHTOOL_BIN = "sketchtool"
+
+    
 def get_parser():
     parser = argparse.ArgumentParser()
     # fmt: off
@@ -61,7 +69,7 @@ def build_slides(args):
     processed_directory.mkdir(exist_ok=True)
 
     print("Generate SVG files")
-    subprocess.run(["sketchtool", "export", "artboards", "--formats=svg", sketch_file, f"--output={slides_directory}"])
+    subprocess.run([SKETCHTOOL_BIN, "export", "artboards", "--formats=svg", sketch_file, f"--output={slides_directory}"])
 
     print("Process SVG files")
     files = sorted(list(slides_directory.glob("*.svg")))
@@ -188,7 +196,7 @@ def add_page_number(slide, index: int):
 
 def check_dependencies():
     try:
-        subprocess.run(["sketchtool", "--help"], check=True, capture_output=True)
+        subprocess.run([SKETCHTOOL_BIN, "--help"], check=True, capture_output=True)
         subprocess.run(["rsvg-convert", "--help"], check=True, capture_output=True)
     except (subprocess.CalledProcessError, FileNotFoundError):
         print("Please install sketchtool and rsvg-convert (brew install librsvg).")
