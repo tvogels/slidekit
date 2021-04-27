@@ -17,7 +17,7 @@ from watchdog.observers import Observer
 
 SKETCHTOOL_DEFAULT_LOCATION = "/Applications/Sketch.app/Contents/Resources/sketchtool/bin/sketchtool"
 if os.path.isfile(SKETCHTOOL_DEFAULT_LOCATION):
-    SKETCHTOOL_BIN = "/Applications/Sketch.app/Contents/Resources/sketchtool/bin/sketchtool"
+    SKETCHTOOL_BIN = SKETCHTOOL_DEFAULT_LOCATION
 else:
     SKETCHTOOL_BIN = "sketchtool"
 
