@@ -18,9 +18,11 @@ def get_parser():
     parser = argparse.ArgumentParser()
     # fmt: off
     parser.add_argument("sketch_file", help="Sketch containing the slides")
-    parser.add_argument("--no_build_stage", default=False, action="store_true", help="Disable slides transitions")
-    parser.add_argument("--no_cleanup", default=False, action="store_true", help="Disable tmp files cleanup for debugging")
-    parser.add_argument("--watch", "-w", action="store_true", default=False, help="Watch changes of sketch_file and auto-rebuild.")
+    parser.add_argument("--no_build_stage", action="store_true", help="Disable slides transitions")
+    parser.add_argument("--no_cleanup", action="store_true", help="Disable tmp files cleanup for debugging")
+    parser.add_argument("--no_page_number", action="store_true", help="Disable page numbering")
+    parser.add_argument("--watch", "-w", action="store_true", help="Watch changes of sketch_file and auto-rebuild.")
+
     # fmt: on
     return parser
 
@@ -84,6 +86,10 @@ def build_slides(args):
             for stage in staged_element.attrib["stage"].split("-"):
                 all_stages.append(int(stage))
         all_stages = sorted(list(set(all_stages)))
+
+        if not args.no_page_number:
+            if slide_no != 0:
+                add_page_number(tree, slide_no + 1)
 
         if args.no_build_stage:
             ElementTree.ElementTree(tree).write(processed_directory / f"{slide_name}.svg")
@@ -168,6 +174,16 @@ def filter_stage(node, current_stage: int):
     # Remove the nodes that are not at the current stage (cannot be done inside the for loop).
     for e in node_to_remove:
         node.remove(e)
+
+
+def add_page_number(slide, index: int):
+    """Add slide number to the bottom right of the slide."""
+    page_number_svg = f"""
+        <text id="page-number" font-family="Helvetica" font-size="24" font-weight="normal" fill="#979797" text-anchor="end">
+            <tspan x="99%" y="98.5%">{index}</tspan>
+        </text>"""
+    page_number_elemt = ElementTree.fromstring(page_number_svg)
+    slide.find(".//{http://www.w3.org/2000/svg}g").append(page_number_elemt)
 
 
 def check_dependencies():
