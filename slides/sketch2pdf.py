@@ -5,6 +5,8 @@ import pathlib
 import shutil
 import subprocess
 import time
+from typing import List, Tuple
+import tempfile
 import xml.dom
 import xml.etree.ElementTree as ElementTree
 from xml.dom.minidom import parse
@@ -79,6 +81,8 @@ def build_slides(args):
     # We will go through all slides and
     # do a couple of modifications that makes the SVGs easier to work with
 
+    page_size = (0, 0)
+
     progress_bar = tqdm.tqdm(enumerate(files), desc="Processing slides", unit=" slides")
     for slide_no, slide_path in progress_bar:
         progress_bar.set_postfix_str(slide_path)
@@ -94,6 +98,11 @@ def build_slides(args):
             for stage in staged_element.attrib["stage"].split("-"):
                 all_stages.append(int(stage))
         all_stages = sorted(list(set(all_stages)))
+
+        page_size = (
+            max(page_size[0], int(tree.attrib.get("width").replace("px", ""))), 
+            max(page_size[1], int(tree.attrib.get("height").replace("px", "")))
+        )
 
         if not args.no_page_number:
             if slide_no != 0:
@@ -112,7 +121,7 @@ def build_slides(args):
     pdf_file = sketch_file.with_suffix(".pdf")
     print(f"Create PDF in {pdf_file}")
     all_files = sorted(list(map(str, processed_directory.glob("*.svg"))))
-    subprocess.run(["rsvg-convert", "-f", "pdf", "-o", str(pdf_file)] + all_files)
+    convert_svgs_to_pdf(all_files, str(pdf_file), page_size=page_size)
 
     if not args.no_cleanup:
         print("Clean up")
@@ -184,6 +193,42 @@ def filter_stage(node, current_stage: int):
         node.remove(e)
 
 
+def convert_svgs_to_pdf(svg_files: List[str], output_file: str, page_size: Tuple[int, int]):
+    # subprocess.run(["rsvg-convert", "-f", "pdf", "-o", output_file] + svg_files)
+    """Based on https://gist.github.com/guillermo/3258662554c6afa2128492ca9a1a116c"""
+    content = "\n".join([f"<div class='slide'><img src='{file}' /></div>" for file in svg_files])
+    html=f"""
+    <html>
+    <head>
+        <style>
+        body {{
+            margin: 0;
+            padding: 0;
+        }}
+        @page {{
+            margin: 0;
+            size: {page_size[0]}px {page_size[1]}px;
+        }}
+        .slide {{
+            page-break-before: always;
+        }}
+        </style>
+    </head>
+    <body>
+        {content}
+    </body>
+    </html>
+    """
+
+    tmpfile = "tmp.html"
+    try:
+        with open(tmpfile, "w") as fp:
+            fp.write(html)
+        subprocess.check_call(["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "--headless", "--disable-gpu", f"--print-to-pdf={output_file}", tmpfile])
+    finally:
+        os.unlink(tmpfile)
+
+
 def add_page_number(slide, index: int):
     """Add slide number to the bottom right of the slide."""
     page_number_svg = f"""
@@ -197,9 +242,8 @@ def add_page_number(slide, index: int):
 def check_dependencies():
     try:
         subprocess.run([SKETCHTOOL_BIN, "--help"], check=True, capture_output=True)
-        subprocess.run(["rsvg-convert", "--help"], check=True, capture_output=True)
     except (subprocess.CalledProcessError, FileNotFoundError):
-        print("Please install sketchtool and rsvg-convert (brew install librsvg).")
+        print("Please install sketchtool.")
         exit(1)
 
 
