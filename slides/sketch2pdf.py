@@ -9,6 +9,7 @@ from typing import List, Tuple
 import tempfile
 import xml.dom
 import xml.etree.ElementTree as ElementTree
+import uuid
 from xml.dom.minidom import parse
 
 import tqdm
@@ -23,16 +24,16 @@ if os.path.isfile(SKETCHTOOL_DEFAULT_LOCATION):
 else:
     SKETCHTOOL_BIN = "sketchtool"
 
-    
+
 def get_parser():
     parser = argparse.ArgumentParser()
     # fmt: off
     parser.add_argument("sketch_file", help="Sketch containing the slides")
+    parser.add_argument("--use_svg_convert", action="store_true", help="Use svg-convert instead of chrome for conversion")
     parser.add_argument("--no_build_stage", action="store_true", help="Disable slides transitions")
     parser.add_argument("--no_cleanup", action="store_true", help="Disable tmp files cleanup for debugging")
     parser.add_argument("--no_page_number", action="store_true", help="Disable page numbering")
     parser.add_argument("--watch", "-w", action="store_true", help="Watch changes of sketch_file and auto-rebuild.")
-
     # fmt: on
     return parser
 
@@ -100,7 +101,7 @@ def build_slides(args):
         all_stages = sorted(list(set(all_stages)))
 
         page_size = (
-            max(page_size[0], int(tree.attrib.get("width").replace("px", ""))), 
+            max(page_size[0], int(tree.attrib.get("width").replace("px", ""))),
             max(page_size[1], int(tree.attrib.get("height").replace("px", "")))
         )
 
@@ -121,7 +122,10 @@ def build_slides(args):
     pdf_file = sketch_file.with_suffix(".pdf")
     print(f"Create PDF in {pdf_file}")
     all_files = sorted(list(map(str, processed_directory.glob("*.svg"))))
-    convert_svgs_to_pdf(all_files, str(pdf_file), page_size=page_size)
+    if args.use_svg_convert:
+        subprocess.run(["rsvg-convert", "-f", "pdf", "-o", str(pdf_file)] + all_files)
+    else:
+        convert_svgs_to_pdf(all_files, str(pdf_file), page_size=page_size, clean_up=not args.no_cleanup)
 
     if not args.no_cleanup:
         print("Clean up")
@@ -193,10 +197,28 @@ def filter_stage(node, current_stage: int):
         node.remove(e)
 
 
-def convert_svgs_to_pdf(svg_files: List[str], output_file: str, page_size: Tuple[int, int]):
-    # subprocess.run(["rsvg-convert", "-f", "pdf", "-o", output_file] + svg_files)
+
+def process_svg(svg_content):
+    # Fix image base64
+    svg_content = svg_content.replace('ns1:', '')
+
+    # Replace ids with unique random id to avoid collision between slides.
+    # Only applied to a selection of tags otherwise it breaks some images and Latex.
+    tree = ElementTree.fromstring(svg_content)
+    all_ids = []
+    for tag in ["mask", "rect", "polygon"]:
+        for element_with_id in tree.findall(f".//{{http://www.w3.org/2000/svg}}{tag}[@id]"):
+            all_ids.append(element_with_id.attrib["id"])
+    # Replaces longest first to avoid replacing prefixes.
+    for id_ in sorted(all_ids, key=len, reverse=True):
+        svg_content = svg_content.replace(id_, "a" + str(uuid.uuid4())[:6])
+    return svg_content
+
+
+def convert_svgs_to_pdf(svg_files: List[str], output_file: str, page_size: Tuple[int, int], clean_up: bool = True):
     """Based on https://gist.github.com/guillermo/3258662554c6afa2128492ca9a1a116c"""
-    content = "\n".join([f"<div class='slide'><img src='{file}' /></div>" for file in svg_files])
+    # content = "\n".join([f"<div class='slide'><img src='{file}' /></div>" for file in svg_files])
+    content = "\n".join([f"<div class='slide'>{process_svg(pathlib.Path(file).read_text())}</div>" for file in svg_files])
     html=f"""
     <html>
     <head>
@@ -212,6 +234,9 @@ def convert_svgs_to_pdf(svg_files: List[str], output_file: str, page_size: Tuple
         .slide {{
             page-break-before: always;
         }}
+        tspan {{
+            white-space: pre;
+        }}
         </style>
     </head>
     <body>
@@ -226,7 +251,8 @@ def convert_svgs_to_pdf(svg_files: List[str], output_file: str, page_size: Tuple
             fp.write(html)
         subprocess.check_call(["/Applications/Google Chrome.app/Contents/MacOS/Google Chrome", "--headless", "--disable-gpu", f"--print-to-pdf={output_file}", tmpfile])
     finally:
-        os.unlink(tmpfile)
+        if clean_up:
+            os.unlink(tmpfile)
 
 
 def add_page_number(slide, index: int):
