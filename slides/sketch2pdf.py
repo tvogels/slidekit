@@ -2,6 +2,7 @@ import os
 import argparse
 import copy
 import pathlib
+import re
 import shutil
 import subprocess
 import time
@@ -122,6 +123,10 @@ def build_slides(args):
     pdf_file = sketch_file.with_suffix(".pdf")
     print(f"Create PDF in {pdf_file}")
     all_files = sorted(list(map(str, processed_directory.glob("*.svg"))))
+
+    # Filters out [hidden] slides
+    all_files = [file for file in all_files if not re.match(r".*\[.*hidden.*\]", file)]
+
     if args.use_svg_convert:
         subprocess.run(["rsvg-convert", "-f", "pdf", "-o", str(pdf_file)] + all_files)
     else:
