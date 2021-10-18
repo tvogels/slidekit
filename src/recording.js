@@ -1,4 +1,4 @@
-import html2canvas from "html2canvas";
+import html2canvas from "html2canfast";
 import "regenerator-runtime/runtime";
 import moment from "moment";
 
@@ -62,7 +62,7 @@ function wait(time) {
     });
 }
 
-export async function record(durationSpec, fps = 48, scale = 1.5) {
+export async function record(durationSpec, fps = 48, scale = 1.5/2, startAt=-1) {
     // /usr/local/bin/ffmpeg -r 60 -i frame%05d.png -c:v libx264 -vf "fps=60,format=yuv420p" -an out.mp4
     //                          input framerate                           output framerate
 
@@ -87,7 +87,11 @@ export async function record(durationSpec, fps = 48, scale = 1.5) {
     screen.style.transform = `scale(${scale})`;
 
     function storeFrame() {
-        return html2canvas(screen).then(canvas => {
+        if (frame <= startAt) {
+            frame++
+            return;
+        }
+        return html2canvas(screen, {renderName: "screen", replaceSelector: "#main-screen"}).then(canvas => {
             downloadDataUrl(canvas.toDataURL("image/png"), `frame${frame.toString().padStart(5, "0")}.png`);
             frame++;
         });
