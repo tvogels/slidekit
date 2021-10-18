@@ -80,24 +80,26 @@ export default class Controller {
     }
 
     nextStage() {
-        this._cancelRunningAnimation();
-        const targetPosition = Math.min(this.deck.numSteps() - 1, Math.floor(this.currentPosition) + 1);
-        const duration = this._durationBetweenPoints(this.currentPosition, targetPosition);
-        if (duration === 0) {
-            this.setPosition(targetPosition);
-        } else {
-            this.startAnimationTo(targetPosition, duration);
+        if (!this._cancelRunningAnimation("right")) {
+            const targetPosition = Math.min(this.deck.numSteps() - 1, Math.floor(this.currentPosition) + 1);
+            const duration = this._durationBetweenPoints(this.currentPosition, targetPosition);
+            if (duration === 0) {
+                this.setPosition(targetPosition);
+            } else {
+                this.startAnimationTo(targetPosition, duration);
+            }
         }
     }
 
     prevStage() {
-        this._cancelRunningAnimation();
-        const targetPosition = Math.max(0, Math.ceil(this.currentPosition) - 1);
-        const duration = this._durationBetweenPoints(this.currentPosition, targetPosition);
-        if (duration === 0) {
-            this.setPosition(targetPosition);
-        } else {
-            this.startAnimationTo(targetPosition, duration);
+        if (!this._cancelRunningAnimation("left")) {
+            const targetPosition = Math.max(0, Math.ceil(this.currentPosition) - 1);
+            const duration = this._durationBetweenPoints(this.currentPosition, targetPosition);
+            if (duration === 0) {
+                this.setPosition(targetPosition);
+            } else {
+                this.startAnimationTo(targetPosition, duration);
+            }
         }
     }
 
@@ -127,6 +129,7 @@ export default class Controller {
         const startTime = Date.now();
         const startPosition = this.currentPosition;
         this.runningAnimationTarget = targetPosition;
+        this.runningAnimationStart = startPosition;
         const update = () => {
             const alpha = Math.min(1.0, (Date.now() - startTime) / duration / 1000);
             this.currentPosition = startPosition + (targetPosition - startPosition) * alpha;
@@ -150,6 +153,10 @@ export default class Controller {
 
     goFullscreen() {
         this.canvas.dom.requestFullscreen();
+    }
+
+    registerAnimation(name, animation) {
+        this.player.registerAnimation(name, animation);
     }
 
     _getPositionFromHash() {
@@ -247,13 +254,18 @@ export default class Controller {
         return duration;
     }
 
-    _cancelRunningAnimation() {
+    _cancelRunningAnimation(snapTo="right") {
         const wasRunning = this.runningAnimation != null;
         if (wasRunning) {
             clearInterval(this.runningAnimation);
-            this.currentPosition = this.runningAnimationTarget;
+            if (snapTo==="right") {
+                this.currentPosition = Math.max(this.runningAnimationStart, this.runningAnimationTarget);
+            } else {
+                this.currentPosition = Math.min(this.runningAnimationStart, this.runningAnimationTarget);
+            }
             this.runningAnimation = null;
             this.runningAnimationTarget = null;
+            this.runningAnimationStart = null;
         }
         return wasRunning;
     }
@@ -270,7 +282,10 @@ export class Canvas {
 
         this.canvas = document.createElement("div");
         this.canvas.className = "slides-canvas";
+        this.animationCanvas = document.createElement("div");
+        this.animationCanvas.className = "slides-canvas";
         this.dom.appendChild(this.canvas);
+        this.dom.appendChild(this.animationCanvas);
 
         if (withSlideNumbers) {
             this.slideNumber = document.createElement("div");
@@ -282,6 +297,12 @@ export class Canvas {
 
         this.canvas.style.transformOrigin = "0 0";
         this.canvas.style.transform = "scale(1)";
+        this.canvas.style.transform = "scale(1)";
+
+        this.animationCanvas.style.transformOrigin = "0 0";
+        this.animationCanvas.style.transform = "scale(1)";
+        this.animationCanvas.style.position = "absolute";
+        this.animationCanvas.style.top = "0";
 
         this.width = deckWidth;
         this.height = deckHeight;
@@ -312,5 +333,6 @@ export class Canvas {
         const offsetY = (this.dom.clientHeight - scale * this.height) / 2;
         const offsetX = (this.dom.clientWidth - scale * this.width) / 2;
         this.canvas.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+        this.animationCanvas.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
     }
 }

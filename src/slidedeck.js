@@ -173,6 +173,11 @@ class Step {
                 node.removeAttribute("appear-along");
             }
         }
+        for (let node of domNode.querySelectorAll("[animation]")) {
+            const [minStage, _] = getVisibleStages(node, this.lastStage);
+            node.setAttribute("opacity", "0");
+            node.setAttribute("animationOffset", stageNumber - minStage);
+        }
 
         // Exit transitions
         // should only happen when the node disappears

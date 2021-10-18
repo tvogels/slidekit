@@ -63,3 +63,9 @@ tspan {
         stroke-dashoffset: 10000;
     }
 }
+
+.slides-canvas svg {
+    position: absolute;
+    left: 0;
+    top: 0;
+}

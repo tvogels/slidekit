@@ -1,4 +1,4 @@
-import snap from "snapsvg";
+import snap, { animation } from "snapsvg";
 import CSSTransform from "./utils/css-transform";
 import { getAngleAtPath, linearMix } from "./utils";
 import easing from "./utils/easing";
@@ -42,24 +42,33 @@ export default class SlidePlayer {
 
         this.deck = deck;
         this.stages = [];
+        this.animations = {};
 
         for (let i = 0; i < deck.numSteps(); i++) {
-            this.stages.push(new Stage(deck.step(i), deck.step(i + 1)));
+            this.stages.push(new Stage(deck.step(i), deck.step(i + 1), this.animations));
         }
     }
 
     render(t) {
         let i = Math.floor(t);
         let stage = this.stages[i];
+        for (let animation of Object.values(this.animations)) {
+            animation.setVisibility(false);
+        }
         stage.render(t - Math.floor(t));
         this.currentPosition = t;
 
-        // Swap the visible slide of necessary
+        // Swap the visible slide if necessary
         if (i != this.visibleStage) {
             this.visibleStage = i;
             this.canvas.setSvg(stage.dom);
             this.renderSlideNumber(i);
         }
+    }
+
+    registerAnimation(name, animation) {
+        animation.init(this.canvas.animationCanvas);
+        this.animations[name] = animation;
     }
 
     renderSlideNumber(t) {
@@ -83,12 +92,37 @@ class Stage {
      * @param {Step} step
      * @param {Step?} nextStep
      */
-    constructor(step, nextStep = undefined) {
+    constructor(step, nextStep = undefined, animations = {}) {
         this.dom = step.dom.cloneNode(true);
         this.isFirstStep = step.isFirst;
         this.isLastStep = step.isLast;
         this.transitions = [];
         this.transitionDuration = 0;
+        this.animations = animations;
+
+        // Animations
+        for (let node of this.dom.querySelectorAll("[animation]")) {
+            const animationId = (node.getAttribute("animation") || "").split(",")[0];
+            const offset = parseInt(node.getAttribute("animationOffset"), 10);
+            let duration = offset === 0 ? this._getTransitionDuration(node, "animation") : 1e-8;
+            this._addTransition(
+                duration,
+                0,
+                "linear",
+                dt => {
+                    if (this.animations[animationId] != null) {
+                        const width = parseInt(node.getAttribute("width"), 10);
+                        const height = parseInt(node.getAttribute("height"), 10);
+                        const x = parseInt(node.getAttribute("x"), 10);
+                        const y = parseInt(node.getAttribute("y"), 10);
+                        this.animations[animationId].setVisibility(true);
+                        this.animations[animationId].update({width, height, x, y}, dt + offset);
+                    } else {
+                        console.log("Could not find animation", animationId);
+                    }
+                }
+            );
+        }
 
         if (nextStep == null) return;
 
@@ -283,6 +317,7 @@ class Stage {
                 }
             );
         }
+        
     }
 
     /**
@@ -325,10 +360,10 @@ class Stage {
     _getTransitionDuration(node, transition) {
         const attr = (node.getAttribute(transition) || "").split(",");
         let durationValue;
-        if (transition !== "appear-along") {
-            durationValue = attr[0];
-        } else {
+        if (transition === "appear-along" || transition === "animation") {
             durationValue = attr[1];
+        } else {
+            durationValue = attr[0];
         }
         const userValue = parseFloat(durationValue);
         if (isFinite(userValue)) {
