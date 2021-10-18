@@ -38,19 +38,31 @@ export function recordDurations(controller) {
         if (current == null) {
             return durations;
         } else {
-            return [
+            const data = [
                 ...durations,
                 {
                     step: current.pos,
                     start: current.start,
-                    duration: moment.now() - current.start
+                    duration: moment.now() - current.start,
+                    transition: 0
                 }
             ];
+            return data.map((d, i) => ({
+                ...d,
+                start: d.start - data[0].start,
+                transition: d.transition == null ? data[i + 1].start - d.start - d.duration : d.transition
+            }));
         }
     };
 }
 
-export async function record(durationSpec, fps = 24, scale = 1.5) {
+function wait(time) {
+    return new Promise((resolve, reject) => {
+        setTimeout(resolve, time);
+    });
+}
+
+export async function record(durationSpec, fps = 48, scale = 1.5) {
     // /usr/local/bin/ffmpeg -r 60 -i frame%05d.png -c:v libx264 -vf "fps=60,format=yuv420p" -an out.mp4
     //                          input framerate                           output framerate
 
@@ -83,15 +95,22 @@ export async function record(durationSpec, fps = 24, scale = 1.5) {
 
     for (let { step, duration } of durationSpec) {
         controller.setPosition(step);
+        await wait((1000 / 60) * 3);
         // Store half a second of the frame
-        for (let f = 0; f < (fps * duration) / 1000; ++f) {
-            await storeFrame();
+        const numFrames = Math.round((fps * duration) / 1000);
+        for (let f = 0; f < numFrames; ++f) {
+            if (f === 0 || f == numFrames - 1) {
+                await storeFrame();
+            } else {
+                frame++;
+            }
         }
 
         // Do the transition
         const transitionDuration = controller._durationBetweenPoints(step, step + 1);
         for (let f = 0; f < fps * transitionDuration; ++f) {
             controller.setPosition(step + f / fps / transitionDuration);
+            await wait((1000 / 60) * 3);
             await storeFrame();
         }
     }
