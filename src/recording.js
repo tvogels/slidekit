@@ -92,7 +92,7 @@ export async function record(durationSpec, fps = 48, scale = 1.5/2, startAt=-1) 
             return;
         }
         return html2canvas(screen, {renderName: "screen", replaceSelector: "#main-screen"}).then(canvas => {
-            downloadDataUrl(canvas.toDataURL("image/png"), `frame${frame.toString().padStart(5, "0")}.png`);
+            downloadDataUrl(canvas.toDataURL("image/png"), `frame${frame.toString().padStart(6, "0")}.png`);
             frame++;
         });
     }
