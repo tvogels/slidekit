@@ -273,8 +273,11 @@ class WatchHandler(FileSystemEventHandler):
         if event.src_path.endswith(".svg") or (
             isinstance(event, FileSystemMovedEvent) and event.dest_path.endswith(".svg")
         ):
-            print(f"\n\nDetected change in {event.src_path}. Re-building Slide JSON.\n")
-            build_slides(*self.args, **self.kwargs)
+            output = self.args[1]
+            time_ago_modified = time.time() - os.path.getmtime(output)
+            if time_ago_modified > 1: ## 1 second
+                print(f"\n\nDetected change in {event.src_path}. Re-building Slide JSON.\n")
+                build_slides(*self.args, **self.kwargs)
         return super().dispatch(event)
 
 
