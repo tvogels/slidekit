@@ -182,7 +182,8 @@ class Stage {
                             "x1",
                             "x2",
                             "y1",
-                            "y2"
+                            "y2",
+                            "font-size"
                         ].includes(attribute)
                     ) {
                         this._addTransition(
