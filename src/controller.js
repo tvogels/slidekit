@@ -222,9 +222,9 @@ export default class Controller {
         } else if (event.key === "End") {
             this.setPosition(this.deck.numSteps() - 1);
         } else if (event.key === "b") {
-            document.body.classList.toggle("blacked-out");
+            document.body.classList.toggle("slides-blacked-out");
         } else if (event.key === "w") {
-            document.body.classList.toggle("blacked-out-white");
+            document.body.classList.toggle("slides-blacked-out-white");
         }
     }
 
@@ -289,7 +289,7 @@ export class Canvas {
 
         if (withSlideNumbers) {
             this.slideNumber = document.createElement("div");
-            this.slideNumber.className = "slide-number";
+            this.slideNumber.className = "slides-slide-number";
             this.dom.appendChild(this.slideNumber);
         } else {
             this.slideNumber = null;

@@ -125,18 +125,31 @@ export default class Cockpit {
         this.head = this.window.document.head;
 
         // Clear any text that is already in the window
-        this.head.innerHTML = "";
+        this.head.innerHTML = `
+            <style>
+                html, body { 
+                    height: 100%; 
+                }
+                body {
+                    margin: 0;
+                    padding: 0;
+                    background-color: #ccc;
+                    overflow: hidden;
+                    font-family: sans-serif;
+                }
+            </style>
+        `;
         this.body.innerHTML = `
-            <div class="cockpit">
-                <div class="cockpit-current-wrapper" id="current-slide">
+            <div class="slides-cockpit">
+                <div class="slides-cockpit-current-wrapper" id="current-slide">
                 </div>
-                <div class="cockpit-next-wrapper" id="next-slide">
+                <div class="slides-cockpit-next-wrapper" id="next-slide">
                 </div>
-                <div class="cockpit-progress-bar">
-                    <div class="cockpit-progress-bar-bar" id="progress-bar"></div>
+                <div class="slides-cockpit-progress-bar">
+                    <div class="slides-cockpit-progress-bar-bar" id="progress-bar"></div>
                 </div>
-                <div class="cockpit-notes" id="notes"></div>
-                <div class="cockpit-stage" id="stage"></div>
+                <div class="slides-cockpit-notes" id="notes"></div>
+                <div class="slides-cockpit-stage" id="stage"></div>
             </div>
         `;
 

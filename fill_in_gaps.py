@@ -1,5 +1,10 @@
 #!/usr/bin/env python3 
 
+"""
+This script fills in gaps in sequences of images.
+You can use this when rendering videos.
+"""
+
 import glob
 import shutil
 import re

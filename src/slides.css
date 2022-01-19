@@ -1,17 +1,4 @@
-html,
-body {
-    height: 100%;
-}
-
-body {
-    margin: 0;
-    padding: 0;
-    background-color: #ccc;
-    overflow: hidden;
-    font-family: sans-serif;
-}
-
-#main-screen {
+.slides-main-screen {
     display: block;
     position: absolute;
     width: 1280px;
@@ -24,23 +11,23 @@ body {
     overflow: hidden;
 }
 
-.blacked-out {
+.slides-blacked-out {
     background-color: black;
     transition: background-color 0.4s;
 }
 
-.blacked-out-white {
+.slides-blacked-out-white {
     background-color: white;
     transition: background-color 0.4s;
 }
 
-.blacked-out > *,
-.blacked-out-white > * {
+.slides-blacked-out > *,
+.slides-blacked-out-white > * {
     transition: opacity 0.4s;
     opacity: 0;
 }
 
-.slide-number {
+.slides-slide-number {
     position: absolute;
     right: 0;
     bottom: 0;
@@ -50,7 +37,7 @@ body {
     opacity: 0.25;
 }
 
-tspan {
+.slides-canvas tspan {
     white-space: pre;
 }
 
