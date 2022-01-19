@@ -73,6 +73,10 @@ You need to name your Sketch file `slides.sketch` and give the containing direct
 
 -   `rect[youtube=55bjCP9Fy5I]` will embed a YT video
 
+## Scripted animation
+
+Documentation & example TBD. See `Controller.registerAnimation`.
+
 ## Shortcuts
 
 -   `?` --- open shortcut overview
