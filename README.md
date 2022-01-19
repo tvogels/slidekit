@@ -1,7 +1,5 @@
 # SVG Slides
 
-Slide crafting utility for nerds.
-
 Draw your slides in a vector editor and export SVG.
 By annotating the SVG, you can build slide transitions with
 
