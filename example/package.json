@@ -1,0 +1,9 @@
+{
+  "devDependencies": {
+    "parcel-plugin-markdown": "^0.4.2"
+  },
+  "dependencies": {
+    "moment": "^2.29.1",
+    "svgslides": "^0.0.1"
+  }
+}
