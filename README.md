@@ -4,38 +4,40 @@ Draw your slides in a vector editor and export SVG.
 By annotating the SVG, you can build slide transitions with
 
 -   Incremental builds
--   Magic-move / morph with precise slide-to-slide matching by object ID.
+-   Magic-move with precise control over slide-to-slide matching by object ID, and morphing of paths.
 -   Fade-in and out.
--   Custom external web content like videos or interactive widgets.
-
-**Note**: Expect this to be more work than Powerpoint or Keynote, but more rewarding :)
+-   External web content
+-   Embedded videos
+-   Scripted animations (through a flexible plugin system)
 
 ## Prerequisites
 
 -   Install Python 3
 -   `pip install -r requirements.txt`
 -   Install [Node.js](https://nodejs.org/en/) with NPM.
--   We use [Parcel](https://parceljs.org/) for building the project. (`npm install -g parcel-bundler`)
+-   We use [Parcel](https://parceljs.org/) for building the project. (`npm install --save-dev parcel`)
 
 ## Process
 
--   Fork this repo (optional, allows customization)
+-   Copy the [example project](./example)
 
--   Draw your slides (of size `1280x720`) in your favourite vector editor I use [Sketch](https://www.sketch.com/) on Mac. Cross-platform, [Figma](https://www.figma.com/file/Xmk7YqeZUriwRdOrTxBCj3/svg-slides-demo?node-id=0%3A1) seems to work well. For Figma, make sure to enable 'include "id" attribute' in SVG export settings.
+-   Draw your slides (of size `1280x720`) in your favourite vector editor. I use [Sketch](https://www.sketch.com/) on Mac. Cross-platform,  [Figma](https://www.figma.com/file/Xmk7YqeZUriwRdOrTxBCj3/svg-slides-demo?node-id=0%3A1) work well (web-based). For Figma, make sure to enable 'include "id" attribute' in SVG export settings.
 
 -   Annotate your SVG IDs with attributes to set animation behavior, e.g. `myPath[stage=2][fade-in]` or `rectangle[move][otherattrib=value]`
-    <br>Looks like this in [Sketch](https://www.sketch.com/):<br>
+    <br>This looks like this in [Sketch](https://www.sketch.com/):<br>
     <img src="./docs/sketch-screenshot.png" width="300px" />
 
--   Run `./preprocess_slides.py demo-data/ -m demo-data/dist -o demo-data/slides.json` to pre-process your SVGs (parse these annotated ids) and turn them into one big JSON file.
+-   Run `preprocess_slides.py {project_folder}/ -m {project_folder}/dist -o {project_folder}/slides.json` to pre-process your SVGs (parse these annotated ids) and turn them into one big JSON file.
     This also strips out embedded images and puts them in `dist/media/`.
+    This script can be run in 'watch' mode with `-w`.
 
--   You can customize the presenter notes in `demo-data/notes.md`.
-    You can find the right numbers to link notes with slides in the cockpit (press `C` to open)
+-   You can customize the presenter notes in `presenter-notes.md`.
+    Sections are delimited by headings with the name of the slide + the stage number. 
+    You can quickly copy-paste those headings from the presenter view (press `P` to open)
 
--   Run `parcel index.html` in `demo-data/` to serve your slides in dev-mode.
+-   Run `parcel index.html` in `{project_folder}/` to serve your slides in dev-mode.
 
--   The entry-point for the code is `demo-data/index.js`.
+-   `{project_folder}/index.js` configures your slide deck. You can add plugins there, see [src/plugins.js](src/plugins.js) for examples.
 
 ## Sketch live view
 
@@ -43,7 +45,7 @@ If you are using Sketch, we provide a watcher script to automatically extract th
 You need to name your Sketch file `slides.sketch` and give the containing directory as argument:
 
 ```
-./sketch-generate.sh demo-data/
+./sketch-generate.sh {project_folder}/
 ```
 
 ## Step-wise appearance of nodes
