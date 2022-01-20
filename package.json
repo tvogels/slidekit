@@ -1,6 +1,6 @@
 {
   "name": "svgslides",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "source": "src/index.js",
   "main": "dist/main.js",
   "module": "dist/module.js",
