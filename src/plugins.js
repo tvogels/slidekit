@@ -40,7 +40,6 @@ export function scalePlugin(dom) {
 }
 
 export function hyperlinkPlugin(dom) {
-    // Scale
     for (let node of dom.querySelectorAll("[hyperlink]")) {
         const hyperlink = node.getAttribute("hyperlink");
         node.removeAttribute("hyperlink");
@@ -48,6 +47,5 @@ export function hyperlinkPlugin(dom) {
         a.setAttribute("href", hyperlink);
         node.parentElement.insertBefore(a, node);
         a.appendChild(node);
-
     }
 }
