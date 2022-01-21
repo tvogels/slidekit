@@ -3,11 +3,13 @@
     "@parcel/resolver-glob": "^2.2.1",
     "@parcel/transformer-inline-string": "^2.2.1",
     "parcel-transformer-markdown": "^2.0.1",
-    "parcel-transformer-slide": "link:./parcel-transformer-slide"
+    "parcel-resolver-glob": "link:/Users/vogels/Desktop/parcel-resolver-glob",
+    "parcel-transformer-slide": "link:/Users/vogels/Desktop/parcel-transformer-slide",
+    "parcel-namer-asset": "link:/Users/vogels/Desktop/parcel-namer-asset"
   },
   "dependencies": {
     "moment": "^2.29.1",
     "parcel": "^2.0.0",
-    "svgslides": "^0.0.1"
+    "svgslides": "link:.."
   }
 }
