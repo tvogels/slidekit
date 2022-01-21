@@ -4,7 +4,6 @@
  */
 export function youtubePlugin(dom) {
     for (let node of dom.querySelectorAll("[youtube]")) {
-        // This is not a good place for this. Should be done in pre-processing (Python) probably
         const id = node.getAttribute("youtube");
 
         // Create a <foreignObject> svg node that has the same size
@@ -34,9 +33,21 @@ export function youtubePlugin(dom) {
 export function scalePlugin(dom) {
     // Scale
     for (let node of dom.querySelectorAll("[scale]")) {
-        // This is not a good place for this. Should be done in pre-processing (Python) probably
         const scale = node.getAttribute("scale");
         node.setAttribute("transform", node.getAttribute("transform") + " " + `scale(${scale})`);
         node.removeAttribute("scale");
+    }
+}
+
+export function hyperlinkPlugin(dom) {
+    // Scale
+    for (let node of dom.querySelectorAll("[hyperlink]")) {
+        const hyperlink = node.getAttribute("hyperlink");
+        node.removeAttribute("hyperlink");
+        const a = document.createElementNS("http://www.w3.org/2000/svg", "a");
+        a.setAttribute("href", hyperlink);
+        node.parentElement.insertBefore(a, node);
+        a.appendChild(node);
+
     }
 }
