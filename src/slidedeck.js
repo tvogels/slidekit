@@ -145,7 +145,7 @@ class Step {
             if (stageNumber < minStage || stageNumber > maxStage) {
                 node.parentElement.removeChild(node);
             } else {
-                node.setAttribute("cur-stage", stageNumber);
+                node.removeAttribute("stage");
                 node.setAttribute("min-stage", minStage);
                 node.setAttribute("max-stage", maxStage);
                 this._adaptDomToStage(node, stageNumber);

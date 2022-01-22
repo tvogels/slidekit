@@ -101,24 +101,24 @@ class Stage {
         this.animations = animations;
 
         const isEntering = (node, step) => {
-            if (node.hasAttribute("cur-step")) {
-                return node.getAttribute("min-step") === node.getAttribute("cur-step");
+            if (node.hasAttribute("min-stage")) {
+                return parseInt(node.getAttribute("min-stage"), 10) === step.stage;
             } else {
                 return step.isFirst;
             }
         };
 
         const isExiting = (node, step) => {
-            if (node.hasAttribute("cur-step")) {
-                return node.getAttribute("max-step") === node.getAttribute("cur-step");
+            if (node.hasAttribute("min-stage")) {
+                return parseInt(node.getAttribute("max-stage"), 10) === step.stage;
             } else {
                 return step.isLast;
             }
         };
 
         const animationOffset = (node, step) => {
-            if (node.hasAttribute("cur-step")) {
-                return parseInt(node.getAttribute("cur-step"), 10) - parseInt(node.getAttribute("min-step"), 10);
+            if (node.hasAttribute("min-stage")) {
+                return step.stage - parseInt(node.getAttribute("min-stage"), 10);
             } else {
                 return step.stage;
             }
