@@ -1,3 +1,5 @@
+import { nodeName } from "jquery";
+
 /**
  * This parses and pre-processes a slide deck
  * It holds one SVG Element for each 'build stage'
@@ -124,6 +126,7 @@ class Step {
         this.dom = dom.cloneNode(true);
         this.lastStage = maxStage(this.dom);
         this.isFirst = stage === 0;
+        this.stage = stage;
         this.isLast = stage === this.lastStage;
         this.height = parseFloat(this.dom.getAttribute("height"));
         this.width = parseFloat(this.dom.getAttribute("width"));
@@ -132,10 +135,9 @@ class Step {
 
     /**
      * Update a DOM tree to represent a chosen 'stage' for 'incremental builds'.
-     * Removes nodes that should not be visible and sets 'fade-in' and 'fade-out' transitions correctly.
+     * Removes nodes that should not be visible
      * @param {HTMLElement} domNode base dom node that is adapted (pre-cloned)
      * @param {number} stageNumber number of the stage that is currently created
-     * @param {number} lastStage of the slide (number of stages - 1)
      */
     _adaptDomToStage(domNode, stageNumber) {
         for (let node of domNode.querySelectorAll("[stage]")) {
@@ -143,48 +145,10 @@ class Step {
             if (stageNumber < minStage || stageNumber > maxStage) {
                 node.parentElement.removeChild(node);
             } else {
+                node.setAttribute("cur-stage", stageNumber);
+                node.setAttribute("min-stage", minStage);
+                node.setAttribute("max-stage", maxStage);
                 this._adaptDomToStage(node, stageNumber);
-            }
-        }
-
-        // Entry transitions
-        // should only happen when they appear
-        for (let node of domNode.querySelectorAll("[fade-in]")) {
-            const [minStage, maxStage] = getVisibleStages(node, this.lastStage);
-            if (stageNumber !== minStage) {
-                node.removeAttribute("fade-in");
-            }
-        }
-        for (let node of domNode.querySelectorAll("[fade-down]")) {
-            const [minStage, maxStage] = getVisibleStages(node, this.lastStage);
-            if (stageNumber !== minStage) {
-                node.removeAttribute("fade-down");
-            }
-        }
-        for (let node of domNode.querySelectorAll("[draw-line]")) {
-            const [minStage, _] = getVisibleStages(node, this.lastStage);
-            if (stageNumber !== minStage) {
-                node.removeAttribute("draw-line");
-            }
-        }
-        for (let node of domNode.querySelectorAll("[appear-along]")) {
-            const [minStage, _] = getVisibleStages(node, this.lastStage);
-            if (stageNumber !== minStage) {
-                node.removeAttribute("appear-along");
-            }
-        }
-        for (let node of domNode.querySelectorAll("[animation]")) {
-            const [minStage, _] = getVisibleStages(node, this.lastStage);
-            node.setAttribute("opacity", "0");
-            node.setAttribute("animationOffset", stageNumber - minStage);
-        }
-
-        // Exit transitions
-        // should only happen when the node disappears
-        for (let node of domNode.querySelectorAll("[fade-out]")) {
-            const [_, maxStage] = getVisibleStages(node, this.lastStage);
-            if (stageNumber !== maxStage) {
-                node.removeAttribute("fade-out");
             }
         }
     }

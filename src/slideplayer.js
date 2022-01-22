@@ -100,10 +100,35 @@ class Stage {
         this.transitionDuration = 0;
         this.animations = animations;
 
+        const isEntering = (node, step) => {
+            if (node.hasAttribute("cur-step")) {
+                return node.getAttribute("min-step") === node.getAttribute("cur-step");
+            } else {
+                return step.isFirst;
+            }
+        };
+
+        const isExiting = (node, step) => {
+            if (node.hasAttribute("cur-step")) {
+                return node.getAttribute("max-step") === node.getAttribute("cur-step");
+            } else {
+                return step.isLast;
+            }
+        };
+
+        const animationOffset = (node, step) => {
+            if (node.hasAttribute("cur-step")) {
+                return parseInt(node.getAttribute("cur-step"), 10) - parseInt(node.getAttribute("min-step"), 10);
+            } else {
+                return step.stage;
+            }
+        };
+
         // Animations
         for (let node of this.dom.querySelectorAll("[animation]")) {
+            node.setAttribute("opacity", 0);
             const animationId = (node.getAttribute("animation") || "").split(",")[0];
-            const offset = parseInt(node.getAttribute("animationOffset"), 10);
+            const offset = animationOffset(node, step);
             let duration = offset === 0 ? this._getTransitionDuration(node, "animation") : 1e-8;
             this._addTransition(
                 duration,
@@ -225,6 +250,7 @@ class Stage {
 
         // Entry effect: fade-in
         for (let node of [...nextStep.dom.querySelectorAll("[fade-in]")].reverse()) {
+            if (!isEntering(node, nextStep)) continue;
             const ghostNode = this._insertGhostNode(node);
             ghostNode.style.opacity = 0.001;
             const targetOpacity = parseFloat(node.getAttribute("opacity")) || 1.0;
@@ -240,6 +266,7 @@ class Stage {
 
         // Entry effect: fade-down
         for (let node of [...nextStep.dom.querySelectorAll("[fade-down]")].reverse()) {
+            if (!isEntering(node, nextStep)) continue;
             const ghostNode = this._insertGhostNode(node);
             ghostNode.style.opacity = 0.0;
             const originalTransform = ghostNode.getAttribute("transform") || "";
@@ -264,6 +291,7 @@ class Stage {
 
         // Entry effect of paths: appear by drawing the line from the beginning
         for (let node of [...nextStep.dom.querySelectorAll("[draw-line]")].reverse()) {
+            if (!isEntering(node, nextStep)) continue;
             const length = node.getTotalLength();
             const ghostNode = this._insertGhostNode(node);
             ghostNode.style.strokeDasharray = length;
@@ -281,6 +309,7 @@ class Stage {
         // Entry-effect for objects: appear along a trajectory given by a referenced path
         // [appear-along=MyPath,1] (for 1 second)
         for (let node of [...nextStep.dom.querySelectorAll("[appear-along]")].reverse()) {
+            if (!isEntering(node, nextStep)) continue;
             const pathId = node.getAttribute("appear-along").split(",", 1)[0];
             const path = snap(nextStep.dom.getElementById(pathId));
             const totalPathLength = path.getTotalLength();
@@ -308,6 +337,7 @@ class Stage {
 
         // Exit effect: fade-out
         for (let node of this.dom.querySelectorAll("[fade-out]")) {
+            if (!isExiting(node, step)) continue;
             const startOpacity = node.style.opacity || 1.0;
             this._addTransition(
                 this._getTransitionDuration(node, "fade-out"),
