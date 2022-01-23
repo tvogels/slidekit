@@ -7,8 +7,8 @@ const DEFAULT_TRANSITION_TIME = 0.5;
 const DEFAULT_TRANSITION_ALIGNMENT = 1.0; // end of the transition
 
 function transitionDuration(node: Element): number {
-    if (node.hasAttribute("duration")) {
-        return parseFloat(node.getAttribute("duration"));
+    if (node.hasAttribute("enter-duration")) {
+        return parseFloat(node.getAttribute("enter-duration"));
     }
     const attr = (node.getAttribute("appear-along") || "").split(",");
     const userValue = parseFloat(attr[0]);
@@ -20,8 +20,8 @@ function transitionDuration(node: Element): number {
 }
 
 function transitionAlignment(node: Element) {
-    if (node.hasAttribute("alignment")) {
-        return parseFloat(node.getAttribute("alignment"));
+    if (node.hasAttribute("enter-alignment")) {
+        return parseFloat(node.getAttribute("enter-alignment"));
     }
     const attr = (node.getAttribute("appear-along") || "").split(",");
     const userValue = parseFloat(attr[1]);

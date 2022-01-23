@@ -8,8 +8,8 @@ const DEFAULT_TRANSITION_TIME = 0.5;
 const DEFAULT_TRANSITION_ALIGNMENT = 0.5;
 
 function transitionDuration(node: Element) {
-    if (node.hasAttribute("duration")) {
-        return parseFloat(node.getAttribute("duration"));
+    if (node.hasAttribute("move-duration")) {
+        return parseFloat(node.getAttribute("move-duration"));
     }
     const attr = (node.getAttribute("move") || "").split(",");
     const userValue = parseFloat(attr[0]);
@@ -21,8 +21,8 @@ function transitionDuration(node: Element) {
 }
 
 function transitionAlignment(node: Element) {
-    if (node.hasAttribute("alignment")) {
-        return parseFloat(node.getAttribute("alignment"));
+    if (node.hasAttribute("move-alignment")) {
+        return parseFloat(node.getAttribute("move-alignment"));
     }
     const attr = (node.getAttribute("move") || "").split(",");
     const userValue = parseFloat(attr[1]);
