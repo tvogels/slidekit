@@ -3,7 +3,7 @@
  * @param {HTMLElement} dom SVG Dom tree to which you can do any pre-processing
  */
 export function youtubePlugin(dom: HTMLElement) {
-    for (let node of dom.querySelectorAll("[youtube]")) {
+    for (let node of [...dom.querySelectorAll("[youtube]")]) {
         const id = node.getAttribute("youtube");
 
         // Create a <foreignObject> svg node that has the same size
@@ -32,7 +32,7 @@ export function youtubePlugin(dom: HTMLElement) {
  */
 export function scalePlugin(dom: HTMLElement) {
     // Scale
-    for (let node of dom.querySelectorAll("[scale]")) {
+    for (let node of [...dom.querySelectorAll("[scale]")]) {
         const scale = node.getAttribute("scale");
         node.setAttribute("transform", node.getAttribute("transform") + " " + `scale(${scale})`);
         node.removeAttribute("scale");
@@ -40,7 +40,7 @@ export function scalePlugin(dom: HTMLElement) {
 }
 
 export function hyperlinkPlugin(dom: HTMLElement) {
-    for (let node of dom.querySelectorAll("[hyperlink]")) {
+    for (let node of [...dom.querySelectorAll("[hyperlink]")]) {
         const hyperlink = node.getAttribute("hyperlink");
         node.removeAttribute("hyperlink");
         const a = document.createElementNS("http://www.w3.org/2000/svg", "a");
@@ -51,7 +51,7 @@ export function hyperlinkPlugin(dom: HTMLElement) {
 }
 
 export function canvasPlugin(dom: HTMLElement) {
-    for (let node of dom.querySelectorAll("[canvas]")) {
+    for (let node of [...dom.querySelectorAll("[canvas]")]) {
         const foreignObject = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
 
         for (let {name, value} of node.attributes) {

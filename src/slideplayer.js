@@ -41,6 +41,10 @@ export default class SlidePlayer {
         stage.render(t - Math.floor(t));
         this.currentPosition = t;
 
+        for (let [script, node] of Object.entries(stage.scriptNodes)) {
+            console.log(script, node, t - this.deck.scriptStarts[script]);
+        }
+
         // Swap the visible slide if necessary
         if (i != this.visibleStage) {
             this.visibleStage = i;
@@ -76,6 +80,7 @@ class Stage {
         this.isLastStep = step.isLast;
         this.transitions = [];
         this.transitionDuration = 0;
+        this.scriptNodes = step.scriptNodes;
 
         if (nextStep == null) return;
 

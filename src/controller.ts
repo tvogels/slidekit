@@ -4,15 +4,28 @@ import Timer from "./timer";
 import SlidePlayer from "./slideplayer";
 import Cockpit from "./cockpit";
 import Shortcuts from "./shortcuts";
+import {Duration} from "moment";
+
+type Hook = (number) => void
 
 export default class Controller {
-    /**
-     *
-     * @param {SlideDeck} deck
-     * @param {HTMLDivElement} canvas
-     * @param {PresenterNotes?} nodes
-     */
-    constructor(deck, canvas, talkDuration, presenterNotes) {
+    deck: SlideDeck
+    canvas: Canvas
+    presenterNotes?: PresenterNotes
+    fullscreenNode: HTMLElement
+    timer: Timer
+    player: SlidePlayer
+    hooks: Set<Hook>
+    currentPosition: number
+    runningAnimation?: any
+    runningAnimationStart?: number
+    runningAnimationTarget?: number
+    previousRenderedPosition: number
+    historyPosition?: number
+    shortcuts?: Shortcuts
+    cockpit?: Cockpit
+
+    constructor(deck: SlideDeck, canvas: HTMLDivElement, talkDuration: Duration, presenterNotes?: PresenterNotes) {
         this.deck = deck;
         this.canvas = new Canvas(canvas, deck.width, deck.height, true);
         this.presenterNotes = presenterNotes;
@@ -142,12 +155,12 @@ export default class Controller {
         this.runningAnimation = setInterval(update, 3);
     }
 
-    addRenderListener(hook) {
+    addRenderListener(hook: Hook) {
         this.hooks.add(hook);
         hook(this.currentPosition);
     }
 
-    removeRenderListener(hook) {
+    removeRenderListener(hook: Hook) {
         this.hooks.delete(hook);
     }
 
@@ -163,7 +176,7 @@ export default class Controller {
         this.canvas.resizeHandler();
     }
 
-    _keyboardHandler(event) {
+    _keyboardHandler(event: KeyboardEvent) {
         if (["ArrowRight", "ArrowDown", "]"].includes(event.key)) {
             if (event.shiftKey) {
                 this.nextSlide();
@@ -231,12 +244,12 @@ export default class Controller {
         const slideW = this.canvas.dom.clientWidth;
         const scale = Math.min(bodyH / slideH, bodyW / slideW, 1);
         const scaleString = `scale(${scale})`;
-        if (this.canvas.dom.style.scaleString != scaleString) {
+        if (this.canvas.dom.style.transform != scaleString) {
             this.canvas.dom.style.transform = scaleString;
         }
     }
 
-    _durationBetweenPoints(a, b) {
+    _durationBetweenPoints(a: number, b: number) {
         const t1 = Math.min(a, b);
         const t2 = Math.max(a, b);
         let duration = 0.0;
@@ -250,11 +263,11 @@ export default class Controller {
         return duration;
     }
 
-    _cancelRunningAnimation(snapTo="right") {
+    _cancelRunningAnimation(snapTo: string = "right") {
         const wasRunning = this.runningAnimation != null;
         if (wasRunning) {
             clearInterval(this.runningAnimation);
-            if (snapTo==="right") {
+            if (snapTo === "right") {
                 this.currentPosition = Math.max(this.runningAnimationStart, this.runningAnimationTarget);
             } else {
                 this.currentPosition = Math.min(this.runningAnimationStart, this.runningAnimationTarget);
@@ -268,12 +281,13 @@ export default class Controller {
 }
 
 export class Canvas {
-    /**
-     * @param {HTMLDivElement} domElement
-     * @param {number} deckWidth
-     * @param {number} deckHeight
-     */
-    constructor(domElement, deckWidth, deckHeight, withSlideNumbers = false) {
+    dom: HTMLElement
+    canvas: HTMLDivElement
+    slideNumber: HTMLDivElement
+    width: number
+    height: number
+
+    constructor(domElement: HTMLDivElement, deckWidth: number, deckHeight: number, withSlideNumbers = false) {
         this.dom = domElement;
 
         this.canvas = document.createElement("div");

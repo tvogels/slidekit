@@ -51,6 +51,16 @@ export default class SlideDeck {
 
         this.width = this.step(0).width;
         this.height = this.step(0).height;
+
+        // Store first step numbers in which a `scripted` node appears
+        this.scriptStarts = {};
+        for (let i = 0; i < this.numSteps(); ++i) {
+            for (let script of Object.keys(this.step(i).scriptNodes)) {
+                if (Object.keys(this.scriptStarts).indexOf(script) === -1) {
+                    this.scriptStarts[script] = i;
+                }
+            }
+        }
     }
 
     step(i) {
@@ -131,6 +141,11 @@ export class Step {
         this.height = parseFloat(this.dom.getAttribute("height"));
         this.width = parseFloat(this.dom.getAttribute("width"));
         this._adaptDomToStage(this.dom, stage);
+
+        this.scriptNodes = {};
+        for (let node of this.dom.querySelectorAll("[script]")) {
+            this.scriptNodes[node.getAttribute("script")] = node;
+        }
     }
 
     /**
