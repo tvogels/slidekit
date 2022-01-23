@@ -29,19 +29,15 @@ export default class SlidePlayer {
 
         this.deck = deck;
         this.stages = [];
-        this.animations = {};
 
         for (let i = 0; i < deck.numSteps(); i++) {
-            this.stages.push(new Stage(deck.step(i), deck.step(i + 1), this.animations));
+            this.stages.push(new Stage(deck.step(i), deck.step(i + 1)));
         }
     }
 
     render(t) {
         let i = Math.floor(t);
         let stage = this.stages[i];
-        for (let animation of Object.values(this.animations)) {
-            animation.setVisibility(false);
-        }
         stage.render(t - Math.floor(t));
         this.currentPosition = t;
 
@@ -51,11 +47,6 @@ export default class SlidePlayer {
             this.canvas.setSvg(stage.dom);
             this.renderSlideNumber(i);
         }
-    }
-
-    registerAnimation(name, animation) {
-        animation.init(this.canvas.animationCanvas);
-        this.animations[name] = animation;
     }
 
     renderSlideNumber(t) {
@@ -79,39 +70,12 @@ class Stage {
      * @param {Step} step
      * @param {Step?} nextStep
      */
-    constructor(step, nextStep = undefined, animations = {}) {
+    constructor(step, nextStep = undefined) {
         this.dom = step.dom.cloneNode(true);
         this.isFirstStep = step.isFirst;
         this.isLastStep = step.isLast;
         this.transitions = [];
         this.transitionDuration = 0;
-        this.animations = animations;
-        this._addTransition = this._addTransition.bind(this);
-
-        // Animations
-        for (let node of this.dom.querySelectorAll("[animation]")) {
-            node.setAttribute("opacity", 0);
-            const animationId = (node.getAttribute("animation") || "").split(",")[0];
-            const offset = animationOffset(node, step);
-            let duration = offset === 0 ? this._getTransitionDuration(node, "animation") : 1e-8;
-            this._addTransition(
-                duration,
-                0,
-                "linear",
-                dt => {
-                    if (this.animations[animationId] != null) {
-                        const width = parseInt(node.getAttribute("width"), 10);
-                        const height = parseInt(node.getAttribute("height"), 10);
-                        const x = parseInt(node.getAttribute("x"), 10);
-                        const y = parseInt(node.getAttribute("y"), 10);
-                        this.animations[animationId].setVisibility(true);
-                        this.animations[animationId].update({width, height, x, y}, dt + offset);
-                    } else {
-                        console.log("Could not find animation", animationId);
-                    }
-                }
-            );
-        }
 
         if (nextStep == null) return;
 

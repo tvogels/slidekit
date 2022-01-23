@@ -155,10 +155,6 @@ export default class Controller {
         this.canvas.dom.requestFullscreen();
     }
 
-    registerAnimation(name, animation) {
-        this.player.registerAnimation(name, animation);
-    }
-
     _getPositionFromHash() {
         return parseFloat(window.location.hash.substr(1)) || 0;
     }
@@ -282,10 +278,7 @@ export class Canvas {
 
         this.canvas = document.createElement("div");
         this.canvas.className = "slides-canvas";
-        this.animationCanvas = document.createElement("div");
-        this.animationCanvas.className = "slides-canvas";
         this.dom.appendChild(this.canvas);
-        this.dom.appendChild(this.animationCanvas);
 
         if (withSlideNumbers) {
             this.slideNumber = document.createElement("div");
@@ -298,11 +291,6 @@ export class Canvas {
         this.canvas.style.transformOrigin = "0 0";
         this.canvas.style.transform = "scale(1)";
         this.canvas.style.transform = "scale(1)";
-
-        this.animationCanvas.style.transformOrigin = "0 0";
-        this.animationCanvas.style.transform = "scale(1)";
-        this.animationCanvas.style.position = "absolute";
-        this.animationCanvas.style.top = "0";
 
         this.width = deckWidth;
         this.height = deckHeight;
@@ -333,6 +321,5 @@ export class Canvas {
         const offsetY = (this.dom.clientHeight - scale * this.height) / 2;
         const offsetX = (this.dom.clientWidth - scale * this.width) / 2;
         this.canvas.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
-        this.animationCanvas.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
     }
 }
