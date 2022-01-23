@@ -1,6 +1,13 @@
-import moment from "moment";
+import moment, { Duration } from "moment";
+
+type Listener = (elapsed: string, progress: number) => void;
 
 export default class Timer {
+    startTime: number
+    accumulatedTime: number
+    private _targetTime: Duration
+    private _listeners: Set<Listener>
+
     constructor(targetDuration) {
         this.reset();
         this._targetTime = targetDuration;
@@ -36,7 +43,7 @@ export default class Timer {
     }
 
     progress() {
-        return this.elapsed() / this._targetTime;
+        return this.elapsed() / (this._targetTime as any);
     }
 
     reset() {
@@ -45,11 +52,11 @@ export default class Timer {
         setTimeout(this._tick.bind(this));
     }
 
-    addTickListener(handle) {
+    addTickListener(handle: Listener) {
         this._listeners.add(handle);
     }
 
-    removeTickListener(handle) {
+    removeTickListener(handle: Listener) {
         this._listeners.delete(handle);
     }
 
