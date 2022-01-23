@@ -5,6 +5,10 @@
   "main": "dist/main.js",
   "module": "dist/module.js",
   "types": "dist/types.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tvogels/slidekit.git"
+  },
   "scripts": {
     "watch": "parcel watch src/index.ts",
     "build": "parcel build src/index.ts"
