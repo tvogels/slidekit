@@ -1,4 +1,4 @@
-import moment, { Duration } from "moment";
+import { now, Duration, utc } from "moment";
 
 type Listener = (elapsed: string, progress: number) => void;
 
@@ -17,12 +17,12 @@ export default class Timer {
 
     start() {
         if (this.startTime == null) {
-            this.startTime = moment.now();
+            this.startTime = now();
         }
     }
 
     stop() {
-        this.accumulatedTime += moment.now() - this.startTime;
+        this.accumulatedTime += now() - this.startTime;
         this.startTime = null;
     }
 
@@ -37,7 +37,7 @@ export default class Timer {
     elapsed() {
         let duration = this.accumulatedTime;
         if (this.startTime != null) {
-            duration += moment.now() - this.startTime;
+            duration += now() - this.startTime;
         }
         return duration;
     }
@@ -61,7 +61,7 @@ export default class Timer {
     }
 
     _tick() {
-        const elapsed = moment.utc(this.elapsed()).format("mm:ss");
+        const elapsed = utc(this.elapsed()).format("mm:ss");
         const progress = this.progress();
         for (let handler of this._listeners) {
             handler(elapsed, progress);
