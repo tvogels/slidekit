@@ -121,7 +121,7 @@ export default class SlideDeck {
  * A 'Slide' can consist of multiple 'steps'.
  * This hold one such step.
  */
-class Step {
+export class Step {
     constructor(dom, stage) {
         this.dom = dom.cloneNode(true);
         this.lastStage = maxStage(this.dom);
