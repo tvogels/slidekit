@@ -1,10 +1,12 @@
 export default class PresenterNotes {
+    private _notes: Map<string, string>
+    private _emptyNode: HTMLDivElement
+
     /**
      * HTML string where notes are separated by e.g.
      * `<h1>4</h1>`
-     * @param {string} htmlString
      */
-    constructor(htmlString) {
+    constructor(htmlString: string) {
         // Split by H1
         this._notes = new Map();
 
@@ -26,7 +28,7 @@ export default class PresenterNotes {
         }
     }
 
-    getNote(slideId, stageId) {
+    getNote(slideId: string, stageId: string) {
         if (this._notes.has(stageId)) {
             return this._notes.get(stageId);
         } else if (this._notes.has(slideId)) {

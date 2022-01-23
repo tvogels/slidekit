@@ -1,5 +1,3 @@
-import snap from "snapsvg";
-import { getAngleAtPath, linearMix } from "./utils";
 import easing from "./utils/easing";
 import moveTransitions from "./transitions/move";
 import fadeOutTransitions from "./transitions/fadeOut";
@@ -7,6 +5,8 @@ import fadeInTransitions from "./transitions/fadeIn";
 import fadeDownTransitions from "./transitions/fadeDown";
 import drawLineTransitions from "./transitions/drawLine";
 import appearAlongTransitions from "./transitions/appearAlong";
+import SlideDeck, {Step} from "./slidedeck"
+import {Canvas} from "./controller"
 
 /**
  * This is responsible for rendering a current position in the slideshow
@@ -14,12 +14,16 @@ import appearAlongTransitions from "./transitions/appearAlong";
  * the transition to the next 'step'.
  */
 export default class SlidePlayer {
-    /**
-     *
-     * @param {Canvas} canvas
-     * @param {SlideDeck} deck
-     */
-    constructor(canvas, deck) {
+    canvas: Canvas
+    visibleStage?: number
+    currentPosition?: number
+    slideStartIndices: number[]
+    slideEndIndices: number[]
+    slideNumbers: number[]
+    deck: SlideDeck
+    stages: Stage[]
+
+    constructor(canvas: Canvas, deck: SlideDeck) {
         this.canvas = canvas;
         this.visibleStage = null;
         this.currentPosition = null;
@@ -42,7 +46,7 @@ export default class SlidePlayer {
         this.currentPosition = t;
 
         for (let [script, node] of Object.entries(stage.scriptNodes)) {
-            console.log(script, node, t - this.deck.scriptStarts[script]);
+            console.log('call script', script, 'with node', node, 'and offset', t - this.deck.scriptStarts[script]);
         }
 
         // Swap the visible slide if necessary
@@ -64,17 +68,22 @@ export default class SlidePlayer {
     }
 }
 
+type Transition = (number) => void;
+
 /**
  * A 'stage' represents the time between a step and the next step.
  * So it can also render intermediate values.
  * It basically defines the transition
  */
 class Stage {
-    /**
-     * @param {Step} step
-     * @param {Step?} nextStep
-     */
-    constructor(step, nextStep = undefined) {
+    dom: HTMLElement
+    isFirstStep: boolean
+    isLastStep: boolean
+    transitions: Transition[]
+    transitionDuration: number
+    scriptNodes: {[script: string]: HTMLElement}
+
+    constructor(step: Step, nextStep?: Step) {
         this.dom = step.dom.cloneNode(true);
         this.isFirstStep = step.isFirst;
         this.isLastStep = step.isLast;
