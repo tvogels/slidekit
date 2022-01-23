@@ -10,10 +10,7 @@ export default {
         this.time++;
         const {context} = this;
         context.clearRect(0, 0, this.width, this.height);
-        context.fillStyle = "#EAEAEA";
-        context.fillRect(0, 0, this.width, this.height);
         context.beginPath();
-        console.log(Math.floor(t))
         const r = 30;
         const progress = Math.floor(t) + easeInOutCubic(t%1);
         const x = 126 + 202.5 * progress;

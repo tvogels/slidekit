@@ -20,6 +20,7 @@
         </linearGradient>
     </defs>
     <g id="000-Artboard" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <rect id="background" fill="#EAEAEA" x="422" y="0" width="858" height="720"></rect>
         <rect id="Rectangle[canvas][script=bouncy]" fill="#EAEAEA" x="422" y="0" width="858" height="720"></rect>
         <g id="Group-2" transform="translate(41.000000, 46.000000)" fill="#333333">
             <g id="Group-4" transform="translate(0.000000, 1.500000)" fill-rule="nonzero">
@@ -52,8 +53,8 @@
             <rect id="Rectangle" fill="url(#linearGradient-4)" x="0" y="0" width="150" height="400"></rect>
             <rect id="Rectangle" fill="#FF8A32" x="0" y="0" width="150" height="10"></rect>
         </g>
-        <text id="The-bouncy-slide" font-family="HelveticaNeue-Bold, Helvetica Neue" font-size="40" font-weight="bold" fill="#FF8A32">
-            <tspan x="41" y="175">The bouncy slide</tspan>
+        <text id="Bouncy-Slide" font-family="HelveticaNeue-Bold, Helvetica Neue" font-size="48" font-weight="bold" fill="#FF8A32">
+            <tspan x="41" y="133">Bouncy Slide</tspan>
         </text>
         <text id="We-start-at-level-1" font-family="HelveticaNeue-Bold, Helvetica Neue" font-size="30" font-weight="bold" fill="#444444">
             <tspan x="41" y="259">We start at level 1</tspan>
