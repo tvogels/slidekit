@@ -1,16 +1,23 @@
 import SlidePlayer from "./slideplayer";
 import { copyToClipboard } from "./utils";
-import { Canvas } from "./controller";
+import Controller, { Canvas } from "./controller";
 import "./cockpit.css";
 
 export default class Cockpit {
-    /**
-     *
-     * @param {Controller} controller
-     * @param {KeyboardController} keyboardController
-     * @param {PresenterNotes?} presenterNotes
-     */
-    constructor(controller) {
+    window: Window;
+    
+    private controller: Controller;
+    private currentSlidePlayer: SlidePlayer;
+    private nextSlidePlayer: SlidePlayer;
+    private document: Document;
+    private progressBarBar: HTMLDivElement;
+    private stageCanvas: HTMLDivElement;
+    private notesDiv: HTMLDivElement;
+    private currentNotes?: HTMLDivElement;
+    private body: HTMLBodyElement;
+    private head: HTMLHeadElement;
+
+    constructor(controller: Controller) {
         this.controller = controller;
 
         this.render = this.render.bind(this);
@@ -22,27 +29,25 @@ export default class Cockpit {
         // Current step view
         this.currentSlidePlayer = new SlidePlayer(
             new Canvas(
-                this.document.getElementById("current-slide"),
+                this.document.getElementById("current-slide") as HTMLDivElement,
                 this.controller.deck.width,
                 this.controller.deck.height
             ),
-            controller.deck,
-            false
+            controller.deck
         );
 
         // Next step view
         this.nextSlidePlayer = new SlidePlayer(
             new Canvas(
-                this.document.getElementById("next-slide"),
+                this.document.getElementById("next-slide") as HTMLDivElement,
                 this.controller.deck.width,
                 this.controller.deck.height
             ),
-            controller.deck,
-            false
+            controller.deck
         );
 
         // Progress bar
-        this.progressBarBar = this.document.getElementById("progress-bar");
+        this.progressBarBar = this.document.getElementById("progress-bar") as HTMLDivElement;
         controller.timer.addTickListener(this.renderProgressbar);
         this.window.addEventListener(
             "unload",
@@ -50,14 +55,14 @@ export default class Cockpit {
         );
 
         // current stage
-        this.stageCanvas = this.document.getElementById("stage");
+        this.stageCanvas = this.document.getElementById("stage") as HTMLDivElement;
         this.stageCanvas.addEventListener("click", () => {
             copyToClipboard(this.document, this.stageCanvas.innerHTML);
         });
 
         // Presenter notes
         if (controller.presenterNotes != null) {
-            this.notesDiv = this.document.getElementById("notes");
+            this.notesDiv = this.document.getElementById("notes") as HTMLDivElement;
             this.currentNotes = null;
         }
 
@@ -121,7 +126,7 @@ export default class Cockpit {
             "height=720,width=1100,menubar=off,toolbar=off,titlebar=off,status=off,location=off,personalbar=off,directories=off,"
         );
         this.document = this.window.document;
-        this.body = this.window.document.body;
+        this.body = this.window.document.body as HTMLBodyElement;
         this.head = this.window.document.head;
 
         // Clear any text that is already in the window
@@ -174,7 +179,7 @@ export default class Cockpit {
     }
 
     destroy() {
-        this.window.removeEventListener("keydown", controller._keyboardHandler);
+        this.window.removeEventListener("keydown", this.controller._keyboardHandler);
         this.window.close();
     }
 }

@@ -1,5 +1,3 @@
-import snap from "snapsvg";
-
 export default {
     linear: t => t,
 

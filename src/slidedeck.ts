@@ -1,4 +1,12 @@
-import { nodeName } from "jquery";
+type SlideSpec = { id: string, content: string};
+type StepInfo = {
+    slide: SlideInfo,
+    localIndex: number,
+    globalIndex: number,
+    step: Step
+};
+type SlideInfo = { id: string, index: number, steps: StepInfo[]};
+type Plugin = (HTMLElement) => void;
 
 /**
  * This parses and pre-processes a slide deck
@@ -7,13 +15,15 @@ import { nodeName } from "jquery";
  * Also handles translation between stage number / slide number, etc.
  */
 export default class SlideDeck {
-    /**
-     * @param {{ id: string, content: string}[]} slideList
-     * @param {((HTMLElement) => void)[]?} plugins
-     */
-    constructor(slideList, plugins = []) {
-        this._slides = [];
-        this._steps = [];
+    private slides: SlideInfo[];
+    private steps: StepInfo[];
+    height: number;
+    width: number;
+    scriptStarts: {[script: string]: number};
+
+    constructor(slideList: SlideSpec[], plugins: Plugin[] = []) {
+        this.slides = [];
+        this.steps = [];
 
         let slideIndex = 0;
         let stepIndex = 0;
@@ -42,10 +52,10 @@ export default class SlideDeck {
                     step: new Step(svg, stage)
                 };
                 slide.steps.push(step);
-                this._steps.push(step);
+                this.steps.push(step);
                 stepIndex += 1;
             }
-            this._slides.push(slide);
+            this.slides.push(slide);
             slideIndex += 1;
         }
 
@@ -63,66 +73,66 @@ export default class SlideDeck {
         }
     }
 
-    step(i) {
+    step(i: number) {
         if (i >= this.numSteps()) return null;
-        return this._steps[i].step;
+        return this.steps[i].step;
     }
 
     /**
      * @param {number} position possibly in between two stages
      */
-    nextSlideIndex(position) {
-        const step = this._steps[Math.floor(position)];
+    nextSlideIndex(position: number) {
+        const step = this.steps[Math.floor(position)];
         const nextIndex = Math.min(this.numSlides() - 1, step.slide.index + 1);
-        const nextSlide = this._slides[nextIndex];
+        const nextSlide = this.slides[nextIndex];
         return last(nextSlide.steps).globalIndex;
     }
 
     /**
      * @param {number} position possibly in between two stages
      */
-    slideNumber(position) {
-        const step = this._steps[Math.floor(position)];
+    slideNumber(position: number) {
+        const step = this.steps[Math.floor(position)];
         return step.slide.index + 1;
     }
 
     /**
      * @param {number} slideNumber integer
      */
-    firstStageForSlide(slideNumber) {
-        const slide = this._slides[slideNumber - 1];
+    firstStageForSlide(slideNumber: number) {
+        const slide = this.slides[slideNumber - 1];
         return slide.steps[0].globalIndex;
     }
 
     numSteps() {
-        return this._steps.length;
+        return this.steps.length;
     }
 
     numSlides() {
-        return this._slides.length;
+        return this.slides.length;
     }
 
     lastSlideNumber() {
         return this.numSlides();
     }
 
-    stageId(position) {
-        const step = this._steps[Math.ceil(position)];
+    stageId(position: number) {
+        const step = this.steps[Math.ceil(position)];
         return `${this.slideId(position)} ${step.localIndex}`;
     }
 
-    slideId(position) {
-        const step = this._steps[Math.ceil(position)];
+    slideId(position: number) {
+        const step = this.steps[Math.ceil(position)];
         return step.slide.id;
     }
 
     /**
      * @param {integer} position possibly in between two stages
      */
-    prevSlideIndex(position) {
-        const step = this._steps[Math.floor(position)];
+    prevSlideIndex(position: number) {
+        const step = this.steps[Math.floor(position)];
         const prevIndex = Math.max(0, step.slide.index - 1);
-        const prevSlide = this._slides[prevIndex];
+        const prevSlide = this.slides[prevIndex];
         return last(prevSlide.steps).globalIndex;
     }
 }
@@ -132,19 +142,28 @@ export default class SlideDeck {
  * This hold one such step.
  */
 export class Step {
-    constructor(dom, stage) {
-        this.dom = dom.cloneNode(true);
+    height: number;
+    width: number;
+    scriptNodes: {[script: string]: HTMLElement};
+    dom: HTMLElement;
+    isFirst: boolean;
+    isLast: boolean;
+    stage: number;
+    private lastStage: number;
+
+    constructor(dom: SVGElement, stage: number) {
+        this.dom = dom.cloneNode(true) as HTMLElement;
         this.lastStage = maxStage(this.dom);
         this.isFirst = stage === 0;
         this.stage = stage;
         this.isLast = stage === this.lastStage;
         this.height = parseFloat(this.dom.getAttribute("height"));
         this.width = parseFloat(this.dom.getAttribute("width"));
-        this._adaptDomToStage(this.dom, stage);
+        this.adaptDomToStage(this.dom, stage);
 
         this.scriptNodes = {};
         for (let node of this.dom.querySelectorAll("[script]")) {
-            this.scriptNodes[node.getAttribute("script")] = node;
+            this.scriptNodes[node.getAttribute("script")] = node as HTMLElement;
         }
     }
 
@@ -154,16 +173,16 @@ export class Step {
      * @param {HTMLElement} domNode base dom node that is adapted (pre-cloned)
      * @param {number} stageNumber number of the stage that is currently created
      */
-    _adaptDomToStage(domNode, stageNumber) {
+    private adaptDomToStage(domNode: HTMLElement, stageNumber: number) {
         for (let node of domNode.querySelectorAll("[stage]")) {
-            const [minStage, maxStage] = getVisibleStages(node, this.lastStage);
+            const [minStage, maxStage] = getVisibleStages(node as HTMLElement, this.lastStage);
             if (stageNumber < minStage || stageNumber > maxStage) {
                 node.parentElement.removeChild(node);
             } else {
                 node.removeAttribute("stage");
-                node.setAttribute("min-stage", minStage);
-                node.setAttribute("max-stage", maxStage);
-                this._adaptDomToStage(node, stageNumber);
+                node.setAttribute("min-stage", minStage.toString());
+                node.setAttribute("max-stage", maxStage.toString());
+                this.adaptDomToStage(node as HTMLElement, stageNumber);
             }
         }
     }
@@ -173,13 +192,11 @@ export class Step {
  * Read visible stage information from a node
  * `[stage=4]`: from stage 4
  * `[stage=2-5]`: from stage 2 up to and including stage 5
- * @param {HTMLElement} node
- * @param {number} lastStage
  */
-function getVisibleStages(node, lastStage) {
+function getVisibleStages(node: HTMLElement, lastStage: number) {
     const stageList = (node.getAttribute("stage") || "").split("-");
-    const min = parseFloat(stageList[0] || 0);
-    const max = parseFloat(stageList[1] || lastStage);
+    const min = parseFloat(stageList[0] || "0");
+    const max = parseFloat(stageList[1] || lastStage.toString());
     return [min, max];
 }
 
@@ -189,10 +206,10 @@ function getVisibleStages(node, lastStage) {
  * @param {HTMLElement} domNode
  * @returns {number}
  */
-export function maxStage(domNode) {
+export function maxStage(domNode: SVGElement | HTMLElement) {
     let max = 0;
     for (let node of domNode.querySelectorAll("[stage]")) {
-        let [minStage, maxStage] = getVisibleStages(node, -1);
+        let [minStage, maxStage] = getVisibleStages(node as HTMLElement, -1);
         if (maxStage == -1) maxStage = minStage;
         max = Math.max(max, maxStage);
     }
@@ -202,8 +219,7 @@ export function maxStage(domNode) {
 /**
  * Get the last element of the array.
  * Like `array[-1]` in Python
- * @param {any[]} array
  */
-function last(array) {
+function last(array: any[]) {
     return array[array.length - 1];
 }

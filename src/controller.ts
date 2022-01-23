@@ -10,12 +10,13 @@ type Hook = (number) => void
 
 export default class Controller {
     shortcuts?: Shortcuts
+    deck: SlideDeck
+    timer: Timer
+    presenterNotes?: PresenterNotes
+    cockpit?: Cockpit
 
-    private deck: SlideDeck
     private canvas: Canvas
-    private presenterNotes?: PresenterNotes
     private fullscreenNode: HTMLElement
-    private timer: Timer
     private player: SlidePlayer
     private hooks: Set<Hook>
     private currentPosition: number
@@ -24,7 +25,6 @@ export default class Controller {
     private runningAnimationTarget?: number
     private previousRenderedPosition: number
     private historyPosition?: number
-    private cockpit?: Cockpit
 
     constructor(deck: SlideDeck, canvas: HTMLDivElement, talkDuration: Duration, presenterNotes?: PresenterNotes) {
         this.deck = deck;

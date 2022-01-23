@@ -35,10 +35,10 @@ export default function (dom: HTMLElement, step: Step, nextStep: Step): Transiti
     const transitions: Transition[] = [];
     for (let node of [...nextStep.dom.querySelectorAll("[draw-line]")].reverse()) {
         if (!isEntering(node, nextStep)) continue;
-        const length = node.getTotalLength();
-        const ghostNode = insertGhostNode(node, dom);
-        ghostNode.style.strokeDasharray = length;
-        ghostNode.style.strokeDashoffset = length;
+        const length = (node as any as SVGPathElement).getTotalLength();
+        const ghostNode = insertGhostNode(node as HTMLElement, dom) as any as SVGPathElement;
+        ghostNode.style.strokeDasharray = length.toString();
+        ghostNode.style.strokeDashoffset = length.toString();
         transitions.push({
             duration: transitionDuration(node),
             alignment: transitionAlignment(node),

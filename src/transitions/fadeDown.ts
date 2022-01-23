@@ -35,7 +35,7 @@ export default function (dom: HTMLElement, step: Step, nextStep: Step): Transiti
     const transitions: Transition[] = [];
     for (let node of [...nextStep.dom.querySelectorAll("[fade-down]")].reverse()) {
         if (!isEntering(node, nextStep)) continue;
-        const ghostNode = insertGhostNode(node, dom);
+        const ghostNode = insertGhostNode(node as HTMLElement, dom);
         ghostNode.style.opacity = "0.0";
         const originalTransform = ghostNode.getAttribute("transform") || "";
         transitions.push({
@@ -52,7 +52,7 @@ export default function (dom: HTMLElement, step: Step, nextStep: Step): Transiti
             alignment: transitionAlignment(node),
             mode: "easeInCubic",
             callback: dt => {
-                ghostNode.style.opacity = linearMix(0.0, node.style.opacity || 1.0, dt);
+                ghostNode.style.opacity = linearMix(0.0, parseFloat((node as HTMLElement).style.opacity) || 1.0, dt);
             }
         });
     }

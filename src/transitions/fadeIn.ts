@@ -35,7 +35,7 @@ export default function (dom: HTMLElement, step: Step, nextStep: Step): Transiti
     const transitions: Transition[] = [];
     for (let node of [...nextStep.dom.querySelectorAll("[fade-in]")].reverse()) {
         if (!isEntering(node, nextStep)) continue;
-        const ghostNode = insertGhostNode(node, dom);
+        const ghostNode = insertGhostNode(node as HTMLElement, dom);
         ghostNode.style.opacity = "0.001";
         const targetOpacity = parseFloat(node.getAttribute("opacity")) || 1.0;
         transitions.push({

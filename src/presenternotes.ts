@@ -1,5 +1,5 @@
 export default class PresenterNotes {
-    private notes: Map<string, string>
+    private notes: Map<string, HTMLDivElement>
     private emptyNode: HTMLDivElement
 
     /**

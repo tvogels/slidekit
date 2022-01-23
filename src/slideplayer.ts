@@ -15,10 +15,11 @@ import { Transition } from "./transitions/utils";
  * the transition to the next 'step'.
  */
 export default class SlidePlayer {
-    private canvas: Canvas
+    canvas: Canvas
+    stages: Stage[]
+
     private visibleStage?: number
     private deck: SlideDeck
-    private stages: Stage[]
 
     constructor(canvas: Canvas, deck: SlideDeck) {
         this.canvas = canvas;
@@ -74,7 +75,7 @@ class Stage {
     private transitionDuration: number
 
     constructor(step: Step, nextStep?: Step) {
-        this.dom = step.dom.cloneNode(true);
+        this.dom = step.dom.cloneNode(true) as HTMLElement;
         this.transitions = [];
         this.transitionDuration = 0;
         this.scriptNodes = step.scriptNodes;

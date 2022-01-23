@@ -39,13 +39,13 @@ export default function (dom: HTMLElement, step: Step, nextStep: Step): Transiti
     for (let node of [...nextStep.dom.querySelectorAll("[appear-along]")].reverse()) {
         if (!isEntering(node, nextStep)) continue;
         const pathId = node.getAttribute("appear-along").split(",", 1)[0];
-        const path = snap(nextStep.dom.getElementById(pathId));
+        const path = snap(nextStep.dom.querySelector(`#${pathId}`));
         const totalPathLength = path.getTotalLength();
         const endpoint = path.getPointAtLength(totalPathLength);
         const angleAtEndpoint = getAngleAtPath(path, 1.0, totalPathLength);
         const originalTransform = node.getAttribute("transform") || "";
 
-        const ghostNode = insertGhostNode(node, dom);
+        const ghostNode = insertGhostNode(node as HTMLElement, dom);
 
         transitions.push({
             duration: transitionDuration(node),
