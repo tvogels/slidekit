@@ -9,6 +9,12 @@ import SlideDeck, {Step} from "./slidedeck"
 import {Canvas} from "./controller"
 import { Transition } from "./transitions/utils";
 
+export type Script = {
+    setNode: (node: HTMLElement) => void,
+    deactivate: () => void,
+    tick: (dt: number) => void,
+}
+
 /**
  * This is responsible for rendering a current position in the slideshow
  * to a canvas. It holds 'stages' which are responsible for a 'step' and
@@ -16,48 +22,73 @@ import { Transition } from "./transitions/utils";
  */
 export default class SlidePlayer {
     canvas: Canvas
-    stages: Stage[]
+    stages: Stage[] = [];
 
-    private visibleStage?: number
+    private visibleStage?: number = null;
     private deck: SlideDeck
+    private activeScripts: Set<string> = new Set();
+    private scripts: Map<string, Script> = new Map();
 
     constructor(canvas: Canvas, deck: SlideDeck) {
         this.canvas = canvas;
-        this.visibleStage = null;
-
         this.deck = deck;
-        this.stages = [];
 
         for (let i = 0; i < deck.numSteps(); i++) {
             this.stages.push(new Stage(deck.step(i), deck.step(i + 1)));
         }
     }
 
-    render(t) {
+    render(t: number) {
         let i = Math.floor(t);
         let stage = this.stages[i];
         stage.render(t - Math.floor(t));
-
-        for (let [script, node] of Object.entries(stage.scriptNodes)) {
-            console.log('call script', script, 'with node', node, 'and offset', t - this.deck.scriptStarts[script]);
-        }
 
         // Swap the visible slide if necessary
         if (i != this.visibleStage) {
             this.visibleStage = i;
             this.canvas.setSvg(stage.dom);
+
+            this.updateActiveScripts(stage);
             this.renderSlideNumber(i);
+        }
+
+        for (let scriptName of this.activeScripts) {
+            if (this.scripts.has(scriptName)) {
+                this.scripts.get(scriptName).tick(t - this.deck.scriptStarts[scriptName]);
+            }
         }
     }
 
-    renderSlideNumber(t) {
+    registerScript(name: string, script: Script) {
+        this.scripts.set(name, script);
+    }
+
+    renderSlideNumber(t: number) {
         const number = this.deck.slideNumber(t);
         const total = this.deck.lastSlideNumber();
         this.canvas.setSlideNumber(`${number} / ${total}`);
     }
 
-    stageDuration(stageNo) {
+    stageDuration(stageNo: number) {
         return this.stages[stageNo].duration();
+    }
+
+    private updateActiveScripts(stage: Stage) {
+        const newActiveScripts = new Set(Object.keys(stage.scriptNodes));
+        for (let [scriptName, node] of Object.entries(stage.scriptNodes)) {
+            if (this.scripts.has(scriptName)) {
+                this.scripts.get(scriptName).setNode(node);
+            } else {
+                console.error(`Missing script definition for ${scriptName}.`)
+            }
+        }
+        for (let scriptName of this.activeScripts) {
+            if (!newActiveScripts.has(scriptName)) {
+                if (!this.scripts.has(scriptName)) continue;
+                this.scripts.get(scriptName).deactivate();
+            }
+        }
+        this.activeScripts = newActiveScripts;
     }
 }
 
@@ -75,7 +106,7 @@ class Stage {
     private transitionDuration: number
 
     constructor(step: Step, nextStep?: Step) {
-        this.dom = step.dom.cloneNode(true) as HTMLElement;
+        this.dom = step.dom as HTMLElement;
         this.transitions = [];
         this.transitionDuration = 0;
         this.scriptNodes = step.scriptNodes;

@@ -81,7 +81,7 @@ export default class Cockpit {
         this.window.addEventListener("unload", () => (controller.cockpit = null));
 
         // Keyboard handler
-        this.document.addEventListener("keydown", controller._keyboardHandler);
+        this.document.addEventListener("keydown", controller.keyboardHandler);
     }
 
     render(t) {
@@ -179,7 +179,7 @@ export default class Cockpit {
     }
 
     destroy() {
-        this.window.removeEventListener("keydown", this.controller._keyboardHandler);
+        this.window.removeEventListener("keydown", this.controller.keyboardHandler);
         this.window.close();
     }
 }

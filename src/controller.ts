@@ -4,50 +4,56 @@ import Timer from "./timer";
 import SlidePlayer from "./slideplayer";
 import Cockpit from "./cockpit";
 import Shortcuts from "./shortcuts";
-import {Duration} from "moment";
+import { Duration } from "moment";
+import { Script } from "./slideplayer";
 
 type Hook = (number) => void
 
+type Options = {
+    duration?: Duration,
+    notes?: PresenterNotes,
+    scripts?: { [script: string]: Script }
+}
+
 export default class Controller {
-    shortcuts?: Shortcuts
-    deck: SlideDeck
-    timer: Timer
-    presenterNotes?: PresenterNotes
-    cockpit?: Cockpit
+    shortcuts?: Shortcuts;
+    deck: SlideDeck;
+    timer: Timer;
+    presenterNotes?: PresenterNotes;
+    cockpit?: Cockpit;
 
-    private canvas: Canvas
-    private fullscreenNode: HTMLElement
-    private player: SlidePlayer
-    private hooks: Set<Hook>
-    private currentPosition: number
-    private runningAnimation?: any
-    private runningAnimationStart?: number
-    private runningAnimationTarget?: number
-    private previousRenderedPosition: number
-    private historyPosition?: number
+    private canvas: Canvas;
+    private fullscreenNode: HTMLElement;
+    private player: SlidePlayer;
+    private hooks: Set<Hook> = new Set();
+    private currentPosition: number;
+    private runningAnimation?: any = null;
+    private runningAnimationStart?: number = null;
+    private runningAnimationTarget?: number = null;
+    private previousRenderedPosition: number = -1;
+    private historyPosition?: number = null;
 
-    constructor(deck: SlideDeck, canvas: HTMLDivElement, talkDuration: Duration, presenterNotes?: PresenterNotes) {
+    constructor(deck: SlideDeck, canvas: HTMLDivElement, { duration, notes, scripts }: Options) {
         this.deck = deck;
         this.canvas = new Canvas(canvas, deck.width, deck.height, true);
-        this.presenterNotes = presenterNotes;
+        this.presenterNotes = notes;
         this.fullscreenNode = canvas.parentElement;
-        this.timer = new Timer(talkDuration);
+        this.timer = new Timer(duration);
         this.player = new SlidePlayer(this.canvas, this.deck);
 
-        this.hooks = new Set(); // get notified for position updates
+        this.currentPosition = this.getPositionFromHash();
 
-        this.currentPosition = this._getPositionFromHash();
-        this.runningAnimation = null;
-        this.runningAnimationTarget = null;
-        this.previousRenderedPosition = -1;
+        for (let [scriptName, script] of Object.entries(scripts)) {
+            this.registerScript(scriptName, script);
+        }
 
         this.render = this.render.bind(this);
-        this._fullscreenHandler = this._fullscreenHandler.bind(this);
-        this._keyboardHandler = this._keyboardHandler.bind(this);
-        this._resizeCanvasToFit = this._resizeCanvasToFit.bind(this);
+        this.fullscreenHandler = this.fullscreenHandler.bind(this);
+        this.keyboardHandler = this.keyboardHandler.bind(this);
+        this.resizeCanvasToFit = this.resizeCanvasToFit.bind(this);
 
-        this.fullscreenNode.addEventListener("fullscreenchange", this._fullscreenHandler);
-        document.addEventListener("keydown", this._keyboardHandler);
+        this.fullscreenNode.addEventListener("fullscreenchange", this.fullscreenHandler);
+        document.addEventListener("keydown", this.keyboardHandler);
 
         this.addRenderListener(this.player.render.bind(this.player));
 
@@ -57,13 +63,13 @@ export default class Controller {
             }
         });
 
-        window.addEventListener("resize", this._resizeCanvasToFit);
-        setTimeout(this._resizeCanvasToFit);
+        window.addEventListener("resize", this.resizeCanvasToFit);
+        setTimeout(this.resizeCanvasToFit);
 
         requestAnimationFrame(this.render);
 
         window.addEventListener("popstate", event => {
-            const location = this._getPositionFromHash();
+            const location = this.getPositionFromHash();
             this.historyPosition = location;
             this.setPosition(location);
         });
@@ -89,14 +95,14 @@ export default class Controller {
      * Go there without any animation
      */
     setPosition(position) {
-        this._cancelRunningAnimation();
+        this.cancelRunningAnimation();
         this.currentPosition = Math.min(this.deck.numSteps() - 1, Math.max(0, position));
     }
 
     nextStage() {
-        if (!this._cancelRunningAnimation("right")) {
+        if (!this.cancelRunningAnimation("right")) {
             const targetPosition = Math.min(this.deck.numSteps() - 1, Math.floor(this.currentPosition) + 1);
-            const duration = this._durationBetweenPoints(this.currentPosition, targetPosition);
+            const duration = this.durationBetweenPoints(this.currentPosition, targetPosition);
             if (duration === 0) {
                 this.setPosition(targetPosition);
             } else {
@@ -106,9 +112,9 @@ export default class Controller {
     }
 
     prevStage() {
-        if (!this._cancelRunningAnimation("left")) {
+        if (!this.cancelRunningAnimation("left")) {
             const targetPosition = Math.max(0, Math.ceil(this.currentPosition) - 1);
-            const duration = this._durationBetweenPoints(this.currentPosition, targetPosition);
+            const duration = this.durationBetweenPoints(this.currentPosition, targetPosition);
             if (duration === 0) {
                 this.setPosition(targetPosition);
             } else {
@@ -118,14 +124,14 @@ export default class Controller {
     }
 
     nextSlide() {
-        this._cancelRunningAnimation();
+        this.cancelRunningAnimation();
         const targetPosition = this.deck.nextSlideIndex(this.currentPosition);
         if (targetPosition == null) return;
         this.setPosition(targetPosition);
     }
 
     prevSlide() {
-        this._cancelRunningAnimation();
+        this.cancelRunningAnimation();
         const targetPosition = this.deck.prevSlideIndex(this.currentPosition);
         if (targetPosition == null) return;
         this.setPosition(targetPosition);
@@ -166,15 +172,19 @@ export default class Controller {
         this.canvas.dom.requestFullscreen();
     }
 
-    _getPositionFromHash() {
+    registerScript(name: string, script: Script) {
+        this.player.registerScript(name, script);
+    }
+
+    private getPositionFromHash() {
         return parseFloat(window.location.hash.substr(1)) || 0;
     }
 
-    _fullscreenHandler() {
+    private fullscreenHandler() {
         this.canvas.resizeHandler();
     }
 
-    _keyboardHandler(event: KeyboardEvent) {
+    keyboardHandler(event: KeyboardEvent) {
         if (["ArrowRight", "ArrowDown", "]"].includes(event.key)) {
             if (event.shiftKey) {
                 this.nextSlide();
@@ -235,7 +245,7 @@ export default class Controller {
         }
     }
 
-    _resizeCanvasToFit() {
+    private resizeCanvasToFit() {
         const bodyH = window.innerHeight - 20;
         const bodyW = window.innerWidth - 20;
         const slideH = this.canvas.dom.clientHeight;
@@ -247,7 +257,7 @@ export default class Controller {
         }
     }
 
-    _durationBetweenPoints(a: number, b: number) {
+    private durationBetweenPoints(a: number, b: number) {
         const t1 = Math.min(a, b);
         const t2 = Math.max(a, b);
         let duration = 0.0;
@@ -261,7 +271,7 @@ export default class Controller {
         return duration;
     }
 
-    _cancelRunningAnimation(snapTo: string = "right") {
+    private cancelRunningAnimation(snapTo: string = "right") {
         const wasRunning = this.runningAnimation != null;
         if (wasRunning) {
             clearInterval(this.runningAnimation);
