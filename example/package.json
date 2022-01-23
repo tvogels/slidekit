@@ -10,6 +10,6 @@
   "dependencies": {
     "moment": "^2.29.1",
     "parcel": "^2.0.0",
-    "svgslides": "link:.."
+    "slidekit": "link:.."
   }
 }

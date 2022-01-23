@@ -1,4 +1,4 @@
-import { Controller, SlideDeck, PresenterNotes, plugins } from "svgslides";
+import { Controller, SlideDeck, PresenterNotes, plugins } from "slidekit";
 import moment from "moment";
 
 import slides from "./*.svg";

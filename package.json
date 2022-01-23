@@ -1,6 +1,6 @@
 {
-  "name": "svgslides",
-  "version": "0.0.3",
+  "name": "slidekit",
+  "version": "0.0.1",
   "source": "src/index.ts",
   "main": "dist/main.js",
   "module": "dist/module.js",
@@ -10,19 +10,14 @@
     "build": "parcel build src/index.ts"
   },
   "dependencies": {
-    "@retailmenot/morphdom-plugins": "^1.0.1",
-    "jquery": "^3.4.0",
     "moment": "^2.24.0",
-    "morphdom": "^2.5.3",
     "snapsvg": "^0.5.1",
     "src": "^1.1.2"
   },
   "devDependencies": {
     "@parcel/packager-ts": "^2.2.1",
     "@parcel/transformer-typescript-types": "^2.2.1",
-    "cssnano": "^4.1.10",
     "parcel": "latest",
-    "parcel-plugin-markdown": "^0.4.2",
     "typescript": "^4.5.5"
   }
 }
