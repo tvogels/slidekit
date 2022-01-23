@@ -103,12 +103,12 @@ class Stage {
         this.transitions.forEach(t => t(dt));
     }
 
-    _addTransition({duration, alignment, mode, transition}) {
+    _addTransition({duration, alignment, mode, callback}) {
         this.transitionDuration = Math.max(this.transitionDuration, duration);
         this.transitions.push(t => {
             const leftOverTime = this.duration() - duration;
             const startOffset = leftOverTime * alignment;
-            transition(easing[mode](Math.min(1, Math.max(0, (t * this.duration() - startOffset) / duration))));
+            callback(easing[mode](Math.min(1, Math.max(0, (t * this.duration() - startOffset) / duration))));
         });
     }
 
