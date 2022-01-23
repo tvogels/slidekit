@@ -1,6 +1,6 @@
 export default class PresenterNotes {
-    private _notes: Map<string, string>
-    private _emptyNode: HTMLDivElement
+    private notes: Map<string, string>
+    private emptyNode: HTMLDivElement
 
     /**
      * HTML string where notes are separated by e.g.
@@ -8,10 +8,10 @@ export default class PresenterNotes {
      */
     constructor(htmlString: string) {
         // Split by H1
-        this._notes = new Map();
+        this.notes = new Map();
 
-        this._emptyNode = document.createElement("div");
-        this._emptyNode.classList.add("presenter-note");
+        this.emptyNode = document.createElement("div");
+        this.emptyNode.classList.add("presenter-note");
 
         const fragment = document.createElement("div");
         fragment.innerHTML = htmlString;
@@ -21,7 +21,7 @@ export default class PresenterNotes {
                 const noteId = child.textContent;
                 currentNote = document.createElement("div");
                 currentNote.classList.add("presenter-note");
-                this._notes.set(noteId, currentNote);
+                this.notes.set(noteId, currentNote);
             } else if (currentNote != null) {
                 currentNote.appendChild(child.cloneNode(true));
             }
@@ -29,12 +29,12 @@ export default class PresenterNotes {
     }
 
     getNote(slideId: string, stageId: string) {
-        if (this._notes.has(stageId)) {
-            return this._notes.get(stageId);
-        } else if (this._notes.has(slideId)) {
-            return this._notes.get(slideId);
+        if (this.notes.has(stageId)) {
+            return this.notes.get(stageId);
+        } else if (this.notes.has(slideId)) {
+            return this.notes.get(slideId);
         } else {
-            return this._emptyNode;
+            return this.emptyNode;
         }
     }
 }

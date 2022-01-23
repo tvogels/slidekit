@@ -3,15 +3,15 @@ import { now, Duration, utc } from "moment";
 type Listener = (elapsed: string, progress: number) => void;
 
 export default class Timer {
-    startTime: number
-    accumulatedTime: number
-    private _targetTime: Duration
-    private _listeners: Set<Listener>
+    private startTime: number
+    private accumulatedTime: number
+    private targetTime: Duration
+    private listeners: Set<Listener>
 
     constructor(targetDuration) {
         this.reset();
-        this._targetTime = targetDuration;
-        this._listeners = new Set();
+        this.targetTime = targetDuration;
+        this.listeners = new Set();
         setInterval(this._tick.bind(this), 1000);
     }
 
@@ -43,7 +43,7 @@ export default class Timer {
     }
 
     progress() {
-        return this.elapsed() / (this._targetTime as any);
+        return this.elapsed() / (this.targetTime as any);
     }
 
     reset() {
@@ -53,17 +53,17 @@ export default class Timer {
     }
 
     addTickListener(handle: Listener) {
-        this._listeners.add(handle);
+        this.listeners.add(handle);
     }
 
     removeTickListener(handle: Listener) {
-        this._listeners.delete(handle);
+        this.listeners.delete(handle);
     }
 
     _tick() {
         const elapsed = utc(this.elapsed()).format("mm:ss");
         const progress = this.progress();
-        for (let handler of this._listeners) {
+        for (let handler of this.listeners) {
             handler(elapsed, progress);
         }
     }

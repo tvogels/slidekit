@@ -1,3 +1,4 @@
+import Controller from "./controller";
 import "./shortcuts.css";
 
 const shortcuts = [
@@ -48,7 +49,10 @@ const shortcuts = [
 ];
 
 export default class Shortcuts {
-    constructor(controller) {
+    private div: HTMLDivElement
+    private controller: Controller
+
+    constructor(controller: Controller) {
         this.close = this.close.bind(this);
         this.controller = controller;
         this.div = document.createElement("div");
@@ -72,6 +76,7 @@ export default class Shortcuts {
         }
         document.body.appendChild(this.div);
     }
+
     close() {
         document.body.removeChild(this.div);
         this.controller.shortcuts = null;

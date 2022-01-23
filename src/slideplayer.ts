@@ -7,6 +7,7 @@ import drawLineTransitions from "./transitions/drawLine";
 import appearAlongTransitions from "./transitions/appearAlong";
 import SlideDeck, {Step} from "./slidedeck"
 import {Canvas} from "./controller"
+import { Transition } from "./transitions/utils";
 
 /**
  * This is responsible for rendering a current position in the slideshow
@@ -14,22 +15,14 @@ import {Canvas} from "./controller"
  * the transition to the next 'step'.
  */
 export default class SlidePlayer {
-    canvas: Canvas
-    visibleStage?: number
-    currentPosition?: number
-    slideStartIndices: number[]
-    slideEndIndices: number[]
-    slideNumbers: number[]
-    deck: SlideDeck
-    stages: Stage[]
+    private canvas: Canvas
+    private visibleStage?: number
+    private deck: SlideDeck
+    private stages: Stage[]
 
     constructor(canvas: Canvas, deck: SlideDeck) {
         this.canvas = canvas;
         this.visibleStage = null;
-        this.currentPosition = null;
-        this.slideStartIndices = [];
-        this.slideEndIndices = [];
-        this.slideNumbers = [];
 
         this.deck = deck;
         this.stages = [];
@@ -43,7 +36,6 @@ export default class SlidePlayer {
         let i = Math.floor(t);
         let stage = this.stages[i];
         stage.render(t - Math.floor(t));
-        this.currentPosition = t;
 
         for (let [script, node] of Object.entries(stage.scriptNodes)) {
             console.log('call script', script, 'with node', node, 'and offset', t - this.deck.scriptStarts[script]);
@@ -68,7 +60,7 @@ export default class SlidePlayer {
     }
 }
 
-type Transition = (number) => void;
+type Callback = (number) => void;
 
 /**
  * A 'stage' represents the time between a step and the next step.
@@ -77,16 +69,12 @@ type Transition = (number) => void;
  */
 class Stage {
     dom: HTMLElement
-    isFirstStep: boolean
-    isLastStep: boolean
-    transitions: Transition[]
-    transitionDuration: number
     scriptNodes: {[script: string]: HTMLElement}
+    private transitions: Callback[]
+    private transitionDuration: number
 
     constructor(step: Step, nextStep?: Step) {
         this.dom = step.dom.cloneNode(true);
-        this.isFirstStep = step.isFirst;
-        this.isLastStep = step.isLast;
         this.transitions = [];
         this.transitionDuration = 0;
         this.scriptNodes = step.scriptNodes;
@@ -113,11 +101,11 @@ class Stage {
      * for an intermediate position `dt`
      * @param {number} dt between 0 and 1
      */
-    render(dt) {
+    render(dt: number) {
         this.transitions.forEach(t => t(dt));
     }
 
-    _addTransition({duration, alignment, mode, callback}) {
+    _addTransition({duration, alignment, mode, callback}: Transition) {
         this.transitionDuration = Math.max(this.transitionDuration, duration);
         this.transitions.push(t => {
             const leftOverTime = this.duration() - duration;

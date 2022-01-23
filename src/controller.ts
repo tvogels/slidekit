@@ -9,21 +9,22 @@ import {Duration} from "moment";
 type Hook = (number) => void
 
 export default class Controller {
-    deck: SlideDeck
-    canvas: Canvas
-    presenterNotes?: PresenterNotes
-    fullscreenNode: HTMLElement
-    timer: Timer
-    player: SlidePlayer
-    hooks: Set<Hook>
-    currentPosition: number
-    runningAnimation?: any
-    runningAnimationStart?: number
-    runningAnimationTarget?: number
-    previousRenderedPosition: number
-    historyPosition?: number
     shortcuts?: Shortcuts
-    cockpit?: Cockpit
+
+    private deck: SlideDeck
+    private canvas: Canvas
+    private presenterNotes?: PresenterNotes
+    private fullscreenNode: HTMLElement
+    private timer: Timer
+    private player: SlidePlayer
+    private hooks: Set<Hook>
+    private currentPosition: number
+    private runningAnimation?: any
+    private runningAnimationStart?: number
+    private runningAnimationTarget?: number
+    private previousRenderedPosition: number
+    private historyPosition?: number
+    private cockpit?: Cockpit
 
     constructor(deck: SlideDeck, canvas: HTMLDivElement, talkDuration: Duration, presenterNotes?: PresenterNotes) {
         this.deck = deck;
@@ -130,15 +131,12 @@ export default class Controller {
         this.setPosition(targetPosition);
     }
 
-    /**
-     * @param {number} slideNumber
-     */
-    goToSlide(slideNumber) {
+    goToSlide(slideNumber: number) {
         const stageIdx = this.deck.firstStageForSlide(slideNumber);
         this.setPosition(stageIdx);
     }
 
-    startAnimationTo(targetPosition, duration) {
+    startAnimationTo(targetPosition: number, duration: number) {
         const startTime = Date.now();
         const startPosition = this.currentPosition;
         this.runningAnimationTarget = targetPosition;
@@ -282,10 +280,10 @@ export default class Controller {
 
 export class Canvas {
     dom: HTMLElement
-    canvas: HTMLDivElement
-    slideNumber: HTMLDivElement
-    width: number
-    height: number
+    private canvas: HTMLDivElement
+    private slideNumber: HTMLDivElement
+    private width: number
+    private height: number
 
     constructor(domElement: HTMLDivElement, deckWidth: number, deckHeight: number, withSlideNumbers = false) {
         this.dom = domElement;
