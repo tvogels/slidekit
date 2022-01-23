@@ -1,4 +1,4 @@
-<img src="logo.svg" width="200" alt="SlideKit logo" style="margin:1em 0">
+<br><img src="logo.svg" width="200" alt="SlideKit logo" style="margin:1em 0">
 
 Draw your slides in a vector editor and export SVG.
 By annotating the SVG, you can build slide transitions with
