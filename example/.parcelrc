@@ -3,6 +3,6 @@
   "resolvers": ["parcel-resolver-glob", "..."],
   "transformers": {
     "*.svg": ["parcel-transformer-slide"],
-    "*.md": ["parcel-transformer-markdown", "..."]
+    "*.md": ["parcel-transformer-markdown"]
   }
 }

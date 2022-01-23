@@ -8,7 +8,7 @@ const slideList = Object.entries(slides).map(([key, value]) => ({ id: key, conte
 
 document.title = "Simple demo";  // title bar
 
-window.slides = new Controller(
+const slides = new Controller(
     new SlideDeck(slideList, [plugins.youtubePlugin, plugins.hyperlinkPlugin, plugins.canvasPlugin]),
     document.getElementById("main-screen"),
     moment.duration(30, "minutes"),
