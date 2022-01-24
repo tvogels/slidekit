@@ -1,4 +1,4 @@
-type SlideSpec = { id: string, content: string};
+export type SlideSpec = { id: string, content: string};
 type StepInfo = {
     slide: SlideInfo,
     localIndex: number,
@@ -6,7 +6,7 @@ type StepInfo = {
     step: Step
 };
 type SlideInfo = { id: string, index: number, steps: StepInfo[]};
-type Plugin = (HTMLElement) => void;
+export type DomPlugin = (HTMLElement) => void;
 
 /**
  * This parses and pre-processes a slide deck
@@ -21,7 +21,7 @@ export default class SlideDeck {
     width: number;
     scriptStarts: {[script: string]: number};
 
-    constructor(slideList: SlideSpec[], plugins: Plugin[] = []) {
+    constructor(slideList: SlideSpec[], plugins: DomPlugin[] = []) {
         this.slides = [];
         this.steps = [];
 

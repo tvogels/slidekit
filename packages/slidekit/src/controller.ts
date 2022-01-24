@@ -1,4 +1,4 @@
-import SlideDeck from "./slidedeck";
+import SlideDeck, { SlideSpec, DomPlugin } from "./slidedeck";
 import PresenterNotes from "./presenternotes";
 import Timer from "./timer";
 import SlidePlayer from "./slideplayer";
@@ -6,14 +6,18 @@ import Cockpit from "./cockpit";
 import Shortcuts from "./shortcuts";
 import { Duration } from "moment";
 import { Script } from "./slideplayer";
+import domPlugins from "./domPlugins";
 
 type Hook = (number) => void
 
 type Options = {
     duration?: Duration,
     notes?: PresenterNotes,
+    domPlugins?: DomPlugin[],
     scripts?: { [script: string]: Script }
 }
+
+const DEFAULT_DOM_PLUGINS = [domPlugins.youtube, domPlugins.hyperlink, domPlugins.canvas];
 
 export default class Controller {
     shortcuts?: Shortcuts;
@@ -33,7 +37,8 @@ export default class Controller {
     private previousRenderedPosition: number = -1;
     private historyPosition?: number = null;
 
-    constructor(deck: SlideDeck, canvas: HTMLDivElement, { duration, notes, scripts }: Options) {
+    constructor(slides: SlideSpec[], canvas: HTMLDivElement, { duration, notes, scripts, domPlugins = DEFAULT_DOM_PLUGINS }: Options) {
+        const deck = new SlideDeck(slides, domPlugins)
         this.deck = deck;
         this.canvas = new Canvas(canvas, deck.width, deck.height, true);
         this.presenterNotes = notes;
