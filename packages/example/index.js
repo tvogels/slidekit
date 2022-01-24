@@ -20,5 +20,3 @@ const controller = new Controller(
         }
     }
 );
-
-window.slides = controller;

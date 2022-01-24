@@ -21,7 +21,7 @@ export default class Controller {
     timer: Timer;
     presenterNotes?: PresenterNotes;
     cockpit?: Cockpit;
-
+    
     private canvas: Canvas;
     private fullscreenNode: HTMLElement;
     private player: SlidePlayer;
@@ -39,13 +39,9 @@ export default class Controller {
         this.presenterNotes = notes;
         this.fullscreenNode = canvas.parentElement;
         this.timer = new Timer(duration);
-        this.player = new SlidePlayer(this.canvas, this.deck);
+        this.player = new SlidePlayer(this.canvas, this.deck, scripts);
 
         this.currentPosition = this.getPositionFromHash();
-
-        for (let [scriptName, script] of Object.entries(scripts)) {
-            this.registerScript(scriptName, script);
-        }
 
         this.render = this.render.bind(this);
         this.fullscreenHandler = this.fullscreenHandler.bind(this);
@@ -170,10 +166,6 @@ export default class Controller {
 
     goFullscreen() {
         this.canvas.dom.requestFullscreen();
-    }
-
-    registerScript(name: string, script: Script) {
-        this.player.registerScript(name, script);
     }
 
     private getPositionFromHash() {

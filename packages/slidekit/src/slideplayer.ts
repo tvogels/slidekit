@@ -28,10 +28,19 @@ export default class SlidePlayer {
     private deck: SlideDeck
     private activeScripts: Set<string> = new Set();
     private scripts: Map<string, Script> = new Map();
+    private scriptsEnabled: boolean = true;
 
-    constructor(canvas: Canvas, deck: SlideDeck) {
+    constructor(canvas: Canvas, deck: SlideDeck, scripts: {[name: string]: Script} | undefined) {
         this.canvas = canvas;
         this.deck = deck;
+
+        if (scripts != null) {
+            for (let [name, script] of Object.entries(scripts)) {
+                this.registerScript(name, script);
+            }
+        } else {
+            this.scriptsEnabled = false;
+        }
 
         for (let i = 0; i < deck.numSteps(); i++) {
             this.stages.push(new Stage(deck.step(i), deck.step(i + 1)));
@@ -52,15 +61,13 @@ export default class SlidePlayer {
             this.renderSlideNumber(i);
         }
 
-        for (let scriptName of this.activeScripts) {
-            if (this.scripts.has(scriptName)) {
-                this.scripts.get(scriptName).tick(t - this.deck.scriptStarts[scriptName]);
+        if (this.scriptsEnabled) {
+            for (let scriptName of this.activeScripts) {
+                if (this.scripts.has(scriptName)) {
+                    this.scripts.get(scriptName).tick(t - this.deck.scriptStarts[scriptName]);
+                }
             }
         }
-    }
-
-    registerScript(name: string, script: Script) {
-        this.scripts.set(name, script);
     }
 
     renderSlideNumber(t: number) {
@@ -73,7 +80,12 @@ export default class SlidePlayer {
         return this.stages[stageNo].duration();
     }
 
+    private registerScript(name: string, script: Script) {
+        this.scripts.set(name, script);
+    }
+
     private updateActiveScripts(stage: Stage) {
+        if (!this.scriptsEnabled) return;
         const newActiveScripts = new Set(Object.keys(stage.scriptNodes));
         for (let [scriptName, node] of Object.entries(stage.scriptNodes)) {
             if (this.scripts.has(scriptName)) {

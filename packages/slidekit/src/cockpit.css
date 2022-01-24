@@ -82,6 +82,19 @@
     background-color: #eee;
 }
 
+.slides-main-window-invisible {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 2.5em;
+    text-align: center;
+    color: #ccc;
+    background-color: rgba(0,0,0,0.9);
+    display: none;
+}
+
 @media (prefers-color-scheme: dark) {
     .slides-cockpit-stage {
         background-color: rgb(68,68,68);

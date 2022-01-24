@@ -163,7 +163,7 @@ export class Step {
 
         this.scriptNodes = {};
         for (let node of this.dom.querySelectorAll("[script]")) {
-            if (dom.querySelector(`#${node.id}`) !== node) {
+            if (this.dom.querySelector(`#${node.id}`) !== node) {
                 console.error(`Node ID ${node.id} is not unique. This is important for the script.`);
             }
             this.scriptNodes[node.getAttribute("script")] = node.id;

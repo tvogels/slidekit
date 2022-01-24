@@ -5,7 +5,7 @@ import "./cockpit.css";
 
 export default class Cockpit {
     window: Window;
-    
+
     private controller: Controller;
     private currentSlidePlayer: SlidePlayer;
     private nextSlidePlayer: SlidePlayer;
@@ -16,6 +16,7 @@ export default class Cockpit {
     private currentNotes?: HTMLDivElement;
     private body: HTMLBodyElement;
     private head: HTMLHeadElement;
+    private visibilityListener: any;
 
     constructor(controller: Controller) {
         this.controller = controller;
@@ -33,7 +34,8 @@ export default class Cockpit {
                 this.controller.deck.width,
                 this.controller.deck.height
             ),
-            controller.deck
+            controller.deck,
+            null
         );
 
         // Next step view
@@ -43,7 +45,8 @@ export default class Cockpit {
                 this.controller.deck.width,
                 this.controller.deck.height
             ),
-            controller.deck
+            controller.deck,
+            null
         );
 
         // Progress bar
@@ -65,6 +68,8 @@ export default class Cockpit {
             this.notesDiv = this.document.getElementById("notes") as HTMLDivElement;
             this.currentNotes = null;
         }
+
+
 
         // Register a render hook for the cockpit on the controller
         controller.addRenderListener(this.render);
@@ -159,6 +164,9 @@ export default class Cockpit {
                 <div class="slides-cockpit-notes" id="notes"></div>
                 <div class="slides-cockpit-stage" id="stage" title="Copy to clipboard"></div>
             </div>
+            <div class="slides-main-window-invisible">
+                Please make sure that the main window is visible on screen.
+            </div>
         `;
 
         // To resolve relative links to references correctly, we need to
@@ -174,6 +182,13 @@ export default class Cockpit {
 
         // Give it a nice name in the title bar
         this.document.title = "Cockpit";
+
+        this.visibilityListener = (e) => {
+            const node = this.document.querySelector(".slides-main-window-invisible") as HTMLElement;
+            node.style.display = document.visibilityState === "visible" ? "none" : "block";
+        };
+        document.addEventListener('visibilitychange', this.visibilityListener);
+
     }
 
     scaleSVGsToFit() {
@@ -184,5 +199,6 @@ export default class Cockpit {
     destroy() {
         this.window.removeEventListener("keydown", this.controller.keyboardHandler);
         this.window.close();
+        document.removeEventListener("visibilitychange", this.visibilityListener);
     }
 }
