@@ -1,0 +1,16 @@
+{
+  "name": "parcel-transformer-slidekit-svg",
+  "version": "0.0.1",
+  "license": "MIT",
+  "main": "lib/SlideTransformer.js",
+  "source": "src/SlideTransformer.js",
+  "engines": {
+    "node": ">= 12.0.0",
+    "parcel": "^2.2.1"
+  },
+  "dependencies": {
+    "@parcel/plugin": "^2.2.1",
+    "crypto-js": "^4.1.1",
+    "jsdom": "^19.0.0"
+  }
+}

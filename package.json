@@ -1,27 +1,4 @@
 {
-  "name": "slidekit",
-  "version": "0.0.1",
-  "source": "src/index.ts",
-  "main": "dist/main.js",
-  "module": "dist/module.js",
-  "types": "dist/types.d.ts",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/tvogels/slidekit.git"
-  },
-  "scripts": {
-    "watch": "parcel watch src/index.ts",
-    "build": "parcel build src/index.ts"
-  },
-  "dependencies": {
-    "moment": "^2.24.0",
-    "snapsvg": "^0.5.1",
-    "src": "^1.1.2"
-  },
-  "devDependencies": {
-    "@parcel/packager-ts": "^2.2.1",
-    "@parcel/transformer-typescript-types": "^2.2.1",
-    "parcel": "latest",
-    "typescript": "^4.5.5"
-  }
+    "private": true,
+    "workspaces": ["packages/*"]
 }

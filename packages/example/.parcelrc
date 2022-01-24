@@ -1,8 +1,8 @@
 {
   "extends": "@parcel/config-default",
-  "resolvers": ["parcel-resolver-glob", "..."],
+  "resolvers": ["parcel-resolver-glob-slidekit", "..."],
   "transformers": {
-    "*.svg": ["parcel-transformer-slide"],
+    "*.svg": ["parcel-transformer-slidekit-svg"],
     "*.md": ["parcel-transformer-markdown"]
   }
 }
