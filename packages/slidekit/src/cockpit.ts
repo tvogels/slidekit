@@ -142,6 +142,9 @@ export default class Cockpit {
                     overflow: hidden;
                     font-family: sans-serif;
                 }
+                @media (prefers-color-scheme: dark) {
+                    body { background-color: rgb(40, 39,36); }
+                }
             </style>
         `;
         this.body.innerHTML = `
@@ -154,7 +157,7 @@ export default class Cockpit {
                     <div class="slides-cockpit-progress-bar-bar" id="progress-bar"></div>
                 </div>
                 <div class="slides-cockpit-notes" id="notes"></div>
-                <div class="slides-cockpit-stage" id="stage"></div>
+                <div class="slides-cockpit-stage" id="stage" title="Copy to clipboard"></div>
             </div>
         `;
 

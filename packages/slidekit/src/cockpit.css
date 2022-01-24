@@ -81,3 +81,24 @@
 .slides-cockpit-stage:active {
     background-color: #eee;
 }
+
+@media (prefers-color-scheme: dark) {
+    .slides-cockpit-stage {
+        background-color: rgb(68,68,68);
+        color: #ddd;
+    }
+    .slides-cockpit-stage:active {
+        background-color: rgb(58, 58, 58);
+    }
+    .slides-cockpit-progress-bar {
+        background-color: rgb(68,68,68);
+        color: #ddd;
+    }
+    .slides-cockpit-notes {
+        background-color: rgb(68,68,68);
+        color: #ddd;
+    }
+    .slides-cockpit-notes strong {
+        color: #fff;
+    }
+}
