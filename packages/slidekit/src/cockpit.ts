@@ -153,18 +153,18 @@ export default class Cockpit {
             </style>
         `;
         this.body.innerHTML = `
-            <div class="slides-cockpit">
-                <div class="slides-cockpit-current-wrapper" id="current-slide">
+            <div class="slidekit-cockpit">
+                <div class="slidekit-cockpit-current-wrapper" id="current-slide">
                 </div>
-                <div class="slides-cockpit-next-wrapper" id="next-slide">
+                <div class="slidekit-cockpit-next-wrapper" id="next-slide">
                 </div>
-                <div class="slides-cockpit-progress-bar">
-                    <div class="slides-cockpit-progress-bar-bar" id="progress-bar"></div>
+                <div class="slidekit-cockpit-progress-bar">
+                    <div class="slidekit-cockpit-progress-bar-bar" id="progress-bar"></div>
                 </div>
-                <div class="slides-cockpit-notes" id="notes"></div>
-                <div class="slides-cockpit-stage" id="stage" title="Copy to clipboard"></div>
+                <div class="slidekit-cockpit-notes" id="notes"></div>
+                <div class="slidekit-cockpit-stage" id="stage" title="Copy to clipboard"></div>
             </div>
-            <div class="slides-main-window-invisible">
+            <div class="slidekit-main-window-invisible">
                 Please make sure that the main window is visible on screen.
             </div>
         `;
@@ -184,7 +184,7 @@ export default class Cockpit {
         this.document.title = "Cockpit";
 
         this.visibilityListener = (e) => {
-            const node = this.document.querySelector(".slides-main-window-invisible") as HTMLElement;
+            const node = this.document.querySelector(".slidekit-main-window-invisible") as HTMLElement;
             node.style.display = document.visibilityState === "visible" ? "none" : "block";
         };
         document.addEventListener('visibilitychange', this.visibilityListener);

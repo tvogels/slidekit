@@ -15,7 +15,7 @@ export type DomPlugin = (HTMLElement) => void;
  * Also handles translation between stage number / slide number, etc.
  */
 export default class SlideDeck {
-    private slides: SlideInfo[];
+    slides: SlideInfo[];
     private steps: StepInfo[];
     height: number;
     width: number;

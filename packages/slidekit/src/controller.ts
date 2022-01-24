@@ -36,6 +36,7 @@ export default class Controller {
     private runningAnimationTarget?: number = null;
     private previousRenderedPosition: number = -1;
     private historyPosition?: number = null;
+    private printSection: HTMLElement;
 
     constructor(slides: SlideSpec[], canvas: HTMLDivElement, { duration, notes, scripts, domPlugins = DEFAULT_DOM_PLUGINS }: Options) {
         const deck = new SlideDeck(slides, domPlugins)
@@ -74,6 +75,12 @@ export default class Controller {
             this.historyPosition = location;
             this.setPosition(location);
         });
+
+        this.printSection = document.createElement("div");
+        this.printSection.className = "slidekit-print-section";
+        canvas.parentElement.appendChild(this.printSection);
+        window.addEventListener("beforeprint", this.populatePrintSection.bind(this));
+        window.addEventListener("afterprint", () => this.printSection.innerHTML = "");
     }
 
     render() {
@@ -98,6 +105,21 @@ export default class Controller {
     setPosition(position) {
         this.cancelRunningAnimation();
         this.currentPosition = Math.min(this.deck.numSteps() - 1, Math.max(0, position));
+    }
+
+    populatePrintSection() {
+        for (let slide of this.deck.slides) {
+            const iframe = document.createElement("iframe");
+            iframe.className = "slidekit-print-section-slide";
+            iframe.setAttribute("seamless", "seamless");
+            iframe.addEventListener("load", () =>  {
+                iframe.contentDocument.body.style.overflow = "hidden";
+                iframe.contentDocument.body.style.margin = "none";
+                iframe.contentDocument.body.style.padding = "none";
+                iframe.contentDocument.body.innerHTML = slide.steps[slide.steps.length - 1].step.dom.outerHTML;
+            })
+            this.printSection.appendChild(iframe);
+        }
     }
 
     nextStage() {
@@ -237,9 +259,9 @@ export default class Controller {
         } else if (event.key === "End") {
             this.setPosition(this.deck.numSteps() - 1);
         } else if (event.key === "b") {
-            document.body.classList.toggle("slides-blacked-out");
+            document.body.classList.toggle("slidekit-blacked-out");
         } else if (event.key === "w") {
-            document.body.classList.toggle("slides-blacked-out-white");
+            document.body.classList.toggle("slidekit-blacked-out-white");
         }
     }
 
@@ -297,12 +319,12 @@ export class Canvas {
         this.dom = domElement;
 
         this.canvas = document.createElement("div");
-        this.canvas.className = "slides-canvas";
+        this.canvas.className = "slidekit-canvas";
         this.dom.appendChild(this.canvas);
 
         if (withSlideNumbers) {
             this.slideNumber = document.createElement("div");
-            this.slideNumber.className = "slides-slide-number";
+            this.slideNumber.className = "slidekit-slide-number";
             this.dom.appendChild(this.slideNumber);
         } else {
             this.slideNumber = null;

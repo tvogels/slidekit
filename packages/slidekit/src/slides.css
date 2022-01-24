@@ -1,4 +1,4 @@
-.slides-main-screen {
+.slidekit-main-screen {
     display: block;
     position: absolute;
     width: 1280px;
@@ -11,23 +11,23 @@
     overflow: hidden;
 }
 
-.slides-blacked-out {
+.slidekit-blacked-out {
     background-color: black;
     transition: background-color 0.4s;
 }
 
-.slides-blacked-out-white {
+.slidekit-blacked-out-white {
     background-color: white;
     transition: background-color 0.4s;
 }
 
-.slides-blacked-out > *,
-.slides-blacked-out-white > * {
+.slidekit-blacked-out > *,
+.slidekit-blacked-out-white > * {
     transition: opacity 0.4s;
     opacity: 0;
 }
 
-.slides-slide-number {
+.slidekit-slide-number {
     position: absolute;
     right: 0;
     bottom: 0;
@@ -37,7 +37,7 @@
     opacity: 0.25;
 }
 
-.slides-canvas tspan {
+.slidekit-canvas tspan {
     white-space: pre;
 }
 
@@ -51,18 +51,44 @@
     }
 }
 
-.slides-canvas svg {
+.slidekit-canvas svg {
     position: absolute;
     left: 0;
     top: 0;
 }
 
+.slidekit-print-section {
+    display: none;
+}
+
+.slidekit-print-section-slide {
+    overflow: hidden;
+    width: 1280px;
+    height: 720px;
+    background-color: white;
+    line-height: 0;
+    border: 0;
+    display: block;
+    margin: 0; padding: 0;
+}
+
+@page { 
+    margin: 0; 
+    padding: 0;
+    size: 1280px 720px;
+}
+
 @media print {
-    @page { 
-        margin: 0; 
-        size: 1280px 720px;
+    body {
+        margin: 0;
+        padding: 0;
     }
-    .slides-main-screen {
+
+    .slidekit-main-screen {
         display: none;
     }
+    .slidekit-print-section {
+        display: block;
+    }
+
 }
