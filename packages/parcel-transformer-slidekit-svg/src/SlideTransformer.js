@@ -1,48 +1,48 @@
-import {Transformer} from '@parcel/plugin';
+import { Transformer } from '@parcel/plugin';
 import idParser from './idParser.js';
 import Base64 from 'crypto-js/enc-base64';
 import md5 from 'crypto-js/md5';
 import Latin1 from 'crypto-js/enc-latin1';
-import {JSDOM} from "jsdom";
+import { JSDOM } from "jsdom";
 
 const dom = new JSDOM("");
 const { document } = dom.window;
 const Node = {
-  ELEMENT_NODE: 1,
-  ATTRIBUTE_NODE: 2,
-  TEXT_NODE: 3,
-  CDATA_SECTION_NODE: 4, // historical
-  ENTITY_REFERENCE_NODE: 5, // historical
-  ENTITY_NODE: 6, // historical
-  PROCESSING_INSTRUCTION_NODE: 7,
-  COMMENT_NODE: 8,
-  DOCUMENT_NODE: 9,
-  DOCUMENT_TYPE_NODE: 10,
-  DOCUMENT_FRAGMENT_NODE: 11,
-  NOTATION_NODE: 12 // historical
+    ELEMENT_NODE: 1,
+    ATTRIBUTE_NODE: 2,
+    TEXT_NODE: 3,
+    CDATA_SECTION_NODE: 4, // historical
+    ENTITY_REFERENCE_NODE: 5, // historical
+    ENTITY_NODE: 6, // historical
+    PROCESSING_INSTRUCTION_NODE: 7,
+    COMMENT_NODE: 8,
+    DOCUMENT_NODE: 9,
+    DOCUMENT_TYPE_NODE: 10,
+    DOCUMENT_FRAGMENT_NODE: 11,
+    NOTATION_NODE: 12 // historical
 };
 
 export default (new Transformer({
-  async transform({asset}) {
-    asset.bundleBehavior = 'inline';
-    asset.meta.inlineType = 'string';
-    const dom = svgStringToDom(await asset.getCode());
-    const assets = [asset];
-    processNode(dom, assets);
-    asset.setCode(dom.outerHTML);
-    return assets;
-  },
+    async transform({ asset }) {
+        asset.bundleBehavior = 'inline';
+        asset.meta.inlineType = 'string';
+        const dom = svgStringToDom(await asset.getCode());
+        const assets = [asset];
+        processNode(dom, assets);
+        asset.setCode(dom.outerHTML);
+        return assets;
+    },
 }));
 
 function processNode(node, assets, root = null, idStack = []) {
     // Parse the ID syntax     anythingblabla[attrkey=attrval][attrkey=attrval]
     if (root == null) root = node;
-    const {nodeType, tagName} = node;
+    const { nodeType, tagName } = node;
     if (nodeType !== Node.TEXT_NODE && nodeType !== Node.COMMENT_NODE && nodeType !== Node.DOCUMENT_NODE) {
         if (node.id != null && node.id !== "") {
             parsed = idParser(node.id);
             node.id = parsed.id ?? "";
-            for (let {key, value} of parsed.attributes) {
+            for (let { key, value } of parsed.attributes) {
                 node.setAttribute(key, value ?? true);
             }
             if (node.hasAttribute("move")) {
@@ -54,7 +54,9 @@ function processNode(node, assets, root = null, idStack = []) {
 
     // Make sure IDs from 'moving' elements are unique
     if (nodeType === Node.ELEMENT_NODE && node.hasAttribute("move")) {
-      node.id = `${node.id.replace(/ /g, "-")}-moving`;
+        node.id = `${node.id.replace(/ /g, "-")}-moving`;
+    } else if (nodeType === Node.ELEMENT_NODE && node.hasAttribute("id")) {
+        node.id = node.id.replace(/ /g, "-");
     }
 
     // Remove some <g> tags and move their children up in the hierarchy
@@ -67,7 +69,7 @@ function processNode(node, assets, root = null, idStack = []) {
             const parent = node.parentNode;
             for (let child of [...node.childNodes]) {
                 child = parent.appendChild(child);
-                for (let {name, value} of node.attributes) {
+                for (let { name, value } of node.attributes) {
                     applyAttrToGroupsChild(child, name, value);
                 }
                 processNode(child, assets, root, idStack);
@@ -87,7 +89,7 @@ function processNode(node, assets, root = null, idStack = []) {
             if (candidate.nodeType === Node.ELEMENT_NODE && candidate.id === refId) {
                 const definition = candidate.cloneNode(true)
                 definition.removeAttribute("id");
-                for (let {name, value} of node.attributes) {
+                for (let { name, value } of node.attributes) {
                     if (name !== "xlink:href") {
                         definition.setAttribute(name, value);
                     }
@@ -131,8 +133,8 @@ function processNode(node, assets, root = null, idStack = []) {
         const points = node.getAttribute("points");
         node.removeAttribute("points");
         const path = document.createElement("path");
-        for (let {name, value} of node.attributes) {
-          path.setAttribute(name, value);
+        for (let { name, value } of node.attributes) {
+            path.setAttribute(name, value);
         }
         const xy = points.split(" ");
         const xx = xy.filter((_, i) => i % 2 === 0);
@@ -156,13 +158,13 @@ function processNode(node, assets, root = null, idStack = []) {
         const extension = content.slice(slashIdx + 1, semicolonIdx);
         const filename = `${hexhash}.${extension}`;
         assets.push({
-          uniqueKey: filename,
-          content: Buffer.from(Latin1.stringify(Base64.parse(content.slice(dataIdx))), 'latin1'),
-          type: extension,
+            uniqueKey: filename,
+            content: Buffer.from(Latin1.stringify(Base64.parse(content.slice(dataIdx))), 'latin1'),
+            type: extension,
         });
         const depId = assets[0].addDependency({
-          specifier: filename,
-          specifierType: 'url'
+            specifier: filename,
+            specifierType: 'url'
         });
         node.removeAttribute("xlink:href");
         node.setAttribute("href", depId);
