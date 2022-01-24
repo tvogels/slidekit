@@ -56,3 +56,13 @@
     left: 0;
     top: 0;
 }
+
+@media print {
+    @page { 
+        margin: 0; 
+        size: 1280px 720px;
+    }
+    .slides-main-screen {
+        display: none;
+    }
+}

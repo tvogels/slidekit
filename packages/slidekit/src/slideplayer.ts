@@ -77,7 +77,7 @@ export default class SlidePlayer {
         const newActiveScripts = new Set(Object.keys(stage.scriptNodes));
         for (let [scriptName, node] of Object.entries(stage.scriptNodes)) {
             if (this.scripts.has(scriptName)) {
-                this.scripts.get(scriptName).setNode(node);
+                this.scripts.get(scriptName).setNode(this.canvas.dom.querySelector(`#${node}`));
             } else {
                 console.error(`Missing script definition for ${scriptName}.`)
             }
@@ -101,12 +101,12 @@ type Callback = (number) => void;
  */
 class Stage {
     dom: HTMLElement
-    scriptNodes: {[script: string]: HTMLElement}
+    scriptNodes: {[script: string]: string}
     private transitions: Callback[]
     private transitionDuration: number
 
     constructor(step: Step, nextStep?: Step) {
-        this.dom = step.dom as HTMLElement;
+        this.dom = step.dom.cloneNode(true) as HTMLElement;
         this.transitions = [];
         this.transitionDuration = 0;
         this.scriptNodes = step.scriptNodes;

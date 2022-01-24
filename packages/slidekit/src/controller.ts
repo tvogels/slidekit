@@ -208,6 +208,7 @@ export default class Controller {
                 this.shortcuts = new Shortcuts(this);
             }
         } else if (event.key === "c" || event.key === "p") {
+            if (event.ctrlKey || event.shiftKey || event.altKey || event.metaKey) return;
             // Open a child window
             if (this.cockpit == null) {
                 this.cockpit = new Cockpit(this);

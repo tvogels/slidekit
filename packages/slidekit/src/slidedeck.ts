@@ -144,7 +144,7 @@ export default class SlideDeck {
 export class Step {
     height: number;
     width: number;
-    scriptNodes: {[script: string]: HTMLElement};
+    scriptNodes: {[script: string]: string};
     dom: HTMLElement;
     isFirst: boolean;
     isLast: boolean;
@@ -163,7 +163,10 @@ export class Step {
 
         this.scriptNodes = {};
         for (let node of this.dom.querySelectorAll("[script]")) {
-            this.scriptNodes[node.getAttribute("script")] = node as HTMLElement;
+            if (dom.querySelector(`#${node.id}`) !== node) {
+                console.error(`Node ID ${node.id} is not unique. This is important for the script.`);
+            }
+            this.scriptNodes[node.getAttribute("script")] = node.id;
         }
     }
 
