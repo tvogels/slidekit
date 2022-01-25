@@ -42,11 +42,11 @@
             <rect id="Rectangle" fill="#FF8A32" x="0" y="0" width="150" height="10"></rect>
         </g>
         <g id="Group-2[stage=1][fade-in]" transform="translate(675.000000, 520.000000)">
-            <rect id="Rectangle" fill="url(#linearGradient-2)" x="0.333333333" y="0" width="150" height="200"></rect>
+            <rect id="Rectangle" fill="url(#linearGradient-2)" x="0" y="0" width="150" height="200"></rect>
             <rect id="Rectangle" fill="#FF8A32" x="0" y="0" width="150" height="10"></rect>
         </g>
         <g id="Group-3[stage=2][fade-in]" transform="translate(877.666667, 420.000000)">
-            <rect id="Rectangle" fill="url(#linearGradient-3)" x="0" y="0" width="150" height="300"></rect>
+            <rect id="Rectangle" fill="url(#linearGradient-3)" x="0.333333333" y="0" width="150" height="300"></rect>
             <rect id="Rectangle" fill="#FF8A32" x="0.333333333" y="0" width="150" height="10"></rect>
         </g>
         <g id="Group-4[stage=3][fade-in]" transform="translate(1080.000000, 320.000000)">

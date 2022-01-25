@@ -91,7 +91,12 @@ export default class Cockpit {
 
     render(t) {
         this.currentSlidePlayer.render(t);
-        this.nextSlidePlayer.render(Math.min(t + 1, this.nextSlidePlayer.stages.length - 1));
+        if (t%1 === 0) {
+            this.nextSlidePlayer.canvas.dom.style.opacity = "1.0";
+            this.nextSlidePlayer.render(Math.min(t + 1, this.nextSlidePlayer.stages.length - 1));
+        } else {
+            this.nextSlidePlayer.canvas.dom.style.opacity = "0.2";
+        }
         if (this.notesDiv != null) {
             this.renderPresenterNotes(t);
         }
@@ -154,9 +159,11 @@ export default class Cockpit {
         `;
         this.body.innerHTML = `
             <div class="slidekit-cockpit">
-                <div class="slidekit-cockpit-current-wrapper" id="current-slide">
-                </div>
-                <div class="slidekit-cockpit-next-wrapper" id="next-slide">
+                <div class="slidekit-cockpit-slides">
+                    <div class="slidekit-cockpit-current-wrapper" id="current-slide">
+                    </div>
+                    <div class="slidekit-cockpit-next-wrapper" id="next-slide">
+                    </div>
                 </div>
                 <div class="slidekit-cockpit-progress-bar">
                     <div class="slidekit-cockpit-progress-bar-bar" id="progress-bar"></div>

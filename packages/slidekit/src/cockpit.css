@@ -11,20 +11,28 @@
     bottom: 0;
 }
 
-.slidekit-cockpit-current-wrapper {
-    background-color: white;
-    grid-column: 1 / 3;
+.slidekit-cockpit-slides {
+    grid-column: 1 / 4;
     grid-row: 2 / 4;
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    grid-gap: 1em 1em;
+    overflow: hidden;
+}
+
+.slidekit-cockpit-current-wrapper {
+    --aspect-ratio: 1.778;
+    aspect-ratio: 1.778;
     overflow: hidden;
     position: relative;
 }
 
 .slidekit-cockpit-next-wrapper {
-    background-color: white;
-    grid-column: 3;
-    grid-row: 2 / 3;
+    --aspect-ratio: 1.778;
+    aspect-ratio: 1.778;
     overflow: hidden;
     position: relative;
+    transition: opacity ease-in-out .1s;
 }
 
 .slidekit-cockpit-notes {

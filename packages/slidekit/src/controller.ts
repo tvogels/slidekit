@@ -41,6 +41,7 @@ export default class Controller {
     constructor(slides: SlideSpec[], canvas: HTMLDivElement, { duration, notes, scripts, domPlugins = DEFAULT_DOM_PLUGINS }: Options) {
         const deck = new SlideDeck(slides, domPlugins)
         this.deck = deck;
+        canvas.classList.add("slidekit-main-screen");
         this.canvas = new Canvas(canvas, deck.width, deck.height, true);
         this.presenterNotes = notes;
         this.fullscreenNode = canvas.parentElement;
@@ -55,6 +56,7 @@ export default class Controller {
         this.resizeCanvasToFit = this.resizeCanvasToFit.bind(this);
 
         this.fullscreenNode.addEventListener("fullscreenchange", this.fullscreenHandler);
+        this.fullscreenNode.addEventListener("webkitfullscreenchange", this.fullscreenHandler);
         document.addEventListener("keydown", this.keyboardHandler);
 
         this.addRenderListener(this.player.render.bind(this.player));
@@ -192,7 +194,12 @@ export default class Controller {
     }
 
     goFullscreen() {
-        this.canvas.dom.requestFullscreen();
+        const {dom} = this.canvas;
+        if (dom.requestFullscreen) {
+            dom.requestFullscreen();
+        } else if ((dom as any).webkitRequestFullscreen) {
+            (dom as any).webkitRequestFullscreen();
+        }
     }
 
     private getPositionFromHash() {
@@ -266,15 +273,17 @@ export default class Controller {
     }
 
     private resizeCanvasToFit() {
-        const bodyH = window.innerHeight - 20;
-        const bodyW = window.innerWidth - 20;
-        const slideH = this.canvas.dom.clientHeight;
-        const slideW = this.canvas.dom.clientWidth;
-        const scale = Math.min(bodyH / slideH, bodyW / slideW, 1);
-        const scaleString = `scale(${scale})`;
-        if (this.canvas.dom.style.transform != scaleString) {
-            this.canvas.dom.style.transform = scaleString;
-        }
+        requestAnimationFrame(() => {
+            const bodyH = window.innerHeight - 20;
+            const bodyW = window.innerWidth - 20;
+            const slideH = this.canvas.dom.clientHeight;
+            const slideW = this.canvas.dom.clientWidth;
+            const scale = Math.min(bodyH / slideH, bodyW / slideW, 1);
+            const scaleString = `scale(${scale})`;
+            if (this.canvas.dom.style.transform != scaleString) {
+                this.canvas.dom.style.transform = scaleString;
+            }
+        })
     }
 
     private durationBetweenPoints(a: number, b: number) {
@@ -359,9 +368,11 @@ export class Canvas {
     }
 
     resizeHandler() {
-        const scale = Math.min(this.dom.clientHeight / this.height, this.dom.clientWidth / this.width);
-        const offsetY = (this.dom.clientHeight - scale * this.height) / 2;
-        const offsetX = (this.dom.clientWidth - scale * this.width) / 2;
-        this.canvas.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+        window.requestAnimationFrame(() => {
+            const scale = Math.min(this.dom.clientHeight / this.height, this.dom.clientWidth / this.width);
+            const offsetY = (this.dom.clientHeight - scale * this.height) / 2;
+            const offsetX = (this.dom.clientWidth - scale * this.width) / 2;
+            this.canvas.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+        });
     }
 }
