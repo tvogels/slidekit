@@ -83,9 +83,9 @@ export default class Controller {
         // Printing
         this.printSection = document.createElement("div");
         this.printSection.className = "slidekit-print-section";
-        canvas.parentElement.appendChild(this.printSection);
+        document.body.appendChild(this.printSection);
         window.addEventListener("beforeprint", this.populatePrintSection.bind(this));
-        window.addEventListener("afterprint", () => this.printSection.innerHTML = "");
+        // window.addEventListener("afterprint", () => this.printSection.innerHTML = "");
 
         // Tap events
         const mc = new Hammer.Manager(root);
@@ -131,14 +131,29 @@ export default class Controller {
     }
 
     populatePrintSection() {
+        console.log("populate print");
+        const style = document.createElement("style");
+        style.setAttribute("rel", "stylesheet");
+        style.innerHTML = `        
+            @page { 
+                margin: 0; 
+                padding: 0;
+                size: ${this.deck.width}px ${this.deck.height}px;
+            }
+        `;
+        this.printSection.innerHTML = "";
+        this.printSection.appendChild(style);
+
         for (let slide of this.deck.slides) {
             const iframe = document.createElement("iframe");
             iframe.className = "slidekit-print-section-slide";
+            iframe.style.width = `${slide.steps[0].step.width}px`;
+            iframe.style.height = `${slide.steps[0].step.height}px`;
             iframe.setAttribute("seamless", "seamless");
             iframe.addEventListener("load", () =>  {
                 iframe.contentDocument.body.style.overflow = "hidden";
-                iframe.contentDocument.body.style.margin = "none";
-                iframe.contentDocument.body.style.padding = "none";
+                iframe.contentDocument.body.style.margin = "0";
+                iframe.contentDocument.body.style.padding = "0";
                 iframe.contentDocument.body.innerHTML = slide.steps[slide.steps.length - 1].step.dom.outerHTML;
             })
             this.printSection.appendChild(iframe);

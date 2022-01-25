@@ -61,8 +61,6 @@ svg {
 .slidekit-print-section-slide {
     page-break-before: always;
     overflow: hidden;
-    width: 1280px;
-    height: 720px;
     background-color: white;
     line-height: 0;
     border: 0;
@@ -70,10 +68,8 @@ svg {
     margin: 0; padding: 0;
 }
 
-@page { 
-    margin: 0; 
-    padding: 0;
-    size: 1280px 720px;
+.slidekit-main-screen {
+    display: block;
 }
 
 @media print {

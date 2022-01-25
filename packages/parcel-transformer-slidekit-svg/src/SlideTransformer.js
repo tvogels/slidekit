@@ -27,9 +27,14 @@ export default (new Transformer({
         asset.bundleBehavior = 'inline';
         asset.meta.inlineType = 'string';
         const dom = svgStringToDom(await asset.getCode());
+
+        dom.setAttribute("width", parseInt(dom.getAttribute("width")));
+        dom.setAttribute("height", parseInt(dom.getAttribute("height")));
+
         const assets = [asset];
         processNode(dom, assets);
         asset.setCode(dom.outerHTML);
+
         return assets;
     },
 }));
@@ -68,7 +73,7 @@ function processNode(node, assets, root = null, idStack = []) {
         if (shouldBeRemoved) {
             const parent = node.parentNode;
             for (let child of [...node.childNodes]) {
-                child = parent.appendChild(child);
+                child = parent.insertBefore(child, node);
                 for (let { name, value } of node.attributes) {
                     applyAttrToGroupsChild(child, name, value);
                 }
@@ -86,6 +91,9 @@ function processNode(node, assets, root = null, idStack = []) {
         const defs = root.getElementsByTagName("defs")[0];
         const refId = node.getAttribute("xlink:href").slice(1);
         for (let candidate of [...defs.childNodes]) {
+            if (candidate.tagName === "symbol") {
+                continue;
+            }
             if (candidate.nodeType === Node.ELEMENT_NODE && candidate.id === refId) {
                 const definition = candidate.cloneNode(true)
                 definition.removeAttribute("id");
@@ -115,8 +123,8 @@ function processNode(node, assets, root = null, idStack = []) {
                 tspanNode = textNode.removeChild(tspanNode);
                 newText.appendChild(tspanNode);
                 if (tspanNode.hasAttribute("x") && tspanNode.hasAttribute("y")) {
-                    const x = parseFloat(tspanNode.getAttribute("x"), 10);
-                    const y = parseFloat(tspanNode.getAttribute("y"), 10);
+                    const x = parseFloat(tspanNode.getAttribute("x"));
+                    const y = parseFloat(tspanNode.getAttribute("y"));
                     tspanNode.removeAttribute("x");
                     tspanNode.removeAttribute("y");
                     newText.setAttribute("transform", `translate(${x},${y})`);
@@ -188,11 +196,11 @@ function applyAttrToGroupsChild(node, attribute, value) {
     if (attribute === "transform") {
         node.setAttribute(attribute, value + " " + (node.getAttribute("transform") || "").trim());
     } else if (attribute === "opacity") {
-        node.setAttribute(attribute, parseFloat(node.getAttribute("opacity"), 10) * parseFloat(value, 10))
+        node.setAttribute(attribute, parseFloat(node.getAttribute("opacity") || 1.0) * parseFloat(value || 1.0))
     } else if (attribute === "x" || attribute === "y") {
-        let newValue = parseFloat(value, 10);
+        let newValue = parseFloat(value) || 0.0;
         if (node.hasAttribute(attribute)) {
-            newValue += parseFloat(node.getAttribute(attribute), 10);
+            newValue += parseFloat(node.getAttribute(attribute)) || 0.0;
         }
         node.setAttribute(attribute, newValue);
     } else if (!node.hasAttribute(attribute)) {

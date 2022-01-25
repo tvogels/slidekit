@@ -1,7 +1,7 @@
 import { Controller, SlideDeck, PresenterNotes, domPlugins } from "slidekit";
 import moment from "moment";
 
-import slides from "slides/*.svg";
+import slides from "relay/*.svg";
 import notes from "./presenter-notes.md";
 import bouncyAnimation from "./bouncyAnimation";
 
