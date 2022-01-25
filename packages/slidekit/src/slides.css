@@ -1,25 +1,7 @@
 .slidekit-main-screen {
-    display: block;
-    position: absolute;
-    width: 1280px;
-    height: 720px;
-    top: 50%;
-    left: 50%;
-    margin-top: -360px;
-    margin-left: -640px;
-    overflow: hidden;
-}
-
-.slidekit-main-screen:-webkit-full-screen {
     width: 100%;
     height: 100%;
-    position: relative;
-    margin: 0;
-    top: auto;
-    left: auto;
-    right: auto;
-    bottom: auto;
-    transform: scale(1) !important;
+    overflow: hidden;
 }
 
 svg {

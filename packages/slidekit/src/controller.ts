@@ -38,9 +38,12 @@ export default class Controller {
     private historyPosition?: number = null;
     private printSection: HTMLElement;
 
-    constructor(slides: SlideSpec[], canvas: HTMLDivElement, { duration, notes, scripts, domPlugins = DEFAULT_DOM_PLUGINS }: Options) {
+    constructor(slides: SlideSpec[], root: HTMLDivElement, { duration, notes, scripts, domPlugins = DEFAULT_DOM_PLUGINS }: Options) {
+
         const deck = new SlideDeck(slides, domPlugins)
         this.deck = deck;
+        const canvas = document.createElement("div");
+        root.appendChild(canvas);
         canvas.classList.add("slidekit-main-screen");
         this.canvas = new Canvas(canvas, deck.width, deck.height, true);
         this.presenterNotes = notes;
@@ -53,8 +56,9 @@ export default class Controller {
         this.render = this.render.bind(this);
         this.fullscreenHandler = this.fullscreenHandler.bind(this);
         this.keyboardHandler = this.keyboardHandler.bind(this);
-        this.resizeCanvasToFit = this.resizeCanvasToFit.bind(this);
+        // this.resizeCanvasToFit = this.resizeCanvasToFit.bind(this);
 
+        // Event handling
         this.fullscreenNode.addEventListener("fullscreenchange", this.fullscreenHandler);
         this.fullscreenNode.addEventListener("webkitfullscreenchange", this.fullscreenHandler);
         document.addEventListener("keydown", this.keyboardHandler);
@@ -67,17 +71,16 @@ export default class Controller {
             }
         });
 
-        window.addEventListener("resize", this.resizeCanvasToFit);
-        setTimeout(this.resizeCanvasToFit);
-
         requestAnimationFrame(this.render);
 
+        // Browser history
         window.addEventListener("popstate", event => {
             const location = this.getPositionFromHash();
             this.historyPosition = location;
             this.setPosition(location);
         });
 
+        // Printing
         this.printSection = document.createElement("div");
         this.printSection.className = "slidekit-print-section";
         canvas.parentElement.appendChild(this.printSection);
@@ -272,19 +275,19 @@ export default class Controller {
         }
     }
 
-    private resizeCanvasToFit() {
-        requestAnimationFrame(() => {
-            const bodyH = window.innerHeight - 20;
-            const bodyW = window.innerWidth - 20;
-            const slideH = this.canvas.dom.clientHeight;
-            const slideW = this.canvas.dom.clientWidth;
-            const scale = Math.min(bodyH / slideH, bodyW / slideW, 1);
-            const scaleString = `scale(${scale})`;
-            if (this.canvas.dom.style.transform != scaleString) {
-                this.canvas.dom.style.transform = scaleString;
-            }
-        })
-    }
+    // private resizeCanvasToFit() {
+    //     requestAnimationFrame(() => {
+    //         const bodyH = window.innerHeight - 20;
+    //         const bodyW = window.innerWidth - 20;
+    //         const slideH = this.canvas.dom.clientHeight;
+    //         const slideW = this.canvas.dom.clientWidth;
+    //         const scale = Math.min(bodyH / slideH, bodyW / slideW, 1);
+    //         const scaleString = `scale(${scale})`;
+    //         if (this.canvas.dom.style.transform != scaleString) {
+    //             this.canvas.dom.style.transform = scaleString;
+    //         }
+    //     })
+    // }
 
     private durationBetweenPoints(a: number, b: number) {
         const t1 = Math.min(a, b);
@@ -323,6 +326,7 @@ export class Canvas {
     private slideNumber: HTMLDivElement
     private width: number
     private height: number
+    private animationFrameRequested: boolean = false;
 
     constructor(domElement: HTMLDivElement, deckWidth: number, deckHeight: number, withSlideNumbers = false) {
         this.dom = domElement;
@@ -346,10 +350,9 @@ export class Canvas {
         this.width = deckWidth;
         this.height = deckHeight;
 
-        this.dom.addEventListener("resize", this.resizeHandler);
         this.resizeHandler = this.resizeHandler.bind(this);
-        setTimeout(this.resizeHandler);
-        setTimeout(this.resizeHandler, 100); // Hack for Firefox
+        this.resizeHandler();
+        window.addEventListener("resize", this.resizeHandler);
     }
 
     /**
@@ -368,11 +371,15 @@ export class Canvas {
     }
 
     resizeHandler() {
-        window.requestAnimationFrame(() => {
-            const scale = Math.min(this.dom.clientHeight / this.height, this.dom.clientWidth / this.width);
-            const offsetY = (this.dom.clientHeight - scale * this.height) / 2;
-            const offsetX = (this.dom.clientWidth - scale * this.width) / 2;
-            this.canvas.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
-        });
+        if (!this.animationFrameRequested) {
+            this.animationFrameRequested = true;
+            window.requestAnimationFrame(() => {
+                const scale = Math.min(this.dom.clientHeight / this.height, this.dom.clientWidth / this.width);
+                const offsetY = (this.dom.clientHeight - scale * this.height) / 2;
+                const offsetX = (this.dom.clientWidth - scale * this.width) / 2;
+                this.canvas.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+                this.animationFrameRequested = false;
+            });
+        }
     }
 }
