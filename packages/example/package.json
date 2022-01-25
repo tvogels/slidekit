@@ -11,9 +11,9 @@
     "slidekit": "^0.0.1"
   },
   "devDependencies": {
-    "parcel-transformer-markdown": "^2.0.1",
+    "parcel": "^2.2.1",
     "parcel-resolver-glob-slidekit": "^2.2.1",
-    "parcel-transformer-slidekit-svg": "^0.0.1",
-    "parcel": "^2.2.1"
+    "parcel-transformer-markdown": "^2.0.1",
+    "parcel-transformer-slidekit-svg": "^0.0.1"
   }
 }

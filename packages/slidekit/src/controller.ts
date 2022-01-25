@@ -7,6 +7,7 @@ import Shortcuts from "./shortcuts";
 import { Duration } from "moment";
 import { Script } from "./slideplayer";
 import domPlugins from "./domPlugins";
+import * as Hammer from "hammerjs";
 
 type Hook = (number) => void
 
@@ -56,22 +57,21 @@ export default class Controller {
         this.render = this.render.bind(this);
         this.fullscreenHandler = this.fullscreenHandler.bind(this);
         this.keyboardHandler = this.keyboardHandler.bind(this);
-        // this.resizeCanvasToFit = this.resizeCanvasToFit.bind(this);
 
         // Event handling
         this.fullscreenNode.addEventListener("fullscreenchange", this.fullscreenHandler);
         this.fullscreenNode.addEventListener("webkitfullscreenchange", this.fullscreenHandler);
         document.addEventListener("keydown", this.keyboardHandler);
 
+        // Play on render
         this.addRenderListener(this.player.render.bind(this.player));
 
+        // Close the cockpit when we close this window
         window.addEventListener("unload", () => {
             if (this.cockpit != null) {
                 this.cockpit.window.close();
             }
         });
-
-        requestAnimationFrame(this.render);
 
         // Browser history
         window.addEventListener("popstate", event => {
@@ -86,6 +86,25 @@ export default class Controller {
         canvas.parentElement.appendChild(this.printSection);
         window.addEventListener("beforeprint", this.populatePrintSection.bind(this));
         window.addEventListener("afterprint", () => this.printSection.innerHTML = "");
+
+        // Tap events
+        console.log("Hammertime");
+        const mc = new Hammer.Manager(root);
+        mc.add(new Hammer.Tap());
+        mc.on("tap", (e) => {
+            console.log("tap");
+            const rect = root.getBoundingClientRect();
+            const x = (e.center.x - rect.x) / rect.width;
+            if (x < .2) {
+                this.prevStage();
+            } else if (x > .8) {
+                this.nextStage();
+            }
+        })
+
+        // Render for the first time
+        requestAnimationFrame(this.render);
+
     }
 
     render() {
@@ -274,20 +293,6 @@ export default class Controller {
             document.body.classList.toggle("slidekit-blacked-out-white");
         }
     }
-
-    // private resizeCanvasToFit() {
-    //     requestAnimationFrame(() => {
-    //         const bodyH = window.innerHeight - 20;
-    //         const bodyW = window.innerWidth - 20;
-    //         const slideH = this.canvas.dom.clientHeight;
-    //         const slideW = this.canvas.dom.clientWidth;
-    //         const scale = Math.min(bodyH / slideH, bodyW / slideW, 1);
-    //         const scaleString = `scale(${scale})`;
-    //         if (this.canvas.dom.style.transform != scaleString) {
-    //             this.canvas.dom.style.transform = scaleString;
-    //         }
-    //     })
-    // }
 
     private durationBetweenPoints(a: number, b: number) {
         const t1 = Math.min(a, b);
