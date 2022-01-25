@@ -7,7 +7,7 @@ import drawLineTransitions from "./transitions/drawLine";
 import appearAlongTransitions from "./transitions/appearAlong";
 import SlideDeck, {Step} from "./slidedeck"
 import {Canvas} from "./controller"
-import { Transition } from "./transitions/utils";
+import { isExiting, Transition } from "./transitions/utils";
 
 export type Script = {
     setNode: (node: HTMLElement) => void,
@@ -135,7 +135,13 @@ class Stage {
         ]
         for (let transitionPlugin of transitionPlugins) {
             for (let transition of transitionPlugin(this.dom, step, nextStep)) {
-                this._addTransition(transition);
+                this.addTransition(transition);
+            }
+        }
+
+        for (let node of this.dom.querySelectorAll("[transition-duration]")) {
+            if (!isExiting(node, step)) {
+                this.reportTransitionDuration(parseFloat(node.getAttribute("transition-duration")));
             }
         }
     }
@@ -149,8 +155,12 @@ class Stage {
         this.transitions.forEach(t => t(dt));
     }
 
-    _addTransition({duration, alignment, mode, callback}: Transition) {
+    reportTransitionDuration(duration) {
         this.transitionDuration = Math.max(this.transitionDuration, duration);
+    }
+
+    addTransition({duration, alignment, mode, callback}: Transition) {
+        this.reportTransitionDuration(duration);
         this.transitions.push(t => {
             const leftOverTime = this.duration() - duration;
             const startOffset = leftOverTime * alignment;

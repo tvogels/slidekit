@@ -88,11 +88,10 @@ export default class Controller {
         window.addEventListener("afterprint", () => this.printSection.innerHTML = "");
 
         // Tap events
-        console.log("Hammertime");
         const mc = new Hammer.Manager(root);
         mc.add(new Hammer.Tap());
         mc.on("tap", (e) => {
-            console.log("tap");
+            if (e.pointerType !== "touch") return;
             const rect = root.getBoundingClientRect();
             const x = (e.center.x - rect.x) / rect.width;
             if (x < .2) {
