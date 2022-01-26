@@ -52,7 +52,7 @@ export default class Controller {
         this.timer = new Timer(duration);
         this.player = new SlidePlayer(this.canvas, this.deck, scripts);
 
-        this.currentPosition = this.getPositionFromHash();
+        this.currentPosition = Math.min(this.deck.numSteps() - 1, Math.max(0, this.getPositionFromHash()));
 
         this.render = this.render.bind(this);
         this.fullscreenHandler = this.fullscreenHandler.bind(this);
