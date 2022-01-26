@@ -30,9 +30,11 @@ export default (new Transformer({
 
         dom.setAttribute("width", parseInt(dom.getAttribute("width")));
         dom.setAttribute("height", parseInt(dom.getAttribute("height")));
-
+        
         const assets = [asset];
         processNode(dom, assets);
+        removeDuplicateIds(dom);
+
         asset.setCode(dom.outerHTML);
 
         return assets;
@@ -63,13 +65,18 @@ function processNode(node, assets, root = null, idStack = []) {
     } else if (nodeType === Node.ELEMENT_NODE && node.hasAttribute("id")) {
         node.id = node.id.replace(/ /g, "-");
     }
+    const regex = /(^[A-Za-z]|(^$))/;
+    if (node.id != null && !node.id.match(regex)) {
+        node.id = "id" + node.id;
+    }
+
 
     // Remove some <g> tags and move their children up in the hierarchy
     // | To make transitioning of objects more reliable, we remove as many group tags that are
     // | not meaningful for transitions.
     // | Any group that is not moving from one slide to the next can be deleted from the DOM hierarchy.
     if (nodeType === Node.ELEMENT_NODE && tagName === "g") {
-        const shouldBeRemoved = !node.hasAttribute("move");
+        const shouldBeRemoved = !node.hasAttribute("move") && !node.hasAttribute("clip-path");
         if (shouldBeRemoved) {
             const parent = node.parentNode;
             for (let child of [...node.childNodes]) {
@@ -81,6 +88,15 @@ function processNode(node, assets, root = null, idStack = []) {
             }
             node = parent.removeChild(node);
             return;
+        } else if (node.hasAttribute("move")) {
+            for (let attribute of [...node.attributes]) {
+                if (!["id", "move", "transform", "opacity"].includes(attribute.name)) {
+                    for (let child of [...node.childNodes]) {
+                        applyAttrToGroupsChild(child, attribute.name, attribute.value);
+                    };
+                    node.removeAttribute(attribute.name);
+                }
+            }
         }
     }
 
@@ -181,6 +197,23 @@ function processNode(node, assets, root = null, idStack = []) {
     [...node.childNodes].forEach(child => processNode(child, assets, root, idStack));
 }
 
+function removeDuplicateIds(domNode) {
+    const counts = {};
+    for(let node of domNode.querySelectorAll('[id]')) {
+        var currentId = node.id ? node.id : "undefined";
+        if (counts[currentId] == null) {
+            counts[currentId] = 0;
+        }                 
+        counts[currentId]++;
+    }
+    for(let node of domNode.querySelectorAll('[id]')) {
+        var currentId = node.id ? node.id : "undefined";
+        if (counts[currentId] > 1) {
+            node.removeAttribute("id");
+        }
+    }
+}
+
 function svgStringToDom(string) {
     const html = document.createElement("html");
     html.innerHTML = `${string}`;
@@ -197,6 +230,10 @@ function applyAttrToGroupsChild(node, attribute, value) {
         node.setAttribute(attribute, value + " " + (node.getAttribute("transform") || "").trim());
     } else if (attribute === "opacity") {
         node.setAttribute(attribute, parseFloat(node.getAttribute("opacity") || 1.0) * parseFloat(value || 1.0))
+    } else if (["fill", "full-rule", "stroke", "stroke-width"].includes(attribute)) {
+        if (!node.hasAttribute(attribute)) {
+            node.setAttribute(attribute, value);
+        }
     } else if (attribute === "x" || attribute === "y") {
         let newValue = parseFloat(value) || 0.0;
         if (node.hasAttribute(attribute)) {

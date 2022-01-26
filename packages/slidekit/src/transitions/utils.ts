@@ -39,11 +39,11 @@ export function animationOffset(node: Element, step: Step) {
 export function insertGhostNode(node: HTMLElement, intoDom: HTMLElement): HTMLElement {
     const correspondingParent = findCorrespondingParent(node, intoDom);
     const ghostNode = node.cloneNode(true) as HTMLElement;
-    const referenceNode = nextStayingChild(node);
+    const referenceNode = nextStayingChild(node, intoDom);
     let insertedNode;
     if (referenceNode != null) {
         const refId = referenceNode.getAttribute("id");
-        const refNodeInDom = getMoveElementById(refId, intoDom);
+        const refNodeInDom = intoDom.querySelector(`#${refId}`);
         insertedNode = correspondingParent.insertBefore(ghostNode, refNodeInDom);
     } else {
         insertedNode = correspondingParent.appendChild(ghostNode);
@@ -73,10 +73,10 @@ function findCorrespondingParent(node: HTMLElement, domTree: HTMLElement): HTMLE
  * Utility used by insertGhostNode to find the next node that
  * 'matters' in terms of occlusions for ghost nodes.
  */
-function nextStayingChild(node: HTMLElement): HTMLElement | null {
+function nextStayingChild(node: HTMLElement, otherTree: HTMLElement): HTMLElement | null {
     let it = node.nextElementSibling;
     while (it != null) {
-        if (it.hasAttribute("move")) {
+        if (it.hasAttribute("id") && otherTree.querySelector(`#${it.id}`) != null) {
             return it as HTMLElement;
         }
         it = it.nextElementSibling;

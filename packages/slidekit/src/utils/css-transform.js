@@ -40,7 +40,7 @@ export default class CSSTransform {
 
 class CSSTransformPart {
     constructor(string) {
-        const parts = string.match(/(\w+)\((-?[\w\d.]+)(?:,\s*(-?[\w\d.]+))*\)/);
+        const parts = string.match(/(\w+)\((-?[\w\d.]+)(?:[, ]\s*(-?[\w\d.]+))*\)/);
         if (parts == null) {
             throw new Error(`Failed to parse transform part '${string}'`);
         }
