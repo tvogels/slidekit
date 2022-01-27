@@ -4,6 +4,7 @@
   "transformers": {
     "*.svg": ["parcel-transformer-slidekit-svg"],
     "*.sketch": ["parcel-transformer-slidekit-sketch"],
-    "*.md": ["parcel-transformer-markdown"]
+    "*.md": ["parcel-transformer-markdown"],
+    "*.{mov,mk4}": ["@parcel/transformer-raw"]
   }
 }

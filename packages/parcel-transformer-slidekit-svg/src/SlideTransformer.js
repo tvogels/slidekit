@@ -50,7 +50,7 @@ function processNode(node, assets, root = null, idStack = []) {
             parsed = idParser(node.id);
             node.id = parsed.id ?? "";
             for (let { key, value } of parsed.attributes) {
-                node.setAttribute(key, value ?? true);
+                node.setAttribute(key, value ?? "");
             }
             if (node.hasAttribute("move")) {
                 idStack = [...idStack, node.id];
@@ -70,6 +70,11 @@ function processNode(node, assets, root = null, idStack = []) {
         node.id = "id" + node.id;
     }
 
+    // Process video nodes
+    if (nodeType === Node.ELEMENT_NODE && node.hasAttribute("video")) {
+        let depId = assets[0].addURLDependency("./" + node.getAttribute("video"));
+        node.setAttribute("video", depId);
+    }
 
     // Remove some <g> tags and move their children up in the hierarchy
     // | To make transitioning of objects more reliable, we remove as many group tags that are
