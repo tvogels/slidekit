@@ -5,14 +5,15 @@
 export default function (dom: HTMLElement) {
     for (let node of [...dom.querySelectorAll("[youtube]")]) {
         const id = node.getAttribute("youtube");
-
+        
         // Create a <foreignObject> svg node that has the same size
         // as the original rectangle
         const foreignObject = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
-        foreignObject.setAttribute("x", node.getAttribute("x"));
-        foreignObject.setAttribute("y", node.getAttribute("y"));
-        foreignObject.setAttribute("height", node.getAttribute("height"));
-        foreignObject.setAttribute("width", node.getAttribute("width"));
+        const { width, height, x, y } = node.getBoundingClientRect();
+        foreignObject.setAttribute("x", `${x}`);
+        foreignObject.setAttribute("y", `${y}`);
+        foreignObject.setAttribute("height", `${height}`);
+        foreignObject.setAttribute("width", `${width}`);
 
         foreignObject.innerHTML = `<iframe width="${node.getAttribute("width")}" height="${node.getAttribute(
             "height"
