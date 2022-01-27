@@ -3,6 +3,7 @@
   "resolvers": ["parcel-resolver-glob-slidekit", "..."],
   "transformers": {
     "*.svg": ["parcel-transformer-slidekit-svg"],
+    "*.sketch": ["parcel-transformer-slidekit-sketch"],
     "*.md": ["parcel-transformer-markdown"]
   }
 }

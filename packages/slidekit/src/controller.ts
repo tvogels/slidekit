@@ -41,6 +41,10 @@ export default class Controller {
 
     constructor(slides: SlideSpec[], root: HTMLDivElement, { duration, notes, scripts, domPlugins = DEFAULT_DOM_PLUGINS }: Options) {
 
+        if (slides.length == 0) {
+            throw new Error("Slide list is empty");
+        }
+
         const deck = new SlideDeck(slides, domPlugins)
         this.deck = deck;
         const canvas = document.createElement("div");
