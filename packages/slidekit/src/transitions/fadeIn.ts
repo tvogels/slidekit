@@ -33,7 +33,7 @@ function transitionAlignment(node: Element) {
 
 export default function (dom: HTMLElement, step: Step, nextStep: Step): Transition[] {
     const transitions: Transition[] = [];
-    for (let node of [...nextStep.dom.querySelectorAll("[fade-in]")].reverse()) {
+    for (let node of [...nextStep.dom.querySelectorAll("[fade-in]")]) {
         if (!isEntering(node, nextStep)) continue;
         const ghostNode = insertGhostNode(node as HTMLElement, dom);
         ghostNode.style.opacity = "0.001";

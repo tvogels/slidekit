@@ -43,7 +43,7 @@ export default class SlidePlayer {
         }
 
         for (let i = 0; i < deck.numSteps(); i++) {
-            this.stages.push(new Stage(deck.step(i), deck.step(i + 1)));
+            this.stages.push(new Stage(i, deck.step(i), deck.step(i + 1)));
         }
     }
 
@@ -116,8 +116,10 @@ class Stage {
     scriptNodes: {[script: string]: string}
     private transitions: Callback[]
     private transitionDuration: number
+    number: number
 
-    constructor(step: Step, nextStep?: Step) {
+    constructor(number: number, step: Step, nextStep?: Step) {
+        this.number = number;
         this.dom = step.dom.cloneNode(true) as HTMLElement;
         this.transitions = [];
         this.transitionDuration = 0;

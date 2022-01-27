@@ -35,6 +35,7 @@ export default function (dom: HTMLElement, step: Step, nextStep: Step): Transiti
     const transitions = [];
     for (let node of dom.querySelectorAll("[fade-out]")) {
         if (!isExiting(node, step)) continue;
+        if (node.classList.contains("ghost")) continue;
         const htmlNode = node as HTMLElement;
         const startOpacity = parseFloat(htmlNode.style.opacity) || 1.0;
         transitions.push({

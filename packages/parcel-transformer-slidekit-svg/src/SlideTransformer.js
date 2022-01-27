@@ -95,7 +95,7 @@ function processNode(node, assets, root = null, idStack = []) {
             return;
         } else if (node.hasAttribute("move")) {
             for (let attribute of [...node.attributes]) {
-                if (!["id", "move", "transform", "opacity"].includes(attribute.name)) {
+                if (!["id", "move", "transform", "opacity", "fade-in", "fade-out", "transition-duration", "enter-duration", "exit-duration", "enter-alignment", "exit-alignment", "stage"].includes(attribute.name)) {
                     for (let child of [...node.childNodes]) {
                         applyAttrToGroupsChild(child, attribute.name, attribute.value);
                     };

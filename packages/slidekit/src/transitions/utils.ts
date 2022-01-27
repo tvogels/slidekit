@@ -40,14 +40,14 @@ export function insertGhostNode(node: HTMLElement, intoDom: HTMLElement): HTMLEl
     const correspondingParent = findCorrespondingParent(node, intoDom);
     const ghostNode = node.cloneNode(true) as HTMLElement;
     const referenceNode = nextStayingChild(node, intoDom);
-    let insertedNode;
     if (referenceNode != null) {
         const refId = referenceNode.getAttribute("id");
         const refNodeInDom = intoDom.querySelector(`#${refId}`);
-        insertedNode = correspondingParent.insertBefore(ghostNode, refNodeInDom);
+        correspondingParent.insertBefore(ghostNode, refNodeInDom);
     } else {
-        insertedNode = correspondingParent.appendChild(ghostNode);
+        correspondingParent.appendChild(ghostNode);
     }
+    ghostNode.classList.add("ghost");
     return ghostNode;
 }
 
