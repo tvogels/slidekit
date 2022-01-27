@@ -2,13 +2,14 @@ export default function (dom: HTMLElement) {
     for (let node of [...dom.querySelectorAll("[canvas]")]) {
         const foreignObject = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
 
-        const { width, height, x, y } = node.getBoundingClientRect();
-        foreignObject.setAttribute("x", `${x}`);
-        foreignObject.setAttribute("y", `${y}`);
-        foreignObject.setAttribute("height", `${height}`);
-        foreignObject.setAttribute("width", `${width}`);
+        for (let { name, value } of node.attributes) {
+            if (["stroke", "fill", "stroke-width", "fill-rule", "canvas"].indexOf(name) >= 0) continue;
+            foreignObject.setAttribute(name, value);
+        }
 
-        foreignObject.innerHTML = `<canvas width="${width}" height="${height}" />`;
+        foreignObject.innerHTML = `<canvas width="${node.getAttribute("width")}" height="${node.getAttribute(
+            "height"
+        )}" />`;
         const canvas = foreignObject.querySelector("canvas")
         canvas.id = foreignObject.id + "-canvas";
 
