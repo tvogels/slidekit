@@ -9,25 +9,25 @@ export type Transition = {
 
 export function isEntering(node: Element, step: Step) {
     if (node.hasAttribute("min-stage")) {
-        return parseInt(node.getAttribute("min-stage"), 10) === step.stage;
+        return parseInt(node.getAttribute("min-stage"), 10) === step.numberWithinSlide;
     } else {
-        return step.isFirst;
+        return step.numberWithinSlide == 0;
     }
 }
 
 export function isExiting(node: Element, step: Step) {
     if (node.hasAttribute("min-stage")) {
-        return parseInt(node.getAttribute("max-stage"), 10) === step.stage;
+        return parseInt(node.getAttribute("max-stage"), 10) === step.numberWithinSlide;
     } else {
-        return step.isLast;
+        return step.numberWithinSlide == step.slide.steps.length - 1;
     }
 }
 
 export function animationOffset(node: Element, step: Step) {
     if (node.hasAttribute("min-stage")) {
-        return step.stage - parseInt(node.getAttribute("min-stage"), 10);
+        return step.numberWithinSlide - parseInt(node.getAttribute("min-stage"), 10);
     } else {
-        return step.stage;
+        return step.numberWithinSlide;
     }
 }
 
@@ -41,8 +41,7 @@ export function insertGhostNode(node: HTMLElement, intoDom: HTMLElement): HTMLEl
     const ghostNode = node.cloneNode(true) as HTMLElement;
     const referenceNode = nextStayingChild(node, intoDom);
     if (referenceNode != null) {
-        const refId = referenceNode.getAttribute("id");
-        const refNodeInDom = intoDom.querySelector(`#${refId}`);
+        const refNodeInDom = intoDom.querySelector(`#${referenceNode.id}`);
         correspondingParent.insertBefore(ghostNode, refNodeInDom);
     } else {
         correspondingParent.appendChild(ghostNode);
@@ -93,35 +92,30 @@ export function getMoveElementById(id: string, dom: HTMLElement): HTMLElement | 
     }
 }
 
-/**
- * Index so you can quickly find DOM elements by their ID
- * if they have the `[move]` attribute
- */
-export class MoveElementIndex {
-    dom: HTMLElement
-    index: {[id: string]: HTMLElement}
-
-    constructor(dom: HTMLElement) {
-        this.dom = dom;
-        this._buildIndex();
+export function parseTransitionDuration(node: Element, attribute: string, defaultValue: number, type="exit"): number {
+    if (node.hasAttribute(`${type}-duration`)) {
+        return parseFloat(node.getAttribute(`${type}-duration`));
+    } else {
+        const attr = (node.getAttribute(attribute) || "").split(",");
+        const userValue = parseFloat(attr[0]);
+        if (isFinite(userValue)) {
+            return userValue;
+        } else {
+            return defaultValue;
+        }
     }
+}
 
-    /**
-     * Quickly find a dom node in this stage by ID
-     * Used to match `move`ing nodes between stages
-     */
-    nodeByIdentifier(identifier) {
-        return this.index[identifier];
-    }
-
-    addEntry(identifier, node) {
-        this.index[identifier] = node;
-    }
-
-    _buildIndex() {
-        this.index = {};
-        this.dom.querySelectorAll("[move]").forEach(node => {
-            this.index[node.getAttribute("id")] = node as HTMLElement;
-        });
+export function parseTransitionAlignment(node: Element, attribute: string, defaultValue: number, type="exit"): number {
+    if (node.hasAttribute(`${type}-alignment`)) {
+        return parseFloat(node.getAttribute(`${type}-alignment`));
+    } else {
+        const attr = (node.getAttribute(attribute) || "").split(",");
+        const userValue = parseFloat(attr[1]);
+        if (isFinite(userValue)) {
+            return userValue;
+        } else {
+            return defaultValue;
+        }
     }
 }

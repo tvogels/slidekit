@@ -11,3 +11,5 @@ export default {
     youtube,
     video
 }
+
+export const defaultPreprocessors = [hyperlink, canvas, youtube, video];

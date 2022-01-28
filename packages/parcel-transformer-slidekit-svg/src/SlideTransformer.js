@@ -60,9 +60,7 @@ function processNode(node, assets, root = null, idStack = []) {
     }
 
     // Make sure IDs from 'moving' elements are unique
-    if (nodeType === Node.ELEMENT_NODE && node.hasAttribute("move")) {
-        node.id = `${node.id.replace(/ /g, "-")}-moving`;
-    } else if (nodeType === Node.ELEMENT_NODE && node.hasAttribute("id")) {
+    if (nodeType === Node.ELEMENT_NODE && node.hasAttribute("id")) {
         node.id = node.id.replace(/ /g, "-");
     }
     const regex = /(^[A-Za-z]|(^$))/;
@@ -212,8 +210,10 @@ function removeDuplicateIds(domNode) {
         var currentId = node.id ? node.id : "undefined";
         if (counts[currentId] == null) {
             counts[currentId] = 0;
-        }                 
-        counts[currentId]++;
+        }
+        if (!node.hasAttribute("move")) {
+            counts[currentId]++;
+        }
     }
     for(let node of domNode.querySelectorAll('[id]')) {
         var currentId = node.id ? node.id : "undefined";

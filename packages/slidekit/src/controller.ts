@@ -1,12 +1,14 @@
 import SlideDeck, { SlideSpec, DomPlugin } from "./slidedeck";
 import PresenterNotes from "./presenternotes";
 import Timer from "./timer";
+import Canvas from "./canvas";
 import SlidePlayer from "./slideplayer";
 import Cockpit from "./cockpit";
 import Shortcuts from "./shortcuts";
 import { Duration } from "moment";
-import { ScriptTemplate } from "./slideplayer";
-import domPlugins from "./domPlugins";
+import { ScriptTemplate, EnterTransitionSpec, ExitTransitionSpec } from "./slideplayer";
+import { defaultEnterTransitions, defaultExitTransitions } from "./transitions";
+import { defaultPreprocessors } from "./preprocessors";
 import * as Hammer from "hammerjs";
 
 type Hook = (number) => void
@@ -14,19 +16,18 @@ type Hook = (number) => void
 type Options = {
     duration?: Duration,
     notes?: PresenterNotes,
-    domPlugins?: DomPlugin[],
+    preprocessors?: DomPlugin[],
     scripts?: { [script: string]: ScriptTemplate }
+    exitTransitions?: ExitTransitionSpec[],
+    enterTransitions?: EnterTransitionSpec[],
 }
-
-const DEFAULT_DOM_PLUGINS = [domPlugins.youtube, domPlugins.hyperlink, domPlugins.canvas];
-
 export default class Controller {
     shortcuts?: Shortcuts;
     deck: SlideDeck;
     timer: Timer;
     presenterNotes?: PresenterNotes;
     cockpit?: Cockpit;
-    
+
     private canvas: Canvas;
     private fullscreenNode: HTMLElement;
     private player: SlidePlayer;
@@ -39,13 +40,12 @@ export default class Controller {
     private historyPosition?: number = null;
     private printSection: HTMLElement;
 
-    constructor(slides: SlideSpec[], root: HTMLDivElement, { duration, notes, scripts, domPlugins = DEFAULT_DOM_PLUGINS }: Options) {
-
+    constructor(slides: SlideSpec[], root: HTMLDivElement, { duration, notes, scripts, preprocessors = [], enterTransitions = [], exitTransitions = [] }: Options) {
         if (slides.length == 0) {
             throw new Error("Slide list is empty");
         }
 
-        const deck = new SlideDeck(slides, domPlugins)
+        const deck = new SlideDeck(slides, [...defaultPreprocessors, ...preprocessors])
         this.deck = deck;
         const canvas = document.createElement("div");
         root.appendChild(canvas);
@@ -54,7 +54,13 @@ export default class Controller {
         this.presenterNotes = notes;
         this.fullscreenNode = canvas.parentElement;
         this.timer = new Timer(duration);
-        this.player = new SlidePlayer(this.canvas, this.deck, scripts);
+        this.player = new SlidePlayer(
+            this.canvas, 
+            this.deck, 
+            scripts, 
+            [...defaultExitTransitions, ...exitTransitions],
+            [...defaultEnterTransitions, ...enterTransitions]
+        );
 
         this.currentPosition = Math.min(this.deck.numSteps() - 1, Math.max(0, this.getPositionFromHash()));
 
@@ -134,36 +140,6 @@ export default class Controller {
         this.currentPosition = Math.min(this.deck.numSteps() - 1, Math.max(0, position));
     }
 
-    populatePrintSection() {
-        console.log("populate print");
-        const style = document.createElement("style");
-        style.setAttribute("rel", "stylesheet");
-        style.innerHTML = `        
-            @page { 
-                margin: 0; 
-                padding: 0;
-                size: ${this.deck.width}px ${this.deck.height}px;
-            }
-        `;
-        this.printSection.innerHTML = "";
-        this.printSection.appendChild(style);
-
-        for (let slide of this.deck.slides) {
-            const iframe = document.createElement("iframe");
-            iframe.className = "slidekit-print-section-slide";
-            iframe.style.width = `${slide.steps[0].step.width}px`;
-            iframe.style.height = `${slide.steps[0].step.height}px`;
-            iframe.setAttribute("seamless", "seamless");
-            iframe.addEventListener("load", () =>  {
-                iframe.contentDocument.body.style.overflow = "hidden";
-                iframe.contentDocument.body.style.margin = "0";
-                iframe.contentDocument.body.style.padding = "0";
-                iframe.contentDocument.body.innerHTML = slide.steps[slide.steps.length - 1].step.dom.outerHTML;
-            })
-            this.printSection.appendChild(iframe);
-        }
-    }
-
     nextStage() {
         if (!this.cancelRunningAnimation("right")) {
             const targetPosition = Math.min(this.deck.numSteps() - 1, Math.floor(this.currentPosition) + 1);
@@ -234,20 +210,12 @@ export default class Controller {
     }
 
     goFullscreen() {
-        const {dom} = this.canvas;
+        const { dom } = this.canvas;
         if (dom.requestFullscreen) {
             dom.requestFullscreen();
         } else if ((dom as any).webkitRequestFullscreen) {
             (dom as any).webkitRequestFullscreen();
         }
-    }
-
-    private getPositionFromHash() {
-        return parseFloat(window.location.hash.substr(1)) || 0;
-    }
-
-    private fullscreenHandler() {
-        this.canvas.resizeHandler();
     }
 
     keyboardHandler(event: KeyboardEvent) {
@@ -341,68 +309,42 @@ export default class Controller {
         }
         return wasRunning;
     }
-}
 
-export class Canvas {
-    dom: HTMLElement
-    private canvas: HTMLDivElement
-    private slideNumber: HTMLDivElement
-    private width: number
-    private height: number
-    private animationFrameRequested: boolean = false;
-
-    constructor(domElement: HTMLDivElement, deckWidth: number, deckHeight: number, withSlideNumbers = false) {
-        this.dom = domElement;
-
-        this.canvas = document.createElement("div");
-        this.canvas.className = "slidekit-canvas";
-        this.dom.appendChild(this.canvas);
-
-        if (withSlideNumbers) {
-            this.slideNumber = document.createElement("div");
-            this.slideNumber.className = "slidekit-slide-number";
-            this.dom.appendChild(this.slideNumber);
-        } else {
-            this.slideNumber = null;
-        }
-
-        this.canvas.style.transformOrigin = "0 0";
-        this.canvas.style.transform = "scale(1)";
-        this.canvas.style.transform = "scale(1)";
-
-        this.width = deckWidth;
-        this.height = deckHeight;
-
-        this.resizeHandler = this.resizeHandler.bind(this);
-        this.resizeHandler();
-        window.addEventListener("resize", this.resizeHandler);
+    private getPositionFromHash() {
+        return parseFloat(window.location.hash.substr(1)) || 0;
     }
 
-    /**
-     * Replace the contents of the screen with this SVG image
-     * @param {HTMLElement} svg
-     */
-    setSvg(svg) {
-        this.canvas.innerHTML = "";
-        this.canvas.appendChild(svg);
+    private fullscreenHandler() {
+        this.canvas.resizeHandler();
     }
 
-    setSlideNumber(number) {
-        if (this.slideNumber != null) {
-            this.slideNumber.innerText = number;
+    private populatePrintSection() {
+        const style = document.createElement("style");
+        style.setAttribute("rel", "stylesheet");
+        style.innerHTML = `        
+            @page { 
+                margin: 0; 
+                padding: 0;
+                size: ${this.deck.width}px ${this.deck.height}px;
+            }
+        `;
+        this.printSection.innerHTML = "";
+        this.printSection.appendChild(style);
+
+        for (let slide of this.deck.slides) {
+            const iframe = document.createElement("iframe");
+            iframe.className = "slidekit-print-section-slide";
+            iframe.style.width = `${slide.width}px`;
+            iframe.style.height = `${slide.height}px`;
+            iframe.setAttribute("seamless", "seamless");
+            iframe.addEventListener("load", () => {
+                iframe.contentDocument.body.style.overflow = "hidden";
+                iframe.contentDocument.body.style.margin = "0";
+                iframe.contentDocument.body.style.padding = "0";
+                iframe.contentDocument.body.innerHTML = slide.steps[slide.steps.length - 1].step.dom.outerHTML;
+            })
+            this.printSection.appendChild(iframe);
         }
     }
 
-    resizeHandler() {
-        if (!this.animationFrameRequested) {
-            this.animationFrameRequested = true;
-            window.requestAnimationFrame(() => {
-                const scale = Math.min(this.dom.clientHeight / this.height, this.dom.clientWidth / this.width);
-                const offsetY = (this.dom.clientHeight - scale * this.height) / 2;
-                const offsetX = (this.dom.clientWidth - scale * this.width) / 2;
-                this.canvas.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
-                this.animationFrameRequested = false;
-            });
-        }
-    }
 }

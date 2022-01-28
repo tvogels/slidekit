@@ -1,4 +1,4 @@
-import { Controller, SlideDeck, PresenterNotes, domPlugins } from "slidekit";
+import { Controller, PresenterNotes, preprocessors } from "slidekit";
 import moment from "moment";
 
 import slides from "./highlight.sketch";
@@ -16,7 +16,7 @@ const controller = new Controller(
     {
         duration: moment.duration(30, "minutes"),
         notes: new PresenterNotes(notes),
-        domPlugins: [domPlugins.youtube, domPlugins.hyperlink, domPlugins.canvas, domPlugins.video],
+        preprocessors: [preprocessors.youtube, preprocessors.hyperlink, preprocessors.canvas, preprocessors.video],
         scripts: {
             bouncy: bouncyAnimation,
             bla: () => ({

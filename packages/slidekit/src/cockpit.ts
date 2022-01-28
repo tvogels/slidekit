@@ -1,6 +1,7 @@
 import SlidePlayer from "./slideplayer";
 import { copyToClipboard } from "./utils";
-import Controller, { Canvas } from "./controller";
+import Controller from "./controller";
+import Canvas from "./canvas";
 import "./cockpit.css";
 
 export default class Cockpit {

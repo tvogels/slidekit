@@ -1,13 +1,14 @@
-import { scriptId } from "./slideplayer";
+export type SlideSpec = { id: string, content: string };
 
-export type SlideSpec = { id: string, content: string};
-type StepInfo = {
-    slide: SlideInfo,
-    localIndex: number,
-    globalIndex: number,
-    step: Step
+export type Step = {
+    slide: Slide,
+    numberWithinSlide: number,
+    number: number,
+    makeDom: () => HTMLElement,
 };
-type SlideInfo = { id: string, index: number, steps: StepInfo[]};
+
+export type Slide = { id: string, number: number, steps: Step[], width: number, height: number };
+
 export type DomPlugin = (HTMLElement) => void;
 
 /**
@@ -17,68 +18,56 @@ export type DomPlugin = (HTMLElement) => void;
  * Also handles translation between stage number / slide number, etc.
  */
 export default class SlideDeck {
-    slides: SlideInfo[];
-    private steps: StepInfo[];
+    slides: Slide[];
+    steps: Step[];
     height: number;
     width: number;
-    scriptStarts: {[script: string]: number};
 
     constructor(slideList: SlideSpec[], plugins: DomPlugin[] = []) {
         this.slides = [];
         this.steps = [];
 
-        let slideIndex = 0;
-        let stepIndex = 0;
+        let slideNumber = 0;
+        let stageNumber = 0;
 
         for (let { content, id } of slideList) {
-            const slide = {
-                index: slideIndex, // starting at 0 ...
-                id,
-                steps: []
-            };
-
-            const html = document.createElement("html");
-            html.innerHTML = content;
-            const svg = html.querySelector("svg");
+            const svg = svgStringToDom(content);
 
             for (let plugin of plugins) {
                 plugin(svg);
             }
 
+            const slide: Slide = {
+                id,
+                number: slideNumber, // starting at 0 ...
+                steps: [],
+                width: parseFloat(svg.getAttribute("width")),
+                height: parseFloat(svg.getAttribute("height")),
+            };
+            this.slides.push(slide);
+
             const lastStage = maxStage(svg);
-            for (let stage = 0; stage <= lastStage; stage++) {
-                const step = {
+            for (let stageOfSlide = 0; stageOfSlide <= lastStage; stageOfSlide++) {
+                const step: Step = {
                     slide,
-                    localIndex: stage,
-                    globalIndex: stepIndex,
-                    step: new Step(svg, stage)
+                    numberWithinSlide: stageOfSlide,
+                    number: stageNumber,
+                    makeDom: () => adaptDomToStage(svg.cloneNode(true) as HTMLElement, stageOfSlide, lastStage)
                 };
                 slide.steps.push(step);
                 this.steps.push(step);
-                stepIndex += 1;
+                stageNumber += 1;
             }
-            this.slides.push(slide);
-            slideIndex += 1;
+            slideNumber += 1;
         }
 
-        this.width = this.step(0).width;
-        this.height = this.step(0).height;
-
-        // Store first step numbers in which a `scripted` node appears
-        this.scriptStarts = {};
-        for (let i = 0; i < this.numSteps(); ++i) {
-            for (let {script, node} of this.step(i).scriptInstances) {
-                const jointName = scriptId({script,node});
-                if (Object.keys(this.scriptStarts).indexOf(jointName) === -1) {
-                    this.scriptStarts[jointName] = i;
-                }
-            }
-        }
+        this.width = this.slides[0].width;
+        this.height = this.slides[0].height;
     }
 
-    step(i: number) {
+    step(i: number): Step | undefined {
         if (i >= this.numSteps()) return null;
-        return this.steps[i].step;
+        return this.steps[i];
     }
 
     /**
@@ -86,7 +75,7 @@ export default class SlideDeck {
      */
     nextSlideIndex(position: number) {
         const step = this.steps[Math.floor(position)];
-        const nextIndex = Math.min(this.numSlides() - 1, step.slide.index + 1);
+        const nextIndex = Math.min(this.numSlides() - 1, step.slide.number + 1);
         const nextSlide = this.slides[nextIndex];
         return last(nextSlide.steps).globalIndex;
     }
@@ -96,7 +85,7 @@ export default class SlideDeck {
      */
     slideNumber(position: number) {
         const step = this.steps[Math.floor(position)];
-        return step.slide.index + 1;
+        return step.slide.number + 1;
     }
 
     /**
@@ -104,7 +93,7 @@ export default class SlideDeck {
      */
     firstStageForSlide(slideNumber: number) {
         const slide = this.slides[slideNumber - 1];
-        return slide.steps[0].globalIndex;
+        return slide.steps[0].number;
     }
 
     numSteps() {
@@ -121,7 +110,7 @@ export default class SlideDeck {
 
     stageId(position: number) {
         const step = this.steps[Math.ceil(position)];
-        return `${this.slideId(position)} ${step.localIndex}`;
+        return `${this.slideId(position)} ${step.numberWithinSlide}`;
     }
 
     slideId(position: number) {
@@ -134,67 +123,31 @@ export default class SlideDeck {
      */
     prevSlideIndex(position: number) {
         const step = this.steps[Math.floor(position)];
-        const prevIndex = Math.max(0, step.slide.index - 1);
+        const prevIndex = Math.max(0, step.slide.number - 1);
         const prevSlide = this.slides[prevIndex];
         return last(prevSlide.steps).globalIndex;
     }
 }
 
 /**
- * A 'Slide' can consist of multiple 'steps'.
- * This hold one such step.
+ * Update a DOM tree to represent a chosen 'stage' for 'incremental builds'.
+ * Removes nodes that should not be visible
+ * @param {HTMLElement} domNode base dom node that is adapted (pre-cloned)
+ * @param {number} stageNumber number of the stage that is currently created
  */
-export class Step {
-    height: number;
-    width: number;
-    scriptInstances: {script: string, node: string}[];
-    dom: HTMLElement;
-    isFirst: boolean;
-    isLast: boolean;
-    stage: number;
-    private lastStage: number;
-
-    constructor(dom: SVGElement, stage: number) {
-        this.dom = dom.cloneNode(true) as HTMLElement;
-        this.lastStage = maxStage(this.dom);
-        this.isFirst = stage === 0;
-        this.stage = stage;
-        this.isLast = stage === this.lastStage;
-        this.height = parseFloat(this.dom.getAttribute("height"));
-        this.width = parseFloat(this.dom.getAttribute("width"));
-        this.adaptDomToStage(this.dom, stage);
-
-        this.scriptInstances = [];
-        for (let node of this.dom.querySelectorAll("[script]")) {
-            if (this.dom.querySelector(`#${node.id}`) !== node) {
-                console.error(`Node ID ${node.id} is not unique. This is important for the script.`);
-            }
-            this.scriptInstances.push({
-                node: node.id,
-                script: node.getAttribute("script"),
-            })
+function adaptDomToStage(domNode: HTMLElement, stageNumber: number, lastStage: number) {
+    for (let node of domNode.querySelectorAll("[stage]")) {
+        const [minStage, maxStage] = getVisibleStages(node as HTMLElement, lastStage);
+        if (stageNumber < minStage || stageNumber > maxStage) {
+            node.parentElement.removeChild(node);
+        } else {
+            node.removeAttribute("stage");
+            node.setAttribute("min-stage", minStage.toString());
+            node.setAttribute("max-stage", maxStage.toString());
+            adaptDomToStage(node as HTMLElement, stageNumber);
         }
     }
-
-    /**
-     * Update a DOM tree to represent a chosen 'stage' for 'incremental builds'.
-     * Removes nodes that should not be visible
-     * @param {HTMLElement} domNode base dom node that is adapted (pre-cloned)
-     * @param {number} stageNumber number of the stage that is currently created
-     */
-    private adaptDomToStage(domNode: HTMLElement, stageNumber: number) {
-        for (let node of domNode.querySelectorAll("[stage]")) {
-            const [minStage, maxStage] = getVisibleStages(node as HTMLElement, this.lastStage);
-            if (stageNumber < minStage || stageNumber > maxStage) {
-                node.parentElement.removeChild(node);
-            } else {
-                node.removeAttribute("stage");
-                node.setAttribute("min-stage", minStage.toString());
-                node.setAttribute("max-stage", maxStage.toString());
-                this.adaptDomToStage(node as HTMLElement, stageNumber);
-            }
-        }
-    }
+    return domNode;
 }
 
 /**
@@ -208,6 +161,14 @@ function getVisibleStages(node: HTMLElement, lastStage: number) {
     const max = parseFloat(stageList[1] || lastStage.toString());
     return [min, max];
 }
+
+
+function svgStringToDom(string) {
+    const html = document.createElement("html");
+    html.innerHTML = `${string}`;
+    return html.querySelector("svg") as any as HTMLElement;
+}
+
 
 /**
  * Find the largest stage number encountered in a node's descendant's attributes
