@@ -5,15 +5,20 @@ import fadeInTransitions from "./transitions/fadeIn";
 import fadeDownTransitions from "./transitions/fadeDown";
 import drawLineTransitions from "./transitions/drawLine";
 import appearAlongTransitions from "./transitions/appearAlong";
+import sketchTransitions from "./transitions/sketch";
 import SlideDeck, {Step} from "./slidedeck"
 import {Canvas} from "./controller"
 import { isExiting, Transition } from "./transitions/utils";
 
-export type Script = {
+type Script = {
+    name?: string,
     setNode: (node: HTMLElement) => void,
-    deactivate: () => void,
+    deactivate?: () => void,
     tick: (dt: number) => void,
-}
+    minimumDuration?: (t: number) => number,
+};
+
+export type ScriptTemplate = (name: string) => Script;
 
 /**
  * This is responsible for rendering a current position in the slideshow
@@ -27,16 +32,24 @@ export default class SlidePlayer {
     private visibleStage?: number = null;
     private deck: SlideDeck
     private activeScripts: Set<string> = new Set();
-    private scripts: Map<string, Script> = new Map();
+    private scripts: {[script: string]: Script}
+    private scriptTemplates: {[script: string]: ScriptTemplate}
     private scriptsEnabled: boolean = true;
 
-    constructor(canvas: Canvas, deck: SlideDeck, scripts: {[name: string]: Script} | undefined) {
+    constructor(canvas: Canvas, deck: SlideDeck, scripts: {[name: string]: ScriptTemplate} | undefined) {
         this.canvas = canvas;
         this.deck = deck;
 
         if (scripts != null) {
-            for (let [name, script] of Object.entries(scripts)) {
-                this.registerScript(name, script);
+            this.scriptTemplates = scripts;
+            this.scripts = {};
+            for (let entry of Object.keys(this.deck.scriptStarts)) {
+                const scriptName = entry.split("/")[0];
+                if (this.scriptTemplates[scriptName] != null) {
+                    this.scripts[entry] = {minimumDuration: () => 0, deactivate: () => null, name: entry, ...this.scriptTemplates[scriptName](entry)};
+                } else {
+                    console.error(`Missing script ${scriptName}`);
+                }
             }
         } else {
             this.scriptsEnabled = false;
@@ -44,6 +57,16 @@ export default class SlidePlayer {
 
         for (let i = 0; i < deck.numSteps(); i++) {
             this.stages.push(new Stage(i, deck.step(i), deck.step(i + 1)));
+        }
+
+        if (scripts != null) {
+            for (let stage of this.stages) {
+                for (let instance of stage.scriptInstances) {
+                    const scriptName = scriptId(instance);
+                    const duration = this.scripts[scriptName].minimumDuration(stage.number - this.deck.scriptStarts[scriptName]);
+                    stage.reportTransitionDuration(duration);
+                }
+            }
         }
     }
 
@@ -63,9 +86,7 @@ export default class SlidePlayer {
 
         if (this.scriptsEnabled) {
             for (let scriptName of this.activeScripts) {
-                if (this.scripts.has(scriptName)) {
-                    this.scripts.get(scriptName).tick(t - this.deck.scriptStarts[scriptName]);
-                }
+                this.scripts[scriptName].tick(t - this.deck.scriptStarts[scriptName]);
             }
         }
     }
@@ -80,28 +101,23 @@ export default class SlidePlayer {
         return this.stages[stageNo].duration();
     }
 
-    private registerScript(name: string, script: Script) {
-        this.scripts.set(name, script);
-    }
-
     private updateActiveScripts(stage: Stage) {
         if (!this.scriptsEnabled) return;
-        const newActiveScripts = new Set(Object.keys(stage.scriptNodes));
-        for (let [scriptName, node] of Object.entries(stage.scriptNodes)) {
-            if (this.scripts.has(scriptName)) {
-                this.scripts.get(scriptName).setNode(this.canvas.dom.querySelector(`#${node}`));
-            } else {
-                console.error(`Missing script definition for ${scriptName}.`)
-            }
+        const newActiveScripts = new Set(stage.scriptInstances.map(scriptId));
+        for (let {script, node} of stage.scriptInstances) {
+            this.scripts[scriptId({script, node})].setNode(this.canvas.dom.querySelector(`#${node}`));
         }
         for (let scriptName of this.activeScripts) {
             if (!newActiveScripts.has(scriptName)) {
-                if (!this.scripts.has(scriptName)) continue;
-                this.scripts.get(scriptName).deactivate();
+                this.scripts[scriptName].deactivate();
             }
         }
         this.activeScripts = newActiveScripts;
     }
+}
+
+export function scriptId({ script, node }) {
+    return `${script}/${node}`;
 }
 
 type Callback = (number) => void;
@@ -113,7 +129,7 @@ type Callback = (number) => void;
  */
 class Stage {
     dom: HTMLElement
-    scriptNodes: {[script: string]: string}
+    scriptInstances: {script: string, node: string}[]
     private transitions: Callback[]
     private transitionDuration: number
     number: number
@@ -123,7 +139,7 @@ class Stage {
         this.dom = step.dom.cloneNode(true) as HTMLElement;
         this.transitions = [];
         this.transitionDuration = 0;
-        this.scriptNodes = step.scriptNodes;
+        this.scriptInstances = step.scriptInstances;
 
         if (nextStep == null) return;
 
@@ -132,6 +148,7 @@ class Stage {
             fadeInTransitions,
             fadeDownTransitions,
             drawLineTransitions,
+            sketchTransitions,
             appearAlongTransitions,
             fadeOutTransitions,
         ]

@@ -1,6 +1,6 @@
 const easeInOutCubic = t => (t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1);
 
-export default {
+export default () => ({
     time: 0,
     tick(t) {
         this.tickTime = t;
@@ -37,4 +37,4 @@ export default {
         this.context.scale(dpr, dpr);
         this.draw();
     },
-}
+});

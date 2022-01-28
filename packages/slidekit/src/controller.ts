@@ -5,7 +5,7 @@ import SlidePlayer from "./slideplayer";
 import Cockpit from "./cockpit";
 import Shortcuts from "./shortcuts";
 import { Duration } from "moment";
-import { Script } from "./slideplayer";
+import { ScriptTemplate } from "./slideplayer";
 import domPlugins from "./domPlugins";
 import * as Hammer from "hammerjs";
 
@@ -15,7 +15,7 @@ type Options = {
     duration?: Duration,
     notes?: PresenterNotes,
     domPlugins?: DomPlugin[],
-    scripts?: { [script: string]: Script }
+    scripts?: { [script: string]: ScriptTemplate }
 }
 
 const DEFAULT_DOM_PLUGINS = [domPlugins.youtube, domPlugins.hyperlink, domPlugins.canvas];

@@ -1,3 +1,5 @@
+import { scriptId } from "./slideplayer";
+
 export type SlideSpec = { id: string, content: string};
 type StepInfo = {
     slide: SlideInfo,
@@ -65,9 +67,10 @@ export default class SlideDeck {
         // Store first step numbers in which a `scripted` node appears
         this.scriptStarts = {};
         for (let i = 0; i < this.numSteps(); ++i) {
-            for (let script of Object.keys(this.step(i).scriptNodes)) {
-                if (Object.keys(this.scriptStarts).indexOf(script) === -1) {
-                    this.scriptStarts[script] = i;
+            for (let {script, node} of this.step(i).scriptInstances) {
+                const jointName = scriptId({script,node});
+                if (Object.keys(this.scriptStarts).indexOf(jointName) === -1) {
+                    this.scriptStarts[jointName] = i;
                 }
             }
         }
@@ -144,7 +147,7 @@ export default class SlideDeck {
 export class Step {
     height: number;
     width: number;
-    scriptNodes: {[script: string]: string};
+    scriptInstances: {script: string, node: string}[];
     dom: HTMLElement;
     isFirst: boolean;
     isLast: boolean;
@@ -161,12 +164,15 @@ export class Step {
         this.width = parseFloat(this.dom.getAttribute("width"));
         this.adaptDomToStage(this.dom, stage);
 
-        this.scriptNodes = {};
+        this.scriptInstances = [];
         for (let node of this.dom.querySelectorAll("[script]")) {
             if (this.dom.querySelector(`#${node.id}`) !== node) {
                 console.error(`Node ID ${node.id} is not unique. This is important for the script.`);
             }
-            this.scriptNodes[node.getAttribute("script")] = node.id;
+            this.scriptInstances.push({
+                node: node.id,
+                script: node.getAttribute("script"),
+            })
         }
     }
 

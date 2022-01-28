@@ -9,7 +9,7 @@ function transitionDuration(node: Element) {
     if (node.hasAttribute("enter-duration")) {
         return parseFloat(node.getAttribute("enter-duration"));
     }
-    const attr = (node.getAttribute("draw-line") || "").split(",");
+    const attr = (node.getAttribute("sketch") || "").split(",");
     const userValue = parseFloat(attr[0]);
     if (isFinite(userValue)) {
         return userValue;
@@ -22,7 +22,7 @@ function transitionAlignment(node: Element) {
     if (node.hasAttribute("enter-alignment")) {
         return parseFloat(node.getAttribute("enter-alignment"));
     }
-    const attr = (node.getAttribute("draw-line") || "").split(",");
+    const attr = (node.getAttribute("sketch") || "").split(",");
     const userValue = parseFloat(attr[1]);
     if (isFinite(userValue)) {
         return userValue;
@@ -33,18 +33,23 @@ function transitionAlignment(node: Element) {
 
 export default function (dom: HTMLElement, step: Step, nextStep: Step): Transition[] {
     const transitions: Transition[] = [];
-    for (let node of [...nextStep.dom.querySelectorAll("[draw-line]")].reverse()) {
+    for (let node of [...nextStep.dom.querySelectorAll("[sketch]")].reverse()) {
         if (!isEntering(node, nextStep)) continue;
         const ghostNode = insertGhostNode(node as HTMLElement, dom) as any as SVGPathElement;
         const length = (node as any as SVGPathElement).getTotalLength();
         ghostNode.style.strokeDasharray = length.toString();
         ghostNode.style.strokeDashoffset = length.toString();
+        (node as HTMLElement).style.opacity = "0";
         transitions.push({
             duration: transitionDuration(node),
             alignment: transitionAlignment(node),
             mode: "easeInOutQuad",
             callback: dt => {
-                ghostNode.style.strokeDashoffset = linearMix(length, 0.0, dt);
+                if (dt < 0.5) {
+                    ghostNode.style.strokeDashoffset = linearMix(length, 0.0, dt * 2);
+                } else {
+                    ghostNode.style.strokeDashoffset = linearMix(2 * length, length, (dt - 0.5) * 2);
+                }
             }
         });
     }

@@ -158,7 +158,7 @@ function processNode(node, assets, root = null, idStack = []) {
     }
 
     // Replace polylines by "path" because they morph better
-    if (nodeType === Node.ELEMENT_NODE && tagName === "polyline") {
+    if (nodeType === Node.ELEMENT_NODE && (tagName === "polyline" || tagName === "polygon")) {
         const points = node.getAttribute("points");
         node.removeAttribute("points");
         const path = document.createElement("path");
@@ -172,6 +172,10 @@ function processNode(node, assets, root = null, idStack = []) {
         for (let i = 1; i < xx.length; ++i) {
             d += ` L${xx[i]} ${yy[i]}`;
         }
+        if (tagName === "polygon") {
+            d += "Z";
+        }
+
         path.setAttribute("d", d);
         node.parentNode.insertBefore(path, node);
         node.parentNode.removeChild(node);
