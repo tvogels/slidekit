@@ -12,7 +12,7 @@ export function create(node: HTMLElement, stage: Stage, nextStage: Stage) {
     const id = node.getAttribute("id");
     const nodeInNextStage = nextStage.dom.querySelector(`#${id}`);
     if (nodeInNextStage == null) {
-        console.error(`Failed to match node ${node.id} in stage ${stage.step.number} to a node in the next stage.`);
+        console.error(`Failed to match node ${node.id} in stage ${stage.step.slide.id}/${stage.step.numberWithinSlide} to a node in the next stage.`);
         return [];
     }
 
@@ -94,7 +94,7 @@ export function create(node: HTMLElement, stage: Stage, nextStage: Stage) {
                     }
                 });
             } else if (
-                ["move", "fade-in", "fade-out", "appear-along", "draw-line", "class", "stage", "min-stage", "max-stage"].includes(
+                ["move", "fade-in", "fade-out", "appear-along", "draw-line", "class", "stage", "min-stage", "max-stage", "href"].includes(
                     attribute
                 )
             ) {

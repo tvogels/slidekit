@@ -13,7 +13,7 @@ type Script = {
     minimumDuration?: (t: number) => number,
 };
 
-export type ScriptTemplate = (name: string) => Script;
+export type ScriptTemplate = (context: { canvas: HTMLDivElement, width: number, height: number, node: HTMLElement }) => Script;
 
 export type ExitTransitionSpec = {
     attribute: string,
@@ -60,11 +60,11 @@ export default class SlidePlayer {
     render(t: number) {
         const i = Math.floor(t);
         this.stages[i].render(t - Math.floor(t));
-        if (i != this.visibleStage) {
-            this.switchStage(i);
-        }
         for (let script of this.activeScriptsAtStage[i] || []) {
             this.scripts[script].tick(t - this.scriptFirstOccurrence[script]);
+        }
+        if (i != this.visibleStage) {
+            this.switchStage(i);
         }
     }
 
@@ -135,7 +135,8 @@ export default class SlidePlayer {
                     continue;
                 }
                 if (this.scripts[identifier] == null) {
-                    this.scripts[identifier] = { minimumDuration: () => 0, deactivate: () => null, name: identifier, ...template(identifier) }
+                    const context = { canvas: this.canvas.canvas, width: this.deck.width, height: this.deck.height, node: scriptNode };
+                    this.scripts[identifier] = { minimumDuration: () => 0, deactivate: () => null, name: identifier, ...template(context) }
                     this.scriptFirstOccurrence[identifier] = stageNumber;
                 }
                 this.activeScriptsAtStage[stageNumber].add(identifier);

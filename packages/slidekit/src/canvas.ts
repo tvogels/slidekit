@@ -5,6 +5,7 @@ export default class Canvas {
     private width: number
     private height: number
     private animationFrameRequested: boolean = false;
+    private svg: HTMLElement;
 
     constructor(domElement: HTMLDivElement, deckWidth: number, deckHeight: number, withSlideNumbers = false) {
         this.dom = domElement;
@@ -38,8 +39,11 @@ export default class Canvas {
      * @param {HTMLElement} svg
      */
     setSvg(svg) {
-        this.canvas.innerHTML = "";
+        if (this.svg != null) {
+            this.canvas.removeChild(this.svg);
+        }
         this.canvas.appendChild(svg);
+        this.svg = svg;
     }
 
     setSlideNumber(number) {
