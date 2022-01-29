@@ -341,7 +341,8 @@ export default class Controller {
                 iframe.contentDocument.body.style.overflow = "hidden";
                 iframe.contentDocument.body.style.margin = "0";
                 iframe.contentDocument.body.style.padding = "0";
-                iframe.contentDocument.body.innerHTML = slide.steps[slide.steps.length - 1].step.dom.outerHTML;
+                const stepNumber = slide.steps[slide.steps.length - 1].number;
+                iframe.contentDocument.body.innerHTML = this.player.stages[stepNumber].dom.outerHTML;
             })
             this.printSection.appendChild(iframe);
         }

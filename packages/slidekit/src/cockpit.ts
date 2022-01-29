@@ -94,7 +94,7 @@ export default class Cockpit {
         this.currentSlidePlayer.render(t);
         if (t%1 === 0) {
             this.nextSlidePlayer.canvas.dom.style.opacity = "1.0";
-            this.nextSlidePlayer.render(Math.min(t + 1, this.nextSlidePlayer.stages.length - 1));
+            this.nextSlidePlayer.render(Math.min(t + 1, this.controller.deck.numSlides() - 1));
         } else {
             this.nextSlidePlayer.canvas.dom.style.opacity = "0.2";
         }

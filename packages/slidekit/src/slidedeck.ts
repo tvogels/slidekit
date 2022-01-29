@@ -144,7 +144,7 @@ function adaptDomToStage(domNode: HTMLElement, stageNumber: number, lastStage: n
             node.removeAttribute("stage");
             node.setAttribute("min-stage", minStage.toString());
             node.setAttribute("max-stage", maxStage.toString());
-            adaptDomToStage(node as HTMLElement, stageNumber);
+            adaptDomToStage(node as HTMLElement, stageNumber, lastStage);
         }
     }
     return domNode;

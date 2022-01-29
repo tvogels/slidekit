@@ -1,9 +1,9 @@
-import * as THREE from 'three';
+import { BoxGeometry, WebGLRenderer, Scene, MeshStandardMaterial, Mesh, PerspectiveCamera, PointLight, AmbientLight, MeshBasicMaterial } from 'three';
 
 export default ({ canvas, height, width, node }) => {
-    const scene = new THREE.Scene();
+    const scene = new Scene();
 
-    const renderer = new THREE.WebGLRenderer();
+    const renderer = new WebGLRenderer();
     renderer.setClearColor(0xffffff, 0);
     renderer.setPixelRatio(window.devicePixelRatio || 1);
 
@@ -11,19 +11,19 @@ export default ({ canvas, height, width, node }) => {
     renderer.domElement.style.position = "absolute";
     canvas.appendChild(renderer.domElement);
 
-    const camera = new THREE.PerspectiveCamera(20, width / height, 0.1, 1000);
+    const camera = new PerspectiveCamera(20, width / height, 0.1, 1000);
     camera.position.z = 5;
 
-    const cube = new THREE.Mesh(
-        new THREE.BoxGeometry(), 
-        new THREE.MeshStandardMaterial({ color: node.getAttribute("color") || "hotpink" })
+    const cube = new Mesh(
+        new BoxGeometry(), 
+        new MeshStandardMaterial({ color: node.getAttribute("color") || "hotpink" })
     );
     scene.add(cube);
     
-    const light = new THREE.PointLight(0x404040, 2, 100);
+    const light = new PointLight(0x404040, 2, 100);
     light.position.set(5, 5, 5);
     scene.add(light);
-    scene.add(new THREE.AmbientLight(0x404040, 1));
+    scene.add(new AmbientLight(0x404040, 1));
 
     return {
         time: 0,

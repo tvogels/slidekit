@@ -1,6 +1,6 @@
 export default class Canvas {
     dom: HTMLElement
-    private canvas: HTMLDivElement
+    canvas: HTMLDivElement
     private slideNumber: HTMLDivElement
     private width: number
     private height: number

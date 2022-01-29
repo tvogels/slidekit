@@ -13,7 +13,9 @@ type Script = {
     minimumDuration?: (t: number) => number,
 };
 
-export type ScriptTemplate = (context: { canvas: HTMLDivElement, width: number, height: number, node: HTMLElement }) => Script;
+export type ScriptContext = { canvas: HTMLDivElement, width: number, height: number, node: HTMLElement };
+
+export type ScriptTemplate = (context: ScriptContext) => Script;
 
 export type ExitTransitionSpec = {
     attribute: string,
@@ -34,7 +36,7 @@ type Callback = (number) => void;
  */
 export default class SlidePlayer {
     private visibleStage?: number = null;
-    private stages: Stage[];
+    stages: Stage[];
 
     private scripts: { [script: string]: Script } = {};
     private activeScriptsAtStage: { [stage: number]: Set<string> } = {};
@@ -135,7 +137,7 @@ export default class SlidePlayer {
                     continue;
                 }
                 if (this.scripts[identifier] == null) {
-                    const context = { canvas: this.canvas.canvas, width: this.deck.width, height: this.deck.height, node: scriptNode };
+                    const context: ScriptContext = { canvas: this.canvas.canvas, width: this.deck.width, height: this.deck.height, node: scriptNode as HTMLElement };
                     this.scripts[identifier] = { minimumDuration: () => 0, deactivate: () => null, name: identifier, ...template(context) }
                     this.scriptFirstOccurrence[identifier] = stageNumber;
                 }

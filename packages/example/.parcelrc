@@ -5,6 +5,7 @@
     "*.svg": ["parcel-transformer-slidekit-svg"],
     "*.sketch": ["parcel-transformer-slidekit-sketch"],
     "*.md": ["parcel-transformer-markdown"],
-    "*.{mov,mk4}": ["@parcel/transformer-raw"]
+    "*.{mov,mk4}": ["@parcel/transformer-raw"],
+    "*.pdb": ["@parcel/transformer-raw"]
   }
 }

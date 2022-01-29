@@ -4,7 +4,8 @@ import moment from "moment";
 import slides from "./highlight.sketch";
 import notes from "./presenter-notes.md";
 import bouncyAnimation from "./bouncyAnimation";
-import molecule from "./molecule"
+import cubeAnimation from "./cube"
+import moleculeAnimation from "./molecule"
 
 document.title = "SlideKit";  // title bar
 
@@ -16,7 +17,8 @@ const controller = new Controller(
         notes: new PresenterNotes(notes),
         scripts: {
             bouncy: bouncyAnimation,
-            molecule: molecule
+            molecule: moleculeAnimation,
+            cube: cubeAnimation
         }
     }
 );
