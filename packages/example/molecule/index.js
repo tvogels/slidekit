@@ -36,8 +36,6 @@ export default ({ canvas, height, width, node }) => {
 
     let object;
 
-    console.log(Object.keys(pdbs));
-
     loader.load(pdbs[node.getAttribute("molecule") || "caffeine"], function (pdb) {
         const geometryAtoms = pdb.geometryAtoms;
         const geometryBonds = pdb.geometryBonds;

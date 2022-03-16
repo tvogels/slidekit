@@ -59,7 +59,6 @@ function processNode(node, assets, root = null, idStack = []) {
         }
     }
 
-    // Make sure IDs from 'moving' elements are unique
     if (nodeType === Node.ELEMENT_NODE && node.hasAttribute("id")) {
         node.id = node.id.replace(/ /g, "-");
     }
@@ -79,7 +78,7 @@ function processNode(node, assets, root = null, idStack = []) {
     // | not meaningful for transitions.
     // | Any group that is not moving from one slide to the next can be deleted from the DOM hierarchy.
     if (nodeType === Node.ELEMENT_NODE && tagName === "g") {
-        const shouldBeRemoved = !node.hasAttribute("move") && !node.hasAttribute("clip-path");
+        const shouldBeRemoved = !node.hasAttribute("move") && !node.hasAttribute("keep") && !node.hasAttribute("clip-path");
         if (shouldBeRemoved) {
             const parent = node.parentNode;
             for (let child of [...node.childNodes]) {
