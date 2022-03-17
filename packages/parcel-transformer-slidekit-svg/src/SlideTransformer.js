@@ -30,7 +30,7 @@ export default (new Transformer({
 
         dom.setAttribute("width", parseInt(dom.getAttribute("width")));
         dom.setAttribute("height", parseInt(dom.getAttribute("height")));
-        
+
         const assets = [asset];
         processNode(dom, assets);
         removeDuplicateIds(dom);
@@ -69,8 +69,12 @@ function processNode(node, assets, root = null, idStack = []) {
 
     // Process video nodes
     if (nodeType === Node.ELEMENT_NODE && node.hasAttribute("video")) {
-        let depId = assets[0].addURLDependency("./" + node.getAttribute("video"));
-        node.setAttribute("video", depId);
+        const src = node.getAttribute("video");
+        const isLocalFile = !(src.startsWith("http://") || src.startsWith("https://"));
+        if (isLocalFile) {
+            let depId = assets[0].addURLDependency(`./${src}`);
+            node.setAttribute("video", depId);
+        }
     }
 
     // Remove some <g> tags and move their children up in the hierarchy
@@ -205,7 +209,7 @@ function processNode(node, assets, root = null, idStack = []) {
 
 function removeDuplicateIds(domNode) {
     const counts = {};
-    for(let node of domNode.querySelectorAll('[id]')) {
+    for (let node of domNode.querySelectorAll('[id]')) {
         var currentId = node.id ? node.id : "undefined";
         if (counts[currentId] == null) {
             counts[currentId] = 0;
@@ -214,7 +218,7 @@ function removeDuplicateIds(domNode) {
             counts[currentId]++;
         }
     }
-    for(let node of domNode.querySelectorAll('[id]')) {
+    for (let node of domNode.querySelectorAll('[id]')) {
         var currentId = node.id ? node.id : "undefined";
         if (counts[currentId] > 1) {
             node.removeAttribute("id");
