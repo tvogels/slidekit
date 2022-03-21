@@ -9,8 +9,8 @@ By annotating the SVG, you can build slide transitions with
 -   Presenter notes
 -   External web content
 -   Embedded videos
--   Scripted animations (through a flexible plugin system)
-
+-   Scripted animations (easily write your own plugins & transitions)
+-   Print to PDF (Chrome)
 
 
 https://user-images.githubusercontent.com/840825/159301945-66b53409-58a0-4c87-be25-a63fce87f71c.mp4
