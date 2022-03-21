@@ -1,15 +1,20 @@
-import hyperlink from "./hyperlink";
 import canvas from "./canvas";
+import hyperlink from "./hyperlink";
+import iframe from "./iframe";
 import scale from "./scale";
-import youtube from "./youtube";
+import stageSquasher from "./stageSquasher";
 import video from "./video";
+import youtube from "./youtube";
 
 export default {
-    hyperlink,
     canvas,
+    hyperlink,
+    iframe,
     scale,
-    youtube,
+    stageSquasher,
     video,
+    youtube,
+    stageSquasher,
 };
 
-export const defaultPreprocessors = [hyperlink, canvas, youtube, video];
+export const defaultPreprocessors = [hyperlink, canvas, iframe, youtube, video];
