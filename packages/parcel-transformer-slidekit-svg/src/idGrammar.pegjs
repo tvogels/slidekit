@@ -3,7 +3,7 @@ Syntax
   { return { id, attributes} }
 
 Attribute
-  = "[" key: AttributeKey value: AttributeValue? "]" 
+  = [\s]* "[" key: AttributeKey value: AttributeValue? "]" 
   { return {key, value} }
 
 AttributeValue
