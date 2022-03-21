@@ -36,6 +36,7 @@ Entry effects:
 -   `mynode[draw-line]` --- for paths, draw them from start to finish
 -   `mynode[fade-down]` --- fade in and come 20pix down
 -   `mynode[appear-along=PathId,5,0]` --- appear along a given path object, take 5 seconds, align at the begining of the transition
+-   [complete list](https://github.com/tvogels/slidekit/blob/master/packages/slidekit/src/transitions/index.ts#L10-L14)
 
 Exit effects:
 
@@ -46,6 +47,7 @@ External content:
 -   `rect[youtube=55bjCP9Fy5I]` will embed a YT video
 -   iframes
 -   embed video
+-   [complete list](https://github.com/tvogels/slidekit/blob/master/packages/slidekit/src/preprocessors/index.ts)
 
 Scripted animation / WebGL:
 
