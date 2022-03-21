@@ -47,7 +47,11 @@ function processNode(node, assets, root = null, idStack = []) {
     const { nodeType, tagName } = node;
     if (nodeType !== Node.TEXT_NODE && nodeType !== Node.COMMENT_NODE && nodeType !== Node.DOCUMENT_NODE) {
         if (node.id != null && node.id !== "") {
-            parsed = idParser(node.id);
+            try {
+                parsed = idParser(node.id);
+            } catch (error) {
+                throw new Error(`Failed to parse the ID ${node.id}`);
+            }
             node.id = parsed.id ?? "";
             for (let { key, value } of parsed.attributes) {
                 node.setAttribute(key, value ?? "");
