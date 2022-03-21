@@ -4,12 +4,12 @@ Draw your slides in a vector editor and export SVG.
 By annotating the SVG, you can build slide transitions with
 
 -   Incremental builds
--   Magic-move with precise control over slide-to-slide matching by object ID, and morphing of paths.
--   Fade-in and out.
+-   Magic-move, with matching by ID, and morphing of many attributes, including path shape.
+-   Fade-in and -out
 -   Presenter notes
 -   External web content
 -   Embedded videos
--   Scripted animations (easily write your own plugins & transitions)
+-   Scripted animations (Write your own plugins & transitions)
 -   Print to PDF (Chrome)
 
 
