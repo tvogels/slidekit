@@ -6,9 +6,16 @@ By annotating the SVG, you can build slide transitions with
 -   Incremental builds
 -   Magic-move with precise control over slide-to-slide matching by object ID, and morphing of paths.
 -   Fade-in and out.
+-   Presenter notes
 -   External web content
 -   Embedded videos
 -   Scripted animations (through a flexible plugin system)
+
+
+
+https://user-images.githubusercontent.com/840825/159301945-66b53409-58a0-4c87-be25-a63fce87f71c.mp4
+
+
 
 ## Minimal example
 
