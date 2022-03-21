@@ -9,7 +9,7 @@ export default {
     canvas,
     scale,
     youtube,
-    video
-}
+    video,
+};
 
 export const defaultPreprocessors = [hyperlink, canvas, youtube, video];

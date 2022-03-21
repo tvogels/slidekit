@@ -14,22 +14,22 @@ export function recordDurations(controller) {
 
     let current = {
         pos: controller.currentPosition,
-        start: moment.now()
+        start: moment.now(),
     };
 
-    controller.addRenderListener(dt => {
+    controller.addRenderListener((dt) => {
         if (current != null && dt !== current.pos) {
             durations.push({
                 step: current.pos,
                 start: current.start,
-                duration: moment.now() - current.start
+                duration: moment.now() - current.start,
             });
             current = null;
         }
         if (dt % 1 === 0) {
             current = {
                 pos: dt,
-                start: moment.now()
+                start: moment.now(),
             };
         }
     });
@@ -44,13 +44,14 @@ export function recordDurations(controller) {
                     step: current.pos,
                     start: current.start,
                     duration: moment.now() - current.start,
-                    transition: 0
-                }
+                    transition: 0,
+                },
             ];
             return data.map((d, i) => ({
                 ...d,
                 start: d.start - data[0].start,
-                transition: d.transition == null ? data[i + 1].start - d.start - d.duration : d.transition
+                transition:
+                    d.transition == null ? data[i + 1].start - d.start - d.duration : d.transition,
             }));
         }
     };
@@ -62,7 +63,7 @@ function wait(time) {
     });
 }
 
-export async function record(durationSpec, fps = 48, scale = 1.5/2, startAt=-1) {
+export async function record(durationSpec, fps = 48, scale = 1.5 / 2, startAt = -1) {
     // /usr/local/bin/ffmpeg -r 60 -i frame%05d.png -c:v libx264 -vf "fps=60,format=yuv420p" -an out.mp4
     //                          input framerate                           output framerate
 
@@ -79,7 +80,7 @@ export async function record(durationSpec, fps = 48, scale = 1.5/2, startAt=-1) 
         for (let i = 0; i < deck.numSteps(); ++i) {
             durationSpec.push({
                 step: i,
-                duration: defaultFrameDuration * 1000
+                duration: defaultFrameDuration * 1000,
             });
         }
     }
@@ -88,11 +89,17 @@ export async function record(durationSpec, fps = 48, scale = 1.5/2, startAt=-1) 
 
     function storeFrame() {
         if (frame <= startAt) {
-            frame++
+            frame++;
             return;
         }
-        return html2canvas(screen, {renderName: "screen", replaceSelector: "#main-screen"}).then(canvas => {
-            downloadDataUrl(canvas.toDataURL("image/png"), `frame${frame.toString().padStart(6, "0")}.png`);
+        return html2canvas(screen, {
+            renderName: "screen",
+            replaceSelector: "#main-screen",
+        }).then((canvas) => {
+            downloadDataUrl(
+                canvas.toDataURL("image/png"),
+                `frame${frame.toString().padStart(6, "0")}.png`
+            );
             frame++;
         });
     }

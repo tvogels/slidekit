@@ -1,13 +1,19 @@
-export type SlideSpec = { id: string, content: string };
+export type SlideSpec = { id: string; content: string };
 
 export type Step = {
-    slide: Slide,
-    numberWithinSlide: number,
-    number: number,
-    makeDom: () => HTMLElement,
+    slide: Slide;
+    numberWithinSlide: number;
+    number: number;
+    makeDom: () => HTMLElement;
 };
 
-export type Slide = { id: string, number: number, steps: Step[], width: number, height: number };
+export type Slide = {
+    id: string;
+    number: number;
+    steps: Step[];
+    width: number;
+    height: number;
+};
 
 export type DomPlugin = (HTMLElement) => void;
 
@@ -52,7 +58,12 @@ export default class SlideDeck {
                     slide,
                     numberWithinSlide: stageOfSlide,
                     number: stageNumber,
-                    makeDom: () => adaptDomToStage(svg.cloneNode(true) as HTMLElement, stageOfSlide, lastStage)
+                    makeDom: () =>
+                        adaptDomToStage(
+                            svg.cloneNode(true) as HTMLElement,
+                            stageOfSlide,
+                            lastStage
+                        ),
                 };
                 slide.steps.push(step);
                 this.steps.push(step);
@@ -162,13 +173,11 @@ function getVisibleStages(node: HTMLElement, lastStage: number) {
     return [min, max];
 }
 
-
 function svgStringToDom(string) {
     const html = document.createElement("html");
     html.innerHTML = `${string}`;
     return html.querySelector("svg") as any as HTMLElement;
 }
-
 
 /**
  * Find the largest stage number encountered in a node's descendant's attributes

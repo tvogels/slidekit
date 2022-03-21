@@ -12,14 +12,14 @@ By annotating the SVG, you can build slide transitions with
 
 ## Minimal example
 
-- [Sketch template](https://github.com/tvogels/slidekit-example-sketch)
+-   [Sketch template](https://github.com/tvogels/slidekit-example-sketch)
 
 ## SVG features
 
 You can add attributes to any SVG element
 
--  __Step-wise appearance:__ use tags `[stage=1]` or `[stage=3-5]`
--  __Magic move__ `mynode[move=1.5]` --- 1.5 second morph. Interpolates be color, position, rotation, etc. Supports complex paths.
+-   **Step-wise appearance:** use tags `[stage=1]` or `[stage=3-5]`
+-   **Magic move** `mynode[move=1.5]` --- 1.5 second morph. Interpolates be color, position, rotation, etc. Supports complex paths.
 
 Entry effects:
 

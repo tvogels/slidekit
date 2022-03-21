@@ -4,53 +4,53 @@ import "./shortcuts.css";
 const shortcuts = [
     {
         keys: "Arrows, [, ]",
-        action: "Next/previous step"
+        action: "Next/previous step",
     },
     {
         keys: "Shift + Arrows",
-        action: "Next/previous complete slide (skip animations)"
+        action: "Next/previous complete slide (skip animations)",
     },
     {
         keys: "Home / End",
-        action: "Jump to the first/last slide"
+        action: "Jump to the first/last slide",
     },
     {
         keys: "G 10 Enter",
-        action: "Jump to slide 10"
+        action: "Jump to slide 10",
     },
     {
         keys: "C / P",
-        action: "Open the cockpit / presenter window"
+        action: "Open the cockpit / presenter window",
     },
     {
         keys: "F",
-        action: "Enter full-screen mode"
+        action: "Enter full-screen mode",
     },
     {
         keys: "T",
-        action: "Start/stop the timer"
+        action: "Start/stop the timer",
     },
     {
         keys: "R",
-        action: "Reset the timer"
+        action: "Reset the timer",
     },
     {
         keys: "Q",
-        action: "Close the cockpit window"
+        action: "Close the cockpit window",
     },
     {
         keys: "B",
-        action: "Toggle 'black out'"
+        action: "Toggle 'black out'",
     },
     {
         keys: "W",
-        action: "Toggle 'black out' in color white"
-    }
+        action: "Toggle 'black out' in color white",
+    },
 ];
 
 export default class Shortcuts {
-    private div: HTMLDivElement
-    private controller: Controller
+    private div: HTMLDivElement;
+    private controller: Controller;
 
     constructor(controller: Controller) {
         this.close = this.close.bind(this);

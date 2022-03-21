@@ -2,7 +2,6 @@ import { getAngleAtPath } from "../utils";
 import snap from "snapsvg";
 import { Stage } from "../slideplayer";
 
-
 export const attribute = "appear-along";
 
 export function create(node: HTMLElement, ghostNode: HTMLElement, stage: Stage, nextStage: Stage) {
@@ -17,21 +16,23 @@ export function create(node: HTMLElement, ghostNode: HTMLElement, stage: Stage, 
     const endpoint = path.getPointAtLength(totalPathLength);
     const angleAtEndpoint = getAngleAtPath(path, 1.0, totalPathLength);
     const originalTransform = node.getAttribute("transform") || "";
-    return [{
-        duration: transitionDuration(node),
-        alignment: transitionAlignment(node),
-        mode: "easeInOutQuad",
-        callback: dt => {
-            ghostNode.setAttribute("opacity", dt > 0 ? "1" : "0");
-            const pos = path.getPointAtLength(dt * totalPathLength);
-            pos.x -= endpoint.x;
-            pos.y -= endpoint.y;
-            const angle = getAngleAtPath(path, dt, totalPathLength) - angleAtEndpoint;
-            const transform = `${originalTransform} translate(${pos.x}, ${pos.y}) rotate(${angle}, ${endpoint.x}, ${endpoint.y})`;
-            ghostNode.setAttribute("transform", transform);
-        }
-    }]
-};
+    return [
+        {
+            duration: transitionDuration(node),
+            alignment: transitionAlignment(node),
+            mode: "easeInOutQuad",
+            callback: (dt) => {
+                ghostNode.setAttribute("opacity", dt > 0 ? "1" : "0");
+                const pos = path.getPointAtLength(dt * totalPathLength);
+                pos.x -= endpoint.x;
+                pos.y -= endpoint.y;
+                const angle = getAngleAtPath(path, dt, totalPathLength) - angleAtEndpoint;
+                const transform = `${originalTransform} translate(${pos.x}, ${pos.y}) rotate(${angle}, ${endpoint.x}, ${endpoint.y})`;
+                ghostNode.setAttribute("transform", transform);
+            },
+        },
+    ];
+}
 
 function transitionDuration(node: Element): number {
     if (node.hasAttribute("enter-duration")) {

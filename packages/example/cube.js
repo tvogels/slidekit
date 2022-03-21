@@ -1,4 +1,14 @@
-import { BoxGeometry, WebGLRenderer, Scene, MeshStandardMaterial, Mesh, PerspectiveCamera, PointLight, AmbientLight, MeshBasicMaterial } from 'three';
+import {
+    BoxGeometry,
+    WebGLRenderer,
+    Scene,
+    MeshStandardMaterial,
+    Mesh,
+    PerspectiveCamera,
+    PointLight,
+    AmbientLight,
+    MeshBasicMaterial,
+} from "three";
 
 export default ({ canvas, height, width, node }) => {
     const scene = new Scene();
@@ -16,7 +26,9 @@ export default ({ canvas, height, width, node }) => {
 
     const cube = new Mesh(
         new BoxGeometry(),
-        new MeshStandardMaterial({ color: node.getAttribute("color") || "hotpink" })
+        new MeshStandardMaterial({
+            color: node.getAttribute("color") || "hotpink",
+        })
     );
     scene.add(cube);
 
@@ -28,8 +40,8 @@ export default ({ canvas, height, width, node }) => {
     return {
         time: 0,
         tick(t) {
-            cube.rotation.x = .6 + t;
-            cube.rotation.y = .6 + t;
+            cube.rotation.x = 0.6 + t;
+            cube.rotation.y = 0.6 + t;
             renderer.render(scene, camera);
         },
         deactivate() {
@@ -43,11 +55,11 @@ export default ({ canvas, height, width, node }) => {
             const width = node.getAttribute("width");
             const height = node.getAttribute("height");
             renderer.setSize(width, height);
-            camera.aspect = width/ height;
+            camera.aspect = width / height;
             camera.updateProjectionMatrix();
         },
         minimumDuration() {
             return 1;
-        }
-    }
+        },
+    };
 };

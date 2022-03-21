@@ -1,8 +1,13 @@
 import snap from "snapsvg";
 import CSSTransform from "../utils/css-transform";
 import { linearMix } from "../utils";
-import { getMoveElementById, parseTransitionAlignment, parseTransitionDuration, Transition } from "./utils";
-import { Stage } from '../slideplayer';
+import {
+    getMoveElementById,
+    parseTransitionAlignment,
+    parseTransitionDuration,
+    Transition,
+} from "./utils";
+import { Stage } from "../slideplayer";
 
 export const attribute = "move";
 
@@ -12,16 +17,26 @@ export function create(node: HTMLElement, stage: Stage, nextStage: Stage) {
     const id = node.getAttribute("id");
     const nodeInNextStage = nextStage.dom.querySelector(`#${id}`);
     if (nodeInNextStage == null) {
-        console.error(`Failed to match node ${node.id} in stage ${stage.step.slide.id}/${stage.step.numberWithinSlide} to a node in the next stage.`);
+        console.error(
+            `Failed to match node ${node.id} in stage ${stage.step.slide.id}/${stage.step.numberWithinSlide} to a node in the next stage.`
+        );
         return [];
     }
 
     const duration = parseTransitionDuration(node, "move", 0.5);
     const alignment = parseTransitionAlignment(node, "move", 0.5);
 
-    const attributes = new Set([...node.getAttributeNames(), ...nodeInNextStage.getAttributeNames()]);
+    const attributes = new Set([
+        ...node.getAttributeNames(),
+        ...nodeInNextStage.getAttributeNames(),
+    ]);
     for (let attribute of attributes) {
-        let defaultValue = { opacity: "1", "fill-opacity": "1", transform: "", style: "" }[attribute];
+        let defaultValue = {
+            opacity: "1",
+            "fill-opacity": "1",
+            transform: "",
+            style: "",
+        }[attribute];
         if (defaultValue == null) {
             defaultValue = "0.0";
         }
@@ -35,9 +50,9 @@ export function create(node: HTMLElement, stage: Stage, nextStage: Stage) {
                     duration,
                     alignment,
                     mode: "easeInOutQuad",
-                    callback: dt => {
+                    callback: (dt) => {
                         node.setAttribute(attribute, eq.f(linearMix(eq.from, eq.to, dt)));
-                    }
+                    },
                 });
             } else if (["fill", "stroke"].includes(attribute)) {
                 const c1 = snap.color(currentValue);
@@ -48,9 +63,9 @@ export function create(node: HTMLElement, stage: Stage, nextStage: Stage) {
                     duration,
                     alignment,
                     mode: "easeInOutQuad",
-                    callback: dt => {
+                    callback: (dt) => {
                         node.setAttribute(attribute, snap.rgb(...linearMix(from, to, dt)));
-                    }
+                    },
                 });
             } else if (
                 [
@@ -68,19 +83,19 @@ export function create(node: HTMLElement, stage: Stage, nextStage: Stage) {
                     "x2",
                     "y1",
                     "y2",
-                    "font-size"
+                    "font-size",
                 ].includes(attribute)
             ) {
                 transitions.push({
                     duration,
                     alignment,
                     mode: "easeInOutQuad",
-                    callback: dt => {
+                    callback: (dt) => {
                         node.setAttribute(
                             attribute,
                             linearMix(parseFloat(currentValue), parseFloat(nextValue), dt)
                         );
-                    }
+                    },
                 });
             } else if (attribute === "transform") {
                 const a = new CSSTransform(currentValue);
@@ -89,14 +104,23 @@ export function create(node: HTMLElement, stage: Stage, nextStage: Stage) {
                     duration,
                     alignment,
                     mode: "easeInOutQuad",
-                    callback: dt => {
+                    callback: (dt) => {
                         node.setAttribute(attribute, a.mixString(b, dt));
-                    }
+                    },
                 });
             } else if (
-                ["move", "fade-in", "fade-out", "appear-along", "draw-line", "class", "stage", "min-stage", "max-stage", "href"].includes(
-                    attribute
-                )
+                [
+                    "move",
+                    "fade-in",
+                    "fade-out",
+                    "appear-along",
+                    "draw-line",
+                    "class",
+                    "stage",
+                    "min-stage",
+                    "max-stage",
+                    "href",
+                ].includes(attribute)
             ) {
                 // Nothing to do
             } else {
@@ -108,4 +132,4 @@ export function create(node: HTMLElement, stage: Stage, nextStage: Stage) {
     }
 
     return transitions;
-};
+}

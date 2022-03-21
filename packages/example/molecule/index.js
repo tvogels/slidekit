@@ -1,8 +1,20 @@
-import { BoxGeometry, WebGLRenderer, Scene, Mesh, PerspectiveCamera, Color, DirectionalLight, Group, IcosahedronGeometry, Vector3, MeshPhongMaterial } from 'three';
-import { PDBLoader } from './PDBLoader.js';
-import pdbs from "./*.pdb"
+import {
+    BoxGeometry,
+    WebGLRenderer,
+    Scene,
+    Mesh,
+    PerspectiveCamera,
+    Color,
+    DirectionalLight,
+    Group,
+    IcosahedronGeometry,
+    Vector3,
+    MeshPhongMaterial,
+} from "three";
+import { PDBLoader } from "./PDBLoader.js";
+import pdbs from "./*.pdb";
 
-const easeInOutQuad = t => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t);
+const easeInOutQuad = (t) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t);
 
 export default ({ canvas, height, width, node }) => {
     const loader = new PDBLoader();
@@ -28,7 +40,7 @@ export default ({ canvas, height, width, node }) => {
     const offset = new Vector3();
 
     const light2 = new DirectionalLight(0xffffff, 0.5);
-    light2.position.set(- 1, - 1, 1);
+    light2.position.set(-1, -1, 1);
     scene.add(light2);
 
     root = new Group();
@@ -49,14 +61,13 @@ export default ({ canvas, height, width, node }) => {
         geometryAtoms.translate(offset.x, offset.y, offset.z);
         geometryBonds.translate(offset.x, offset.y, offset.z);
 
-        let positions = geometryAtoms.getAttribute('position');
-        const colors = geometryAtoms.getAttribute('color');
+        let positions = geometryAtoms.getAttribute("position");
+        const colors = geometryAtoms.getAttribute("color");
 
         const position = new Vector3();
         const color = new Color();
 
         for (let i = 0; i < positions.count; i++) {
-
             position.x = positions.getX(i);
             position.y = positions.getY(i);
             position.z = positions.getZ(i);
@@ -74,13 +85,12 @@ export default ({ canvas, height, width, node }) => {
             root.add(object);
         }
 
-        positions = geometryBonds.getAttribute('position');
+        positions = geometryBonds.getAttribute("position");
 
         const start = new Vector3();
         const end = new Vector3();
 
         for (let i = 0; i < positions.count; i += 2) {
-
             start.x = positions.getX(i);
             start.y = positions.getY(i);
             start.z = positions.getZ(i);
@@ -112,11 +122,7 @@ export default ({ canvas, height, width, node }) => {
                 return requestAnimationFrame(this.render.bind(this));
             }
             const morphT = Math.floor(this.time) + easeInOutQuad(this.time % 1);
-            root.rotation.set(
-                0,
-                0.5 * Math.PI * morphT,
-                0
-            );
+            root.rotation.set(0, 0.5 * Math.PI * morphT, 0);
             renderer.render(scene, camera);
         },
         deactivate() {
@@ -134,7 +140,7 @@ export default ({ canvas, height, width, node }) => {
             camera.updateProjectionMatrix();
         },
         minimumDuration() {
-            return .5;
-        }
-    }
+            return 0.5;
+        },
+    };
 };

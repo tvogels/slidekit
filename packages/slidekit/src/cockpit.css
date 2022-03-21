@@ -32,7 +32,7 @@
     aspect-ratio: 1.778;
     overflow: hidden;
     position: relative;
-    transition: opacity ease-in-out .1s;
+    transition: opacity ease-in-out 0.1s;
 }
 
 .slidekit-cockpit-notes {
@@ -99,24 +99,24 @@
     padding: 2.5em;
     text-align: center;
     color: #ccc;
-    background-color: rgba(0,0,0,0.9);
+    background-color: rgba(0, 0, 0, 0.9);
     display: none;
 }
 
 @media (prefers-color-scheme: dark) {
     .slidekit-cockpit-stage {
-        background-color: rgb(68,68,68);
+        background-color: rgb(68, 68, 68);
         color: #ddd;
     }
     .slidekit-cockpit-stage:active {
         background-color: rgb(58, 58, 58);
     }
     .slidekit-cockpit-progress-bar {
-        background-color: rgb(68,68,68);
+        background-color: rgb(68, 68, 68);
         color: #ddd;
     }
     .slidekit-cockpit-notes {
-        background-color: rgb(68,68,68);
+        background-color: rgb(68, 68, 68);
         color: #ddd;
     }
     .slidekit-cockpit-notes strong {
