@@ -57,7 +57,7 @@ External content:
 
 Scripted animation / WebGL:
 
-See [./example](./packages/examle).
+See [./packages/example/molecule/index.js](packages/example).
 
 ## Shortcuts
 
