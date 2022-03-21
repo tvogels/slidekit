@@ -10,11 +10,18 @@ By annotating the SVG, you can build slide transitions with
 -   Embedded videos
 -   Scripted animations (through a flexible plugin system)
 
-## Step-wise appearance of nodes
+## Minimal example
 
--   Use tags like `[stage=1]` or `[stage=3-5]` in your IDs.
+- [Sketch template](https://github.com/tvogels/slidekit-example-sketch)
 
-## Entry animation
+## SVG features
+
+You can add attributes to any SVG element 
+
+-  __Step-wise appearance:__ use tags `[stage=1]` or `[stage=3-5]`
+-  __Magic move__ `mynode[move=1.5]` --- 1.5 second morph. Interpolates be color, position, rotation, etc. Supports complex paths.
+
+Entry effects: 
 
 -   `mynode[fade-in]`
 -   `mynode[fade-in=2]` --- fade in, taking 2 seconds
@@ -23,21 +30,19 @@ By annotating the SVG, you can build slide transitions with
 -   `mynode[fade-down]` --- fade in and come 20pix down
 -   `mynode[appear-along=PathId,5,0]` --- appear along a given path object, take 5 seconds, align at the begining of the transition
 
-## Transitioning objects from one stage to the next
-
--   `mynode[move=1.5]` --- 1.5 second morph .. could be color, position, rotation, ... will be morphed
-
-## Exit animation
+Exit effects: 
 
 -   `mynode[fade-out=1]` --- 1 second fade out
 
-## External content
+External content:
 
 -   `rect[youtube=55bjCP9Fy5I]` will embed a YT video
+-   iframes
+-   embed video
 
-## Scripted animation
+Scripted animation / WebGL:
 
-Documentation & example TBD. See `Controller.registerAnimation`.
+See [./example](./packages/examle).
 
 ## Shortcuts
 
