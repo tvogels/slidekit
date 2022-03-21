@@ -70,8 +70,6 @@ export default class Cockpit {
             this.currentNotes = null;
         }
 
-
-
         // Register a render hook for the cockpit on the controller
         controller.addRenderListener(this.render);
         this.window.addEventListener("unload", () => controller.removeRenderListener(this.render));
@@ -92,7 +90,7 @@ export default class Cockpit {
 
     render(t) {
         this.currentSlidePlayer.render(t);
-        if (t%1 === 0) {
+        if (t % 1 === 0) {
             this.nextSlidePlayer.canvas.dom.style.opacity = "1.0";
             this.nextSlidePlayer.render(Math.min(t + 1, this.controller.deck.numSlides() - 1));
         } else {
@@ -143,8 +141,8 @@ export default class Cockpit {
         // Clear any text that is already in the window
         this.head.innerHTML = `
             <style>
-                html, body { 
-                    height: 100%; 
+                html, body {
+                    height: 100%;
                 }
                 body {
                     margin: 0;
@@ -192,11 +190,12 @@ export default class Cockpit {
         this.document.title = "Cockpit";
 
         this.visibilityListener = (e) => {
-            const node = this.document.querySelector(".slidekit-main-window-invisible") as HTMLElement;
+            const node = this.document.querySelector(
+                ".slidekit-main-window-invisible"
+            ) as HTMLElement;
             node.style.display = document.visibilityState === "visible" ? "none" : "block";
         };
-        document.addEventListener('visibilitychange', this.visibilityListener);
-
+        document.addEventListener("visibilitychange", this.visibilityListener);
     }
 
     scaleSVGsToFit() {

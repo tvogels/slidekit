@@ -8,13 +8,18 @@ export default function (dom: HTMLElement) {
 
         // Create a <foreignObject> svg node that has the same size
         // as the original rectangle
-        const foreignObject = document.createElementNS("http://www.w3.org/2000/svg", "foreignObject");
+        const foreignObject = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "foreignObject"
+        );
         foreignObject.setAttribute("x", node.getAttribute("x"));
         foreignObject.setAttribute("y", node.getAttribute("y"));
         foreignObject.setAttribute("height", node.getAttribute("height"));
         foreignObject.setAttribute("width", node.getAttribute("width"));
 
-        foreignObject.innerHTML = `<iframe width="${node.getAttribute("width")}" height="${node.getAttribute(
+        foreignObject.innerHTML = `<iframe width="${node.getAttribute(
+            "width"
+        )}" height="${node.getAttribute(
             "height"
         )}" src="https://www.youtube.com/embed/${id}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
 

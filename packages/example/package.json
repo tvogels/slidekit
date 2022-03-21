@@ -1,20 +1,20 @@
 {
-  "name": "example",
-  "version": "1.0.0",
-  "private": true,
-  "scripts": {
-    "build": "parcel build index.html",
-    "watch": "parcel index.html"
-  },
-  "dependencies": {
-    "moment": "^2.29.1",
-    "slidekit": "^0.0.1"
-  },
-  "devDependencies": {
-    "parcel": "^2.2.1",
-    "parcel-resolver-glob-slidekit": "^2.2.1",
-    "parcel-transformer-markdown": "^2.0.1",
-    "parcel-transformer-slidekit-svg": "^0.0.1",
-    "parcel-transformer-slidekit-sketch": "^0.0.1"
-  }
+    "name": "example",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "build": "parcel build index.html",
+        "watch": "parcel index.html"
+    },
+    "dependencies": {
+        "moment": "^2.29.1",
+        "slidekit": "^0.0.1"
+    },
+    "devDependencies": {
+        "parcel": "^2.2.1",
+        "parcel-resolver-glob-slidekit": "^2.2.1",
+        "parcel-transformer-markdown": "^2.0.1",
+        "parcel-transformer-slidekit-svg": "^0.0.1",
+        "parcel-transformer-slidekit-sketch": "^0.0.1"
+    }
 }

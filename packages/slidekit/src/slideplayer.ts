@@ -1,31 +1,41 @@
 import easing from "./utils/easing";
 
-import SlideDeck, { Step } from "./slidedeck"
-import Canvas from "./canvas"
+import SlideDeck, { Step } from "./slidedeck";
+import Canvas from "./canvas";
 import { isEntering, isExiting, Transition, insertGhostNode } from "./transitions/utils";
-import { defaultEnterTransitions, defaultExitTransitions } from "./transitions"
+import { defaultEnterTransitions, defaultExitTransitions } from "./transitions";
 
 type Script = {
-    name?: string,
-    setNode: (node: HTMLElement) => void,
-    deactivate?: () => void,
-    tick: (dt: number) => void,
-    minimumDuration?: (t: number) => number,
+    name?: string;
+    setNode: (node: HTMLElement) => void;
+    deactivate?: () => void;
+    tick: (dt: number) => void;
+    minimumDuration?: (t: number) => number;
 };
 
-export type ScriptContext = { canvas: HTMLDivElement, width: number, height: number, node: HTMLElement };
+export type ScriptContext = {
+    canvas: HTMLDivElement;
+    width: number;
+    height: number;
+    node: HTMLElement;
+};
 
 export type ScriptTemplate = (context: ScriptContext) => Script;
 
 export type ExitTransitionSpec = {
-    attribute: string,
-    create: (node: HTMLElement, stage: Stage, nextStage: Stage) => Transition[]
-}
+    attribute: string;
+    create: (node: HTMLElement, stage: Stage, nextStage: Stage) => Transition[];
+};
 
 export type EnterTransitionSpec = {
-    attribute: string,
-    create: (node: HTMLElement, ghostNode: HTMLElement, stage: Stage, nextStage: Stage) => Transition[]
-}
+    attribute: string;
+    create: (
+        node: HTMLElement,
+        ghostNode: HTMLElement,
+        stage: Stage,
+        nextStage: Stage
+    ) => Transition[];
+};
 
 type Callback = (number) => void;
 
@@ -44,13 +54,13 @@ export default class SlidePlayer {
     private scriptNodes: { [scriptAndStage: string]: HTMLElement } = {};
 
     constructor(
-        public canvas: Canvas, 
-        private deck: SlideDeck, 
+        public canvas: Canvas,
+        private deck: SlideDeck,
         scripts: { [name: string]: ScriptTemplate } | undefined,
         private exitTransitions: ExitTransitionSpec[] = defaultExitTransitions,
-        private enterTransitions: EnterTransitionSpec[] = defaultEnterTransitions,
+        private enterTransitions: EnterTransitionSpec[] = defaultEnterTransitions
     ) {
-        this.stages = deck.steps.map(step => new Stage(step));
+        this.stages = deck.steps.map((step) => new Stage(step));
 
         this.instantiateTransitions();
 
@@ -98,7 +108,9 @@ export default class SlidePlayer {
                 if (isExiting(node, stage.step)) {
                     for (let spec of this.exitTransitions) {
                         if (node.hasAttribute(spec.attribute)) {
-                            spec.create(node as HTMLElement, stage, nextStage).forEach(stage.addTransition);
+                            spec.create(node as HTMLElement, stage, nextStage).forEach(
+                                stage.addTransition
+                            );
                         }
                     }
                 }
@@ -113,7 +125,9 @@ export default class SlidePlayer {
                             if (ghostNode == null) {
                                 ghostNode = insertGhostNode(node as HTMLElement, stage.dom);
                             }
-                            spec.create(node as HTMLElement, ghostNode, stage, nextStage).forEach(stage.addTransition);
+                            spec.create(node as HTMLElement, ghostNode, stage, nextStage).forEach(
+                                stage.addTransition
+                            );
                         }
                     }
                 }
@@ -133,17 +147,34 @@ export default class SlidePlayer {
                 const identifier = `${scriptName}/${nodeId}`;
                 const template = scriptTemplates[scriptName];
                 if (template == null) {
-                    console.error(`Missing script definition ${scriptName} requested by node ${nodeId} at stage ${stageNumber}.`);
+                    console.error(
+                        `Missing script definition ${scriptName} requested by node ${nodeId} at stage ${stageNumber}.`
+                    );
                     continue;
                 }
                 if (this.scripts[identifier] == null) {
-                    const context: ScriptContext = { canvas: this.canvas.canvas, width: this.deck.width, height: this.deck.height, node: scriptNode as HTMLElement };
-                    this.scripts[identifier] = { minimumDuration: () => 0, deactivate: () => null, name: identifier, ...template(context) }
+                    const context: ScriptContext = {
+                        canvas: this.canvas.canvas,
+                        width: this.deck.width,
+                        height: this.deck.height,
+                        node: scriptNode as HTMLElement,
+                    };
+                    this.scripts[identifier] = {
+                        minimumDuration: () => 0,
+                        deactivate: () => null,
+                        name: identifier,
+                        ...template(context),
+                    };
                     this.scriptFirstOccurrence[identifier] = stageNumber;
                 }
                 this.activeScriptsAtStage[stageNumber].add(identifier);
-                this.scriptNodes[`${scriptName}/${nodeId}/${stageNumber}`] = scriptNode as HTMLElement;
-                stage.reportTransitionDuration(this.scripts[identifier].minimumDuration(stageNumber - this.scriptFirstOccurrence[identifier]));
+                this.scriptNodes[`${scriptName}/${nodeId}/${stageNumber}`] =
+                    scriptNode as HTMLElement;
+                stage.reportTransitionDuration(
+                    this.scripts[identifier].minimumDuration(
+                        stageNumber - this.scriptFirstOccurrence[identifier]
+                    )
+                );
             }
         }
     }
@@ -161,10 +192,10 @@ export default class SlidePlayer {
  * It basically defines the transition
  */
 export class Stage {
-    dom: HTMLElement
-    scriptInstances: { script: string, node: string }[]
-    private transitions: Callback[]
-    private transitionDuration: number
+    dom: HTMLElement;
+    scriptInstances: { script: string; node: string }[];
+    private transitions: Callback[];
+    private transitionDuration: number;
 
     constructor(public step: Step) {
         this.dom = step.makeDom();
@@ -183,7 +214,7 @@ export class Stage {
      * @param {number} dt between 0 and 1
      */
     render(dt: number) {
-        this.transitions.forEach(t => t(dt));
+        this.transitions.forEach((t) => t(dt));
     }
 
     reportTransitionDuration(duration) {
@@ -192,10 +223,14 @@ export class Stage {
 
     addTransition({ duration, alignment, mode, callback }: Transition) {
         this.reportTransitionDuration(duration);
-        this.transitions.push(t => {
+        this.transitions.push((t) => {
             const leftOverTime = this.duration() - duration;
             const startOffset = leftOverTime * alignment;
-            callback(easing[mode](Math.min(1, Math.max(0, (t * this.duration() - startOffset) / duration))));
+            callback(
+                easing[mode](
+                    Math.min(1, Math.max(0, (t * this.duration() - startOffset) / duration))
+                )
+            );
         });
     }
 

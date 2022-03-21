@@ -11,16 +11,16 @@ import { defaultEnterTransitions, defaultExitTransitions } from "./transitions";
 import { defaultPreprocessors } from "./preprocessors";
 import * as Hammer from "hammerjs";
 
-type Hook = (number) => void
+type Hook = (number) => void;
 
 type Options = {
-    duration?: Duration,
-    notes?: PresenterNotes,
-    preprocessors?: DomPlugin[],
-    scripts?: { [script: string]: ScriptTemplate }
-    exitTransitions?: ExitTransitionSpec[],
-    enterTransitions?: EnterTransitionSpec[],
-}
+    duration?: Duration;
+    notes?: PresenterNotes;
+    preprocessors?: DomPlugin[];
+    scripts?: { [script: string]: ScriptTemplate };
+    exitTransitions?: ExitTransitionSpec[];
+    enterTransitions?: EnterTransitionSpec[];
+};
 export default class Controller {
     shortcuts?: Shortcuts;
     deck: SlideDeck;
@@ -40,12 +40,23 @@ export default class Controller {
     private historyPosition?: number = null;
     private printSection: HTMLElement;
 
-    constructor(slides: SlideSpec[], root: HTMLDivElement, { duration, notes, scripts, preprocessors = [], enterTransitions = [], exitTransitions = [] }: Options) {
+    constructor(
+        slides: SlideSpec[],
+        root: HTMLDivElement,
+        {
+            duration,
+            notes,
+            scripts,
+            preprocessors = [],
+            enterTransitions = [],
+            exitTransitions = [],
+        }: Options
+    ) {
         if (slides.length == 0) {
             throw new Error("Slide list is empty");
         }
 
-        const deck = new SlideDeck(slides, [...defaultPreprocessors, ...preprocessors])
+        const deck = new SlideDeck(slides, [...defaultPreprocessors, ...preprocessors]);
         this.deck = deck;
         const canvas = document.createElement("div");
         root.appendChild(canvas);
@@ -55,14 +66,17 @@ export default class Controller {
         this.fullscreenNode = canvas.parentElement;
         this.timer = new Timer(duration);
         this.player = new SlidePlayer(
-            this.canvas, 
-            this.deck, 
-            scripts, 
+            this.canvas,
+            this.deck,
+            scripts,
             [...defaultExitTransitions, ...exitTransitions],
             [...defaultEnterTransitions, ...enterTransitions]
         );
 
-        this.currentPosition = Math.min(this.deck.numSteps() - 1, Math.max(0, this.getPositionFromHash()));
+        this.currentPosition = Math.min(
+            this.deck.numSteps() - 1,
+            Math.max(0, this.getPositionFromHash())
+        );
 
         this.render = this.render.bind(this);
         this.fullscreenHandler = this.fullscreenHandler.bind(this);
@@ -84,7 +98,7 @@ export default class Controller {
         });
 
         // Browser history
-        window.addEventListener("popstate", event => {
+        window.addEventListener("popstate", (event) => {
             const location = this.getPositionFromHash();
             this.historyPosition = location;
             this.setPosition(location);
@@ -104,16 +118,15 @@ export default class Controller {
             if (e.pointerType !== "touch") return;
             const rect = root.getBoundingClientRect();
             const x = (e.center.x - rect.x) / rect.width;
-            if (x < .2) {
+            if (x < 0.2) {
                 this.prevStage();
-            } else if (x > .8) {
+            } else if (x > 0.8) {
                 this.nextStage();
             }
-        })
+        });
 
         // Render for the first time
         requestAnimationFrame(this.render);
-
     }
 
     render() {
@@ -126,7 +139,11 @@ export default class Controller {
                 this.currentPosition === Math.floor(this.currentPosition) &&
                 this.currentPosition !== this.historyPosition
             ) {
-                history.pushState({ position: this.currentPosition }, "", `#${this.currentPosition}`);
+                history.pushState(
+                    { position: this.currentPosition },
+                    "",
+                    `#${this.currentPosition}`
+                );
             }
         }
         requestAnimationFrame(this.render);
@@ -142,7 +159,10 @@ export default class Controller {
 
     nextStage() {
         if (!this.cancelRunningAnimation("right")) {
-            const targetPosition = Math.min(this.deck.numSteps() - 1, Math.floor(this.currentPosition) + 1);
+            const targetPosition = Math.min(
+                this.deck.numSteps() - 1,
+                Math.floor(this.currentPosition) + 1
+            );
             const duration = this.durationBetweenPoints(this.currentPosition, targetPosition);
             if (duration === 0) {
                 this.setPosition(targetPosition);
@@ -259,7 +279,7 @@ export default class Controller {
         } else if (event.key === "g") {
             // Go to slide ...
             let number = "";
-            const handler = event => {
+            const handler = (event) => {
                 if ("0123456789".includes(event.key)) {
                     number += event.key;
                 } else {
@@ -299,9 +319,15 @@ export default class Controller {
         if (wasRunning) {
             clearInterval(this.runningAnimation);
             if (snapTo === "right") {
-                this.currentPosition = Math.max(this.runningAnimationStart, this.runningAnimationTarget);
+                this.currentPosition = Math.max(
+                    this.runningAnimationStart,
+                    this.runningAnimationTarget
+                );
             } else {
-                this.currentPosition = Math.min(this.runningAnimationStart, this.runningAnimationTarget);
+                this.currentPosition = Math.min(
+                    this.runningAnimationStart,
+                    this.runningAnimationTarget
+                );
             }
             this.runningAnimation = null;
             this.runningAnimationTarget = null;
@@ -321,9 +347,9 @@ export default class Controller {
     private populatePrintSection() {
         const style = document.createElement("style");
         style.setAttribute("rel", "stylesheet");
-        style.innerHTML = `        
-            @page { 
-                margin: 0; 
+        style.innerHTML = `
+            @page {
+                margin: 0;
                 padding: 0;
                 size: ${this.deck.width}px ${this.deck.height}px;
             }
@@ -342,10 +368,10 @@ export default class Controller {
                 iframe.contentDocument.body.style.margin = "0";
                 iframe.contentDocument.body.style.padding = "0";
                 const stepNumber = slide.steps[slide.steps.length - 1].number;
-                iframe.contentDocument.body.innerHTML = this.player.stages[stepNumber].dom.outerHTML;
-            })
+                iframe.contentDocument.body.innerHTML =
+                    this.player.stages[stepNumber].dom.outerHTML;
+            });
             this.printSection.appendChild(iframe);
         }
     }
-
 }

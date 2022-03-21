@@ -1,8 +1,8 @@
-import { Transformer } from '@parcel/plugin';
-import idParser from './idParser.js';
-import Base64 from 'crypto-js/enc-base64';
-import md5 from 'crypto-js/md5';
-import Latin1 from 'crypto-js/enc-latin1';
+import { Transformer } from "@parcel/plugin";
+import idParser from "./idParser.js";
+import Base64 from "crypto-js/enc-base64";
+import md5 from "crypto-js/md5";
+import Latin1 from "crypto-js/enc-latin1";
 import { JSDOM } from "jsdom";
 
 const dom = new JSDOM("");
@@ -19,18 +19,18 @@ const Node = {
     DOCUMENT_NODE: 9,
     DOCUMENT_TYPE_NODE: 10,
     DOCUMENT_FRAGMENT_NODE: 11,
-    NOTATION_NODE: 12 // historical
+    NOTATION_NODE: 12, // historical
 };
 
-export default (new Transformer({
+export default new Transformer({
     async transform({ asset }) {
-        asset.bundleBehavior = 'inline';
-        asset.meta.inlineType = 'string';
+        asset.bundleBehavior = "inline";
+        asset.meta.inlineType = "string";
         const dom = svgStringToDom(await asset.getCode());
 
         dom.setAttribute("width", parseInt(dom.getAttribute("width")));
         dom.setAttribute("height", parseInt(dom.getAttribute("height")));
-        
+
         const assets = [asset];
         processNode(dom, assets);
         removeDuplicateIds(dom);
@@ -39,15 +39,23 @@ export default (new Transformer({
 
         return assets;
     },
-}));
+});
 
 function processNode(node, assets, root = null, idStack = []) {
     // Parse the ID syntax     anythingblabla[attrkey=attrval][attrkey=attrval]
     if (root == null) root = node;
     const { nodeType, tagName } = node;
-    if (nodeType !== Node.TEXT_NODE && nodeType !== Node.COMMENT_NODE && nodeType !== Node.DOCUMENT_NODE) {
+    if (
+        nodeType !== Node.TEXT_NODE &&
+        nodeType !== Node.COMMENT_NODE &&
+        nodeType !== Node.DOCUMENT_NODE
+    ) {
         if (node.id != null && node.id !== "") {
-            parsed = idParser(node.id);
+            try {
+                parsed = idParser(node.id);
+            } catch (error) {
+                throw new Error(`Failed to parse the ID ${node.id}`);
+            }
             node.id = parsed.id ?? "";
             for (let { key, value } of parsed.attributes) {
                 node.setAttribute(key, value ?? "");
@@ -69,8 +77,12 @@ function processNode(node, assets, root = null, idStack = []) {
 
     // Process video nodes
     if (nodeType === Node.ELEMENT_NODE && node.hasAttribute("video")) {
-        let depId = assets[0].addURLDependency("./" + node.getAttribute("video"));
-        node.setAttribute("video", depId);
+        const src = node.getAttribute("video");
+        const isLocalFile = !(src.startsWith("http://") || src.startsWith("https://"));
+        if (isLocalFile) {
+            let depId = assets[0].addURLDependency(`./${src}`);
+            node.setAttribute("video", depId);
+        }
     }
 
     // Remove some <g> tags and move their children up in the hierarchy
@@ -78,7 +90,10 @@ function processNode(node, assets, root = null, idStack = []) {
     // | not meaningful for transitions.
     // | Any group that is not moving from one slide to the next can be deleted from the DOM hierarchy.
     if (nodeType === Node.ELEMENT_NODE && tagName === "g") {
-        const shouldBeRemoved = !node.hasAttribute("move") && !node.hasAttribute("keep") && !node.hasAttribute("clip-path");
+        const shouldBeRemoved =
+            !node.hasAttribute("move") &&
+            !node.hasAttribute("keep") &&
+            !node.hasAttribute("clip-path");
         if (shouldBeRemoved) {
             const parent = node.parentNode;
             for (let child of [...node.childNodes]) {
@@ -92,10 +107,25 @@ function processNode(node, assets, root = null, idStack = []) {
             return;
         } else if (node.hasAttribute("move")) {
             for (let attribute of [...node.attributes]) {
-                if (!["id", "move", "transform", "opacity", "fade-in", "fade-out", "transition-duration", "enter-duration", "exit-duration", "enter-alignment", "exit-alignment", "stage"].includes(attribute.name)) {
+                if (
+                    ![
+                        "id",
+                        "move",
+                        "transform",
+                        "opacity",
+                        "fade-in",
+                        "fade-out",
+                        "transition-duration",
+                        "enter-duration",
+                        "exit-duration",
+                        "enter-alignment",
+                        "exit-alignment",
+                        "stage",
+                    ].includes(attribute.name)
+                ) {
                     for (let child of [...node.childNodes]) {
                         applyAttrToGroupsChild(child, attribute.name, attribute.value);
-                    };
+                    }
                     node.removeAttribute(attribute.name);
                 }
             }
@@ -113,7 +143,7 @@ function processNode(node, assets, root = null, idStack = []) {
                 continue;
             }
             if (candidate.nodeType === Node.ELEMENT_NODE && candidate.id === refId) {
-                const definition = candidate.cloneNode(true)
+                const definition = candidate.cloneNode(true);
                 definition.removeAttribute("id");
                 for (let { name, value } of node.attributes) {
                     if (name !== "xlink:href") {
@@ -148,7 +178,7 @@ function processNode(node, assets, root = null, idStack = []) {
                     newText.setAttribute("transform", `translate(${x},${y})`);
                     newText.setAttribute("id", newText.id + "-" + `${i}`);
                 }
-                textNode.parentNode.insertBefore(newText, textNode)
+                textNode.parentNode.insertBefore(newText, textNode);
             }
         }
         textNode = textNode.parentNode.removeChild(textNode);
@@ -179,7 +209,11 @@ function processNode(node, assets, root = null, idStack = []) {
     }
 
     // Delete inline images, because they make the file too big
-    if (nodeType === Node.ELEMENT_NODE && tagName === "image" && node.getAttribute("xlink:href").slice(0, 5) === "data:") {
+    if (
+        nodeType === Node.ELEMENT_NODE &&
+        tagName === "image" &&
+        node.getAttribute("xlink:href").slice(0, 5) === "data:"
+    ) {
         const content = node.getAttribute("xlink:href");
         const hexhash = md5(content);
         const dataIdx = content.indexOf(",") + 1;
@@ -189,23 +223,23 @@ function processNode(node, assets, root = null, idStack = []) {
         const filename = `${hexhash}.${extension}`;
         assets.push({
             uniqueKey: filename,
-            content: Buffer.from(Latin1.stringify(Base64.parse(content.slice(dataIdx))), 'latin1'),
+            content: Buffer.from(Latin1.stringify(Base64.parse(content.slice(dataIdx))), "latin1"),
             type: extension,
         });
         const depId = assets[0].addDependency({
             specifier: filename,
-            specifierType: 'url'
+            specifierType: "url",
         });
         node.removeAttribute("xlink:href");
         node.setAttribute("href", depId);
     }
 
-    [...node.childNodes].forEach(child => processNode(child, assets, root, idStack));
+    [...node.childNodes].forEach((child) => processNode(child, assets, root, idStack));
 }
 
 function removeDuplicateIds(domNode) {
     const counts = {};
-    for(let node of domNode.querySelectorAll('[id]')) {
+    for (let node of domNode.querySelectorAll("[id]")) {
         var currentId = node.id ? node.id : "undefined";
         if (counts[currentId] == null) {
             counts[currentId] = 0;
@@ -214,7 +248,7 @@ function removeDuplicateIds(domNode) {
             counts[currentId]++;
         }
     }
-    for(let node of domNode.querySelectorAll('[id]')) {
+    for (let node of domNode.querySelectorAll("[id]")) {
         var currentId = node.id ? node.id : "undefined";
         if (counts[currentId] > 1) {
             node.removeAttribute("id");
@@ -237,7 +271,10 @@ function applyAttrToGroupsChild(node, attribute, value) {
     if (attribute === "transform") {
         node.setAttribute(attribute, value + " " + (node.getAttribute("transform") || "").trim());
     } else if (attribute === "opacity") {
-        node.setAttribute(attribute, parseFloat(node.getAttribute("opacity") || 1.0) * parseFloat(value || 1.0))
+        node.setAttribute(
+            attribute,
+            parseFloat(node.getAttribute("opacity") || 1.0) * parseFloat(value || 1.0)
+        );
     } else if (["fill", "full-rule", "stroke", "stroke-width"].includes(attribute)) {
         if (!node.hasAttribute(attribute)) {
             node.setAttribute(attribute, value);

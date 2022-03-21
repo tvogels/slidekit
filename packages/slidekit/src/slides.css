@@ -65,7 +65,8 @@ svg {
     line-height: 0;
     border: 0;
     display: block;
-    margin: 0; padding: 0;
+    margin: 0;
+    padding: 0;
 }
 
 .slidekit-main-screen {
@@ -84,5 +85,4 @@ svg {
     .slidekit-print-section {
         display: block;
     }
-
 }

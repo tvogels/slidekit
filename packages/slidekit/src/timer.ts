@@ -3,10 +3,10 @@ import { now, Duration, utc } from "moment";
 type Listener = (elapsed: string, progress: number) => void;
 
 export default class Timer {
-    private startTime: number
-    private accumulatedTime: number
-    private targetTime: Duration
-    private listeners: Set<Listener>
+    private startTime: number;
+    private accumulatedTime: number;
+    private targetTime: Duration;
+    private listeners: Set<Listener>;
 
     constructor(targetDuration) {
         this.reset();

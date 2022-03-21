@@ -1,11 +1,11 @@
 import { Step } from "../slidedeck";
 
 export type Transition = {
-    duration: number, 
-    alignment: number, 
-    mode: string, 
-    callback: (number) => void
-}
+    duration: number;
+    alignment: number;
+    mode: string;
+    callback: (number) => void;
+};
 
 export function isEntering(node: Element, step: Step) {
     if (node.hasAttribute("min-stage")) {
@@ -63,7 +63,9 @@ function findCorrespondingParent(node: HTMLElement, domTree: HTMLElement): HTMLE
     }
     if (correspondingParent == null) {
         correspondingParent = domTree;
-        console.error(`Couldn't match parent with id #${parentId}, using ${correspondingParent.id} instead.`);
+        console.error(
+            `Couldn't match parent with id #${parentId}, using ${correspondingParent.id} instead.`
+        );
     }
     return correspondingParent;
 }
@@ -92,7 +94,12 @@ export function getMoveElementById(id: string, dom: HTMLElement): HTMLElement | 
     }
 }
 
-export function parseTransitionDuration(node: Element, attribute: string, defaultValue: number, type="exit"): number {
+export function parseTransitionDuration(
+    node: Element,
+    attribute: string,
+    defaultValue: number,
+    type = "exit"
+): number {
     if (node.hasAttribute(`${type}-duration`)) {
         return parseFloat(node.getAttribute(`${type}-duration`));
     } else {
@@ -106,7 +113,12 @@ export function parseTransitionDuration(node: Element, attribute: string, defaul
     }
 }
 
-export function parseTransitionAlignment(node: Element, attribute: string, defaultValue: number, type="exit"): number {
+export function parseTransitionAlignment(
+    node: Element,
+    attribute: string,
+    defaultValue: number,
+    type = "exit"
+): number {
     if (node.hasAttribute(`${type}-alignment`)) {
         return parseFloat(node.getAttribute(`${type}-alignment`));
     } else {

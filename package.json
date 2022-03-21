@@ -1,4 +1,10 @@
 {
     "private": true,
-    "workspaces": ["packages/*"]
+    "workspaces": [
+        "packages/*"
+    ],
+    "prettier": {
+        "tabWidth": 4,
+        "printWidth": 100
+    }
 }

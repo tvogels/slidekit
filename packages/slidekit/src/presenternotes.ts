@@ -1,6 +1,6 @@
 export default class PresenterNotes {
-    private notes: Map<string, HTMLDivElement>
-    private emptyNode: HTMLDivElement
+    private notes: Map<string, HTMLDivElement>;
+    private emptyNode: HTMLDivElement;
 
     /**
      * HTML string where notes are separated by e.g.

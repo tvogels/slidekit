@@ -1,13 +1,18 @@
 export default class Canvas {
-    dom: HTMLElement
-    canvas: HTMLDivElement
-    private slideNumber: HTMLDivElement
-    private width: number
-    private height: number
+    dom: HTMLElement;
+    canvas: HTMLDivElement;
+    private slideNumber: HTMLDivElement;
+    private width: number;
+    private height: number;
     private animationFrameRequested: boolean = false;
     private svg: HTMLElement;
 
-    constructor(domElement: HTMLDivElement, deckWidth: number, deckHeight: number, withSlideNumbers = false) {
+    constructor(
+        domElement: HTMLDivElement,
+        deckWidth: number,
+        deckHeight: number,
+        withSlideNumbers = false
+    ) {
         this.dom = domElement;
 
         this.canvas = document.createElement("div");
@@ -56,7 +61,10 @@ export default class Canvas {
         if (!this.animationFrameRequested) {
             this.animationFrameRequested = true;
             window.requestAnimationFrame(() => {
-                const scale = Math.min(this.dom.clientHeight / this.height, this.dom.clientWidth / this.width);
+                const scale = Math.min(
+                    this.dom.clientHeight / this.height,
+                    this.dom.clientWidth / this.width
+                );
                 const offsetY = (this.dom.clientHeight - scale * this.height) / 2;
                 const offsetX = (this.dom.clientWidth - scale * this.width) / 2;
                 this.canvas.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;

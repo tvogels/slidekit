@@ -11,7 +11,7 @@ export default class CSSTransform {
     constructor(transformString) {
         const parts = transformString.match(/\w+\(.*?\)/g);
         if (parts != null) {
-            this.parts = parts.map(p => new CSSTransformPart(p));
+            this.parts = parts.map((p) => new CSSTransformPart(p));
         } else {
             this.parts = [];
         }
@@ -30,7 +30,9 @@ export default class CSSTransform {
             let a = this.parts[i] || other.parts[i].identityTransform();
             let b = other.parts[i] || this.parts[i].identityTransform();
             if (a.name !== b.name) {
-                console.error("Haven't implemented interpolatino of transforms in different order.");
+                console.error(
+                    "Haven't implemented interpolatino of transforms in different order."
+                );
             }
             outArray.push(a.mixString(b, alpha));
         }

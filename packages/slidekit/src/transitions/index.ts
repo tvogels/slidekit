@@ -12,12 +12,12 @@ export const enter = {
     fadeDown,
     sketch,
     appearAlong,
-}
+};
 
 export const exit = {
     move,
-    fadeOut
-}
+    fadeOut,
+};
 
 export const defaultEnterTransitions = Object.values(enter);
 export const defaultExitTransitions = Object.values(exit);

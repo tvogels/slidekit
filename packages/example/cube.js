@@ -1,4 +1,14 @@
-import { BoxGeometry, WebGLRenderer, Scene, MeshStandardMaterial, Mesh, PerspectiveCamera, PointLight, AmbientLight, MeshBasicMaterial } from 'three';
+import {
+    BoxGeometry,
+    WebGLRenderer,
+    Scene,
+    MeshStandardMaterial,
+    Mesh,
+    PerspectiveCamera,
+    PointLight,
+    AmbientLight,
+    MeshBasicMaterial,
+} from "three";
 
 export default ({ canvas, height, width, node }) => {
     const scene = new Scene();
@@ -15,11 +25,13 @@ export default ({ canvas, height, width, node }) => {
     camera.position.z = 5;
 
     const cube = new Mesh(
-        new BoxGeometry(), 
-        new MeshStandardMaterial({ color: node.getAttribute("color") || "hotpink" })
+        new BoxGeometry(),
+        new MeshStandardMaterial({
+            color: node.getAttribute("color") || "hotpink",
+        })
     );
     scene.add(cube);
-    
+
     const light = new PointLight(0x404040, 2, 100);
     light.position.set(5, 5, 5);
     scene.add(light);
@@ -28,8 +40,8 @@ export default ({ canvas, height, width, node }) => {
     return {
         time: 0,
         tick(t) {
-            cube.rotation.x = .6 + t;
-            cube.rotation.y = .6 + t;
+            cube.rotation.x = 0.6 + t;
+            cube.rotation.y = 0.6 + t;
             renderer.render(scene, camera);
         },
         deactivate() {
@@ -37,17 +49,17 @@ export default ({ canvas, height, width, node }) => {
         },
         setNode(node) {
             node.style.opacity = 0;
-            
+
             renderer.domElement.style.top = `${node.getAttribute("y")}px`;
             renderer.domElement.style.left = `${node.getAttribute("x")}px`;
             const width = node.getAttribute("width");
             const height = node.getAttribute("height");
             renderer.setSize(width, height);
-            camera.aspect = width/ height;
+            camera.aspect = width / height;
             camera.updateProjectionMatrix();
         },
         minimumDuration() {
             return 1;
-        }
-    }
+        },
+    };
 };
