@@ -14,7 +14,7 @@
  */
 export default function (domNode: HTMLElement) {
     // Find all existing stages in the slide
-    const allStages = [0.]
+    const allStages = [0];
     for (let node of domNode.querySelectorAll("[stage]")) {
         const stage = node.getAttribute("stage");
         if (stage.includes("-")) {
