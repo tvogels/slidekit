@@ -5,7 +5,8 @@
     "main": "lib/SlideTransformer.js",
     "source": "src/SlideTransformer.js",
     "engines": {
-        "node": ">= 12.0.0"
+        "node": ">= 12.0.0",
+        "parcel": "2.x"
     },
     "scripts": {
         "build": "parcel build"
