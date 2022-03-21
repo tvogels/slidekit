@@ -1,9 +1,9 @@
 import { Step } from "../slidedeck";
 
 export type Transition = {
-    duration: number, 
-    alignment: number, 
-    mode: string, 
+    duration: number,
+    alignment: number,
+    mode: string,
     callback: (number) => void
 }
 

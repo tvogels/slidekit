@@ -32,7 +32,7 @@ export function create(node: HTMLElement, stage: Stage, nextStage: Stage) {
                 // We are using snap.svg for morphing between SVG paths
                 let eq = snap(node).equal(attribute, nextValue);
                 transitions.push({
-                    duration, 
+                    duration,
                     alignment,
                     mode: "easeInOutQuad",
                     callback: dt => {
@@ -45,7 +45,7 @@ export function create(node: HTMLElement, stage: Stage, nextStage: Stage) {
                 const from = [c1.r, c1.g, c1.b, c1.opacity];
                 const to = [c2.r, c2.g, c2.b, c2.opacity];
                 transitions.push({
-                    duration, 
+                    duration,
                     alignment,
                     mode: "easeInOutQuad",
                     callback: dt => {
@@ -72,7 +72,7 @@ export function create(node: HTMLElement, stage: Stage, nextStage: Stage) {
                 ].includes(attribute)
             ) {
                 transitions.push({
-                    duration, 
+                    duration,
                     alignment,
                     mode: "easeInOutQuad",
                     callback: dt => {
@@ -86,7 +86,7 @@ export function create(node: HTMLElement, stage: Stage, nextStage: Stage) {
                 const a = new CSSTransform(currentValue);
                 const b = new CSSTransform(nextValue);
                 transitions.push({
-                    duration, 
+                    duration,
                     alignment,
                     mode: "easeInOutQuad",
                     callback: dt => {

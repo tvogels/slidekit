@@ -44,8 +44,8 @@ export default class SlidePlayer {
     private scriptNodes: { [scriptAndStage: string]: HTMLElement } = {};
 
     constructor(
-        public canvas: Canvas, 
-        private deck: SlideDeck, 
+        public canvas: Canvas,
+        private deck: SlideDeck,
         scripts: { [name: string]: ScriptTemplate } | undefined,
         private exitTransitions: ExitTransitionSpec[] = defaultExitTransitions,
         private enterTransitions: EnterTransitionSpec[] = defaultEnterTransitions,

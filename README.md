@@ -16,12 +16,12 @@ By annotating the SVG, you can build slide transitions with
 
 ## SVG features
 
-You can add attributes to any SVG element 
+You can add attributes to any SVG element
 
 -  __Step-wise appearance:__ use tags `[stage=1]` or `[stage=3-5]`
 -  __Magic move__ `mynode[move=1.5]` --- 1.5 second morph. Interpolates be color, position, rotation, etc. Supports complex paths.
 
-Entry effects: 
+Entry effects:
 
 -   `mynode[fade-in]`
 -   `mynode[fade-in=2]` --- fade in, taking 2 seconds
@@ -30,7 +30,7 @@ Entry effects:
 -   `mynode[fade-down]` --- fade in and come 20pix down
 -   `mynode[appear-along=PathId,5,0]` --- appear along a given path object, take 5 seconds, align at the begining of the transition
 
-Exit effects: 
+Exit effects:
 
 -   `mynode[fade-out=1]` --- 1 second fade out
 

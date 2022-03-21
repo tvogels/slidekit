@@ -55,9 +55,9 @@ export default class Controller {
         this.fullscreenNode = canvas.parentElement;
         this.timer = new Timer(duration);
         this.player = new SlidePlayer(
-            this.canvas, 
-            this.deck, 
-            scripts, 
+            this.canvas,
+            this.deck,
+            scripts,
             [...defaultExitTransitions, ...exitTransitions],
             [...defaultEnterTransitions, ...enterTransitions]
         );
@@ -321,9 +321,9 @@ export default class Controller {
     private populatePrintSection() {
         const style = document.createElement("style");
         style.setAttribute("rel", "stylesheet");
-        style.innerHTML = `        
-            @page { 
-                margin: 0; 
+        style.innerHTML = `
+            @page {
+                margin: 0;
                 padding: 0;
                 size: ${this.deck.width}px ${this.deck.height}px;
             }

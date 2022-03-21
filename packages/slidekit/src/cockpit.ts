@@ -143,8 +143,8 @@ export default class Cockpit {
         // Clear any text that is already in the window
         this.head.innerHTML = `
             <style>
-                html, body { 
-                    height: 100%; 
+                html, body {
+                    height: 100%;
                 }
                 body {
                     margin: 0;

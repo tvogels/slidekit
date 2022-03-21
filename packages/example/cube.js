@@ -15,11 +15,11 @@ export default ({ canvas, height, width, node }) => {
     camera.position.z = 5;
 
     const cube = new Mesh(
-        new BoxGeometry(), 
+        new BoxGeometry(),
         new MeshStandardMaterial({ color: node.getAttribute("color") || "hotpink" })
     );
     scene.add(cube);
-    
+
     const light = new PointLight(0x404040, 2, 100);
     light.position.set(5, 5, 5);
     scene.add(light);
@@ -37,7 +37,7 @@ export default ({ canvas, height, width, node }) => {
         },
         setNode(node) {
             node.style.opacity = 0;
-            
+
             renderer.domElement.style.top = `${node.getAttribute("y")}px`;
             renderer.domElement.style.left = `${node.getAttribute("x")}px`;
             const width = node.getAttribute("width");
