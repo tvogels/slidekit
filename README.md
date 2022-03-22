@@ -1,16 +1,15 @@
 <br><img src="logo.svg" width="200" alt="SlideKit logo" style="margin:1em 0">
 
-Draw your slides in a vector editor and export SVG.
-By annotating the SVG, you can build slide transitions with
+SlideKit is a highly scriptable player for slides defined in the SVG format.
+You can draw those slides in any vector drawing program, and annotate the objects with custom attributes that trigger transitions, incremental builds, or scripts. SlideKit suppports
 
 -   Incremental builds
 -   Magic-move, with matching by ID, and morphing of many attributes, including path shape.
 -   Fade-in and -out
 -   Presenter notes
--   External web content
--   Embedded videos
--   Scripted animations (Write your own plugins & transitions)
--   Print to PDF (Chrome)
+-   External web content (interactive plots, iframes, YouTube videos)
+-   Scripted animations (write your own plugins & transitions)
+-   Print to PDF (in Chrome)
 
 
 https://user-images.githubusercontent.com/840825/159301945-66b53409-58a0-4c87-be25-a63fce87f71c.mp4
