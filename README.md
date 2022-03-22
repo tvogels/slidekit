@@ -25,7 +25,7 @@ https://user-images.githubusercontent.com/840825/159301945-66b53409-58a0-4c87-be
 
 You can create SVG slides in any vector-drawing editor.
 For the best experience, we recommend [Sketch](https://www.sketch.com/home/) on macOS.
-On Windows, we recommend the free web-based [Figma](https://www.figma.com).
+On other platforms, we recommend the free web-based [Figma](https://www.figma.com).
 
 ## SVG features
 
