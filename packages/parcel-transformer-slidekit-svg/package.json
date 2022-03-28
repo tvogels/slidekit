@@ -14,7 +14,6 @@
     "dependencies": {
         "parcel": "^2.2.1",
         "@parcel/plugin": "^2.2.1",
-        "crypto-js": "^4.1.1",
         "jsdom": "^19.0.0"
     }
 }

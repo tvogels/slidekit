@@ -1,7 +1,7 @@
 import { Transformer } from "@parcel/plugin";
 import idParser from "./idParser.js";
 import Base64 from "crypto-js/enc-base64";
-import md5 from "crypto-js/md5";
+import crypto from "crypto";
 import Latin1 from "crypto-js/enc-latin1";
 import { JSDOM } from "jsdom";
 
@@ -288,4 +288,8 @@ function applyAttrToGroupsChild(node, attribute, value) {
     } else if (!node.hasAttribute(attribute)) {
         node.setAttribute(attribute, value);
     }
+}
+
+function md5(data) {
+    return crypto.createHash("md5").update(data).digest("hex");
 }
