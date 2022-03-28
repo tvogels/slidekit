@@ -1,46 +1,50 @@
 import { Transformer } from "@parcel/plugin";
-
-import { exec } from "child_process";
-import { mkdtemp, writeFile, readdir, readFile } from "fs/promises";
-import { join } from "path";
-import { promisify } from "util";
+import SketchFile from "./sketchfile";
+import path from "path";
+import { mkdir, stat } from "fs/promises";
 
 export default new Transformer({
     async transform({ asset }) {
-        const tmpdir = await mkdtemp("/tmp/");
+        const filePath = path.parse(asset.filePath);
+        const cacheDir = path.join(filePath.dir, "." + filePath.base + "-cache");
+        if (!(await stat(cacheDir).catch((e) => false))) {
+            await mkdir(cacheDir);
+        }
 
-        await writeFile(join(tmpdir, "slides.sketch"), await asset.getBuffer());
+        const sketchFile = new SketchFile(asset.filePath, cacheDir);
 
-        // sketchtool export artboards --formats=svg --output="$1" "$1/slides.sketch"
+        const artboards = sketchFile.artboards();
+        sketchFile.cleanUpCache(artboards);
 
-        const cmd = `sketchtool export artboards --formats=svg --output="${tmpdir}" "${join(
-            tmpdir,
-            "slides.sketch"
-        )}"`;
-
-        const { stdout, stderr } = await promisify(exec)(cmd);
+        // Assert that the page names are all unique
+        const usedNames = new Set();
+        for (let layer of artboards) {
+            if (usedNames.has(layer.name)) {
+                throw new Error(`Page name “${layer.name}” is not unique.`);
+            } else {
+                usedNames.add(layer.name);
+            }
+        }
 
         const assets = [asset];
 
         let deps = [];
 
         let i = 0;
-        for (let file of await readdir(tmpdir)) {
-            if (file.endsWith(".svg")) {
-                i++;
-                const key = `${asset.id}-${file.replace(/ /g, "").replace(".svg", "")}`;
-                assets.push({
-                    type: "svg",
-                    content: await readFile(join(tmpdir, file)),
-                    uniqueKey: key,
-                });
-                asset.addDependency({ specifier: key, specifierType: "esm" });
-                deps.push({
-                    name: `slide${i}`,
-                    key,
-                    filename: file,
-                });
-            }
+        for (let layer of artboards) {
+            i++;
+            const key = `${asset.id}-${filePath.base.replace(/ /g, "").replace(".svg", "")}`;
+            assets.push({
+                type: "svg",
+                content: await layer.getSvg(),
+                uniqueKey: key,
+            });
+            asset.addDependency({ specifier: key, specifierType: "esm" });
+            deps.push({
+                name: `slide${i}`,
+                key,
+                filename: filePath.base,
+            });
         }
 
         let code = deps.map(({ name, key }) => `import ${name} from "${key}";\n`).join("");
