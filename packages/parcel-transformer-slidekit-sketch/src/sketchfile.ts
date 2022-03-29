@@ -29,7 +29,6 @@ export default class SketchFile {
         const cacheFilename = path.join(this.cacheDir, `${artboardId}.svg`);
 
         if (metadata[artboardId] != null && metadata[artboardId].hash === hash) {
-            console.log(`Serving ${artboardId} from cache.`);
             return await readFile(cacheFilename);
         } else {
             metadata[artboardId] = { hash: hash };
