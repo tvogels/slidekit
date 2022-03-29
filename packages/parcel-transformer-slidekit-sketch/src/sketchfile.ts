@@ -66,8 +66,11 @@ export default class SketchFile {
         return artboards;
     }
 
-    async cleanUpCache(artboards?: Artboard[]) {
-        const metadataHandle = this.getMetadata();
+    /**
+     * Remove cache files that don't appear in any of the artboards
+     */
+    async pruneCache(artboards?: Artboard[]) {
+        const metadata = await this.getMetadata();
 
         const usedIds = new Set();
         for (let artboard of artboards || this.artboards()) {
@@ -75,12 +78,14 @@ export default class SketchFile {
         }
 
         let handles = [];
-        for (let id of Object.keys(await metadataHandle)) {
+        for (let id of Object.keys(metadata)) {
             if (!usedIds.has(id)) {
                 const cacheFilename = path.join(this.cacheDir, `${id}.svg`);
                 handles.push(rm(cacheFilename));
+                delete metadata[id];
             }
         }
+        handles.push(this.updateMetadata(metadata));
         await Promise.all(handles);
     }
 

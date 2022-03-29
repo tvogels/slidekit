@@ -14,7 +14,7 @@ export default new Transformer({
         const sketchFile = new SketchFile(asset.filePath, cacheDir);
 
         const artboards = sketchFile.artboards();
-        sketchFile.cleanUpCache(artboards);
+        await sketchFile.pruneCache(artboards);
 
         // Assert that the page names are all unique
         const usedNames = new Set();
