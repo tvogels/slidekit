@@ -1,6 +1,6 @@
 {
     "name": "parcel-transformer-slidekit-svg",
-    "version": "0.0.6",
+    "version": "0.0.7",
     "license": "MIT",
     "main": "lib/SlideTransformer.js",
     "source": "src/SlideTransformer.js",
@@ -9,11 +9,13 @@
         "parcel": "2.x"
     },
     "scripts": {
-        "build": "parcel build"
+        "build": "parcel build",
+        "watch": "parcel watch"
     },
     "dependencies": {
         "parcel": "^2.2.1",
         "@parcel/plugin": "^2.2.1",
+        "crypto-js": "^4.1.1",
         "jsdom": "^19.0.0"
     }
 }

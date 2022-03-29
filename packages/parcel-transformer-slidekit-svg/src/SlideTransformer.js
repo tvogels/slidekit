@@ -4,6 +4,7 @@ import Base64 from "crypto-js/enc-base64";
 import crypto from "crypto";
 import Latin1 from "crypto-js/enc-latin1";
 import { JSDOM } from "jsdom";
+import { writeFile } from "fs/promises";
 
 const dom = new JSDOM("");
 const { document } = dom.window;
@@ -221,11 +222,13 @@ function processNode(node, assets, root = null, idStack = []) {
         const semicolonIdx = content.indexOf(";");
         const extension = content.slice(slashIdx + 1, semicolonIdx);
         const filename = `${hexhash}.${extension}`;
+        // console.log("writing", filename);
         assets.push({
             uniqueKey: filename,
             content: Buffer.from(Latin1.stringify(Base64.parse(content.slice(dataIdx))), "latin1"),
             type: extension,
         });
+        // writeFile(filename, Buffer.from(Latin1.stringify(Base64.parse(content.slice(dataIdx))), "latin1"));
         const depId = assets[0].addDependency({
             specifier: filename,
             specifierType: "url",

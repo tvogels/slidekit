@@ -1,6 +1,6 @@
 {
     "name": "parcel-transformer-slidekit-sketch",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "license": "MIT",
     "main": "lib/SketchTransformer.js",
     "source": "src/SketchTransformer.js",

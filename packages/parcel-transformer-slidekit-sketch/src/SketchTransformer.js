@@ -32,8 +32,9 @@ export default new Transformer({
 
         let i = 0;
         for (let layer of artboards) {
+            const layerName = layer.name.replace(/ /g, "");
             i++;
-            const key = `${asset.id}-${filePath.base.replace(/ /g, "").replace(".svg", "")}`;
+            const key = `${asset.id}-${layerName}`;
             assets.push({
                 type: "svg",
                 content: await layer.getSvg(),
@@ -43,7 +44,7 @@ export default new Transformer({
             deps.push({
                 name: `slide${i}`,
                 key,
-                filename: filePath.base,
+                filename: layer.name + ".svg",
             });
         }
 
