@@ -1,15 +1,13 @@
 import { Transformer } from "@parcel/plugin";
 import SketchFile from "./sketchfile";
 import path from "path";
-import { mkdir, stat } from "fs/promises";
+import { mkdir } from "fs/promises";
 
 export default new Transformer({
     async transform({ asset }) {
         const filePath = path.parse(asset.filePath);
-        const cacheDir = path.join(filePath.dir, "." + filePath.base + "-cache");
-        if (!(await stat(cacheDir).catch((e) => false))) {
-            await mkdir(cacheDir);
-        }
+        const cacheDir = path.join(".slidekit-cache", filePath.base);
+        await mkdir(cacheDir, { recursive: true }).catch((e) => true);
 
         const sketchFile = new SketchFile(asset.filePath, cacheDir);
 

@@ -4,7 +4,8 @@ import Base64 from "crypto-js/enc-base64";
 import crypto from "crypto";
 import Latin1 from "crypto-js/enc-latin1";
 import { JSDOM } from "jsdom";
-import { writeFile } from "fs/promises";
+import path from "path";
+import { mkdir, stat, writeFile } from "fs/promises";
 
 const dom = new JSDOM("");
 const { document } = dom.window;
@@ -23,6 +24,8 @@ const Node = {
     NOTATION_NODE: 12, // historical
 };
 
+const cacheDir = ".slidekit-cache";
+
 export default new Transformer({
     async transform({ asset }) {
         asset.bundleBehavior = "inline";
@@ -33,7 +36,7 @@ export default new Transformer({
         dom.setAttribute("height", parseInt(dom.getAttribute("height")));
 
         const assets = [asset];
-        processNode(dom, assets);
+        await processNode(dom, assets);
         removeDuplicateIds(dom);
 
         asset.setCode(dom.outerHTML);
@@ -42,7 +45,7 @@ export default new Transformer({
     },
 });
 
-function processNode(node, assets, root = null, idStack = []) {
+async function processNode(node, assets, root = null, idStack = []) {
     // Parse the ID syntax     anythingblabla[attrkey=attrval][attrkey=attrval]
     if (root == null) root = node;
     const { nodeType, tagName } = node;
@@ -221,16 +224,17 @@ function processNode(node, assets, root = null, idStack = []) {
         const slashIdx = content.indexOf("/");
         const semicolonIdx = content.indexOf(";");
         const extension = content.slice(slashIdx + 1, semicolonIdx);
-        const filename = `${hexhash}.${extension}`;
-        // console.log("writing", filename);
-        assets.push({
-            uniqueKey: filename,
-            content: Buffer.from(Latin1.stringify(Base64.parse(content.slice(dataIdx))), "latin1"),
-            type: extension,
-        });
-        // writeFile(filename, Buffer.from(Latin1.stringify(Base64.parse(content.slice(dataIdx))), "latin1"));
+        const cacheFilename = path.join(cacheDir, `${hexhash}.${extension}`);
+        const fileExists = await stat(cacheFilename).catch((err) => false);
+        if (!fileExists) {
+            await mkdir(cacheDir, { recursive: true }).catch((err) => true);
+            await writeFile(
+                cacheFilename,
+                Buffer.from(Latin1.stringify(Base64.parse(content.slice(dataIdx))), "latin1")
+            );
+        }
         const depId = assets[0].addDependency({
-            specifier: filename,
+            specifier: cacheFilename,
             specifierType: "url",
         });
         node.removeAttribute("xlink:href");
