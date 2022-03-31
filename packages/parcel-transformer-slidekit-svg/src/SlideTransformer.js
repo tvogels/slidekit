@@ -241,7 +241,9 @@ async function processNode(node, assets, root = null, idStack = []) {
         node.setAttribute("href", depId);
     }
 
-    [...node.childNodes].forEach((child) => processNode(child, assets, root, idStack));
+    await Promise.all(
+        [...node.childNodes].map((child) => processNode(child, assets, root, idStack))
+    );
 }
 
 function removeDuplicateIds(domNode) {
