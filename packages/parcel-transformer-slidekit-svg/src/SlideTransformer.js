@@ -30,6 +30,8 @@ export default new Transformer({
     async transform({ asset }) {
         asset.bundleBehavior = "inline";
         asset.meta.inlineType = "string";
+        // asset.bundleBehavior = "isolated";
+        // asset.type = "js";
         const dom = svgStringToDom(await asset.getCode());
 
         dom.setAttribute("width", parseInt(dom.getAttribute("width")));
@@ -100,13 +102,15 @@ async function processNode(node, assets, root = null, idStack = []) {
             !node.hasAttribute("clip-path");
         if (shouldBeRemoved) {
             const parent = node.parentNode;
+            const promises = [];
             for (let child of [...node.childNodes]) {
                 child = parent.insertBefore(child, node);
                 for (let { name, value } of node.attributes) {
                     applyAttrToGroupsChild(child, name, value);
                 }
-                processNode(child, assets, root, idStack);
+                promises.push(processNode(child, assets, root, idStack));
             }
+            await Promise.all(promises);
             node = parent.removeChild(node);
             return;
         } else if (node.hasAttribute("move")) {
