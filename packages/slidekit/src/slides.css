@@ -71,6 +71,7 @@ svg {
 
 .slidekit-main-screen {
     display: block;
+    pointer-events: none;
 }
 
 @media print {
