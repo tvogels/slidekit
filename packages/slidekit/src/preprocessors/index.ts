@@ -14,7 +14,6 @@ export default {
     stageSquasher,
     video,
     youtube,
-    stageSquasher,
 };
 
 export const defaultPreprocessors = [hyperlink, canvas, iframe, youtube, video];
