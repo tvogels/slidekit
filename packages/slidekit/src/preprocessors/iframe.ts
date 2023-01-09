@@ -10,6 +10,10 @@ export default function (domNode: HTMLElement) {
                 continue;
             foreignObject.setAttribute(name, value);
         }
+        
+        // We added this to make sure iframes get mouse hover and mouse click events.
+        // Maybe it works.
+        foreignObject.setAttribute("pointer-events", "all");
 
         foreignObject.innerHTML = `<iframe
             width="${node.getAttribute("width")}"
@@ -17,9 +21,6 @@ export default function (domNode: HTMLElement) {
             src="${node.getAttribute("iframe")}"/>`;
         const iframe = foreignObject.querySelector("iframe");
         iframe.id = foreignObject.id + "-iframe";
-
-        // // Restores proper render order in Chrome.
-        // iframe.getContext('2d').getImageData(0, 0, 1, 1);
 
         const parent = node.parentElement;
         parent.insertBefore(foreignObject, node);
