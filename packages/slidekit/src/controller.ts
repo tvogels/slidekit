@@ -47,7 +47,7 @@ export default class Controller {
             duration,
             notes,
             scripts,
-            preprocessors = [],
+            preprocessors = [...defaultPreprocessors],
             enterTransitions = [],
             exitTransitions = [],
         }: Options
@@ -56,7 +56,7 @@ export default class Controller {
             throw new Error("Slide list is empty");
         }
 
-        const deck = new SlideDeck(slides, [...defaultPreprocessors, ...preprocessors]);
+        const deck = new SlideDeck(slides, preprocessors);
         this.deck = deck;
         const canvas = document.createElement("div");
         root.appendChild(canvas);
