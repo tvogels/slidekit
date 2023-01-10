@@ -9,6 +9,9 @@ export default function (dom: HTMLElement) {
         foreignObject.setAttribute("y", node.getAttribute("y"));
         foreignObject.setAttribute("height", node.getAttribute("height"));
         foreignObject.setAttribute("width", node.getAttribute("width"));
+        
+        // Avoid bugs in Chrome, where the controls of the video don't work.
+        foreignObject.setAttribute("pointer-events", "all");
 
         foreignObject.innerHTML = `<video width="${node.getAttribute(
             "width"
